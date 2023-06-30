@@ -1,0 +1,81 @@
+---
+title: "Skills Quiz - Multiple Linear Regression"
+output: 
+  html_document:
+    theme: cerulean
+    css: styles.css
+---
+
+
+Run the following commands.
+```{r setup, include=FALSE}
+states <- data.frame(state.x77)
+View(states)
+```
+
+
+What is the interpretation of the states data? What is the value of the p-value for the t-test?
+```{r}
+states.lm <- lm(Illiteracy ~ Income + Life.Exp,
+                data = states)
+summary(states.lm)
+```
+
+What factors influence vehicle accidents?
+```{r}
+library(car)
+?Highway1
+View(Highway1)
+```
+
+What are the values to finish the equation?
+```{r}
+accidents.lm <- lm(rate ~ slim + shld + trks,
+                   data = Highway1)
+summary(accidents.lm)
+par(mfrow = c(1,2))
+plot(accidents.lm,
+     which = 1:2)
+17.69097 + (-0.20484 * 55) + (0.02015 * 6) + (-0.28175 * 10)
+```
+
+
+Information about the vehicle city miles per gallon.
+```{r}
+library(mosaic)
+library(ggplot2)
+?mpg
+View(mpg)
+
+plot(hwy ~ cty, 
+     data = mpg)
+mpg.lm <- lm(hwy ~ cty + as.factor(drv), 
+             data=mpg)
+
+summary(mpg.lm)
+
+mPlot(mpg, 
+      "scatter", 
+      default = "scatter", 
+      system = system_choices()[1],
+      show = FALSE, title = "", data_text = expr_text(data), ...)
+
+par(mfrow=c(1,2)); plot(mpg.lm, 
+                        which=1:2)
+
+par(mfrow=c(1,3))
+plot(mpg.lm$residuals ~ cyl,
+     data = mpg)
+plot(mpg.lm$residuals ~ as.factor(drv),
+     data = mpg)
+plot(mpg.lm$residuals ~ displ,
+     data = mpg)
+
+```
+
+Optional requirement for help on analysis.
+```{r}
+ggplot(data = mpg, 
+       aes(x = cty, y = hwy)) + geom_jitter()  + aes(colour = drv) + facet_wrap(~drv, ncol = 4)  + stat_smooth(method = lm) + theme(legend.position = "right") + labs(title = "")
+```
+

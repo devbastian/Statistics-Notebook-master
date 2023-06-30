@@ -1,0 +1,193 @@
+---
+title: "Weather Prediction"
+output: 
+  html_document:
+    theme: readable
+    code_folding: hide
+---
+
+```{r load_library, include=FALSE}
+# Use this R-Chunk to load your libraries!
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(ResourceSelection)
+
+```
+
+```{r load_data, include=FALSE}
+# Use this R-Chunk to load your datasets!
+Weather <- read.csv("../../Data/WeatherPrediction.csv")
+
+#View(Weather)
+```
+
+<!-- Information about my Weather dataset columns -->
+
+<!-- Day (Date from which the information was gathered) -->
+<!-- MaxTemp (Max temperature of the day in Farenheit) -->
+<!-- LowTemp (Lowest temperature of the day in Farenheit) -->
+<!-- AvgTemp (Average temperature of the day in Farenheit) -->
+<!-- Dew (Dew point for the day) -->
+<!-- SeaPressure (As name implies, the sea pressure) -->
+<!-- TimeLength (How long the sun was out by mintures) -->
+<!-- TotalAvg (I added Low, Avg, Dew, Pressure, and Total together and divided by five to get this column) -->
+
+----
+
+<!--If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+
+**Corrections Made:**  
+
+1. I switched my plot over to ggplot from base R.
+2. Added details to my Data Set information.
+3. I put a fourth tab to keep what I did wrong in my first attempt. No explainations were written though as to why this was incorrect.
+4. I redid the entire `Summary` and `Details To Look At sections` since I had to change my x-variable.
+
+
+<!--End your comments to your critiquers before this line.-->
+
+----
+
+### Analysis {.tabset .tabset-pills .tabset-fade}
+
+#### Summary {.tabset}
+
+```{r Graph of Prediction}
+my.lm <- lm(MaxTemp ~ TimeLength, data = Weather)
+my.lm.co <- my.lm$coefficients
+mylines <- predict(my.lm, data.frame(TimeLength = 552), interval = "prediction")
+
+Weather %>%
+  ggplot(aes(y = MaxTemp, x = TimeLength)) +
+  geom_point() +
+  geom_point(aes(x = 552, y = mylines[2]), color = "firebrick") +
+  geom_point(aes(x = 552, y = mylines[1]), color = "firebrick") +
+  geom_point(aes(x = 552, y = mylines[3]), color = "firebrick") +
+  geom_hline(aes(yintercept = mylines[2]), color = "firebrick", linetype = 2) +
+  geom_hline(aes(yintercept = mylines[3]), color = "firebrick", linetype = 2) +
+  geom_segment(aes(x=552, xend=552, y=mylines[2], yend=mylines[3]), color="firebrick", linetype = 2) + # mylines[2] lowend mylines[3] highend
+  stat_function(fun = function(x) my.lm.co[1] + my.lm.co[2]*x,
+                aes(color = "firebrick")) +
+  labs(title = "Predicting the Max Temperature for January 13th",
+        x = "Length of the Day Time",
+        y = "Max Temperature") +
+  theme_bw() 
+  # theme(plot.title = element_text(hjust = 0.5),
+  #       legend.position = c(0.85, .85)) +
+  # scale_color_manual("",
+  #                    values = c("black", "firebrick"),
+  #                    labels = c("Regression Line", "Transformed Regression"))
+```
+
+In order to predict January 13th's max temperature, I am using it's length of day 552 minutes. I predict that January 13th's max temperature will be $27.07^oF$. It could also potentially be anywhere from $12.72^oF$ to $41.43^oF$.
+
+**Real Temperature**: The real temperature of January 13, 2020 was $28^oF$.
+
+
+#### Details to Look At
+
+In my test to try and predict the max temperature, I went to [Weather Underground](https://www.wunderground.com/history/daily/KRXE) for my information. Since I needed a variable that would be known and never changes, I decided to use the length of daylight for January 13th. January 13th's length of daylight is ((9 hours * 60) + 12 minutes) = 552 minutes.
+
+
+```{r Summary Information, message=FALSE, warning=FALSE}
+
+# Perform the Test
+mylm <- lm(MaxTemp ~ TimeLength, data = Weather)
+pander(summary(mylm))
+```
+
+
+```{r Assumption Information, message=FALSE, warning=FALSE}
+
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals, type = "b", main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+```
+
+The results of this prediction is insignificant. I am looking at both the $p$-values of Intercept,` 0.634`, and TimeLength, `0.804`, because a temperature of 0 is feasible to have. Even my $R^2$ value shows I am explaining a measly `0.002` of the data points variability from the average $y$-value, $\bar{Y}$ or the average max temperature, using my regression line. Each data point is varying `6.21` degrees from the regression line.
+
+The only assumptions that are broken are the linearity and variance of this data. So besides the $p$-value saying this is insignificant, our regression line is not useful to predict anything in its current state.
+
+```{r Prediction}
+pander(predict(my.lm, data.frame(TimeLength = 552), interval = "prediction"))
+```
+
+The prediction for January 13, 2020 will be $27.07^oF$, but it could also potentially be anywhere from $12.72^oF$ to $41.43^oF$.
+
+
+#### Data Set
+
+My data comes from [Weather Underground](https://www.wunderground.com/history/daily/KRXE) for my information. I pulled data from the 12th of January 2020 back to the 15th of December 2019. I pulled information on the low temperature, average temperature, the dew point, sea pressure, and the length of day time. 
+
+1. Day (Date from which the information was gathered)
+2. MaxTemp (Max temperature of the day in Fahrenheit)
+3. LowTemp (Lowest temperature of the day in Fahrenheit)
+4. AvgTemp (Average temperature of the day in Fahrenheit)
+5. Dew (Dew point for the day)
+6. SeaPressure (As name implies, the sea pressure)
+7. TimeLength (How long the sun was out by mintures)
+8. TotalAvg (I added Low, Avg, Dew, Pressure, and Total together and divided by five to get this column)
+
+```{r Dataset, message=FALSE, warning=FALSE}
+
+datatable(Weather)
+
+```
+
+
+#### Incorrect 1st Attempt {.tabset .tabset-pills .tabset-fade}
+
+##### Summary
+
+```{r Incorrect Plot Prediction, message=FALSE, warning=FALSE}
+#Plot the Regression Line
+mylm1 <- lm(MaxTemp ~ TotalAvg, data = Weather)
+
+plot(MaxTemp ~ TotalAvg, data = Weather)
+abline(mylm1)
+
+```
+
+$$
+  \underbrace{\hat{Y}_i}_\text{Max Temperature} = \underbrace{b_0}_\text{-92.4557} + \underbrace{b_1}_\text{ 0.9784} \overbrace{X_i}^\text{16+21+19+29.85+((9*60)+11))/5)}
+$$
+
+Here is what I predict January 13th max temperature will be $32.16 ^oF$.
+
+##### Incorrect 1st Details
+
+In my test to try and predict the max temperature, I went to [Weather Underground](https://www.wunderground.com/history/daily/KRXE) for my information. To get my X variable I added low temperature, averager temperature, the dew point, sea pressure, and the length of day time all together and divided them by five.
+
+```{r Incorrect Summary Information, message=FALSE, warning=FALSE}
+
+# Perform the Test
+mylm1 <- lm(MaxTemp ~ TotalAvg, data = Weather)
+pander(summary(mylm1))
+
+
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(mylm1, which=1:2)
+plot(mylm1$residuals, type = "b", main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+```
+
+
+```{r Incorrect Prediction, message=FALSE, warning=FALSE}
+#Prediction
+
+pander(-92.4557 + 0.9784*((16+21+19+29.85+((9*60)+11))/5))
+```
+

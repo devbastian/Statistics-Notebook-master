@@ -1,0 +1,88 @@
+---
+title: "Assessment Quiz: Residuals, Sums of Squares, and R-squared"
+author: "Devin Bastian"
+date: "1/21/2020"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+## Assessment Quiz: Residuals, Sums of Squares, and R-squared
+
+
+### Question 1
+
+A regression was performed for a sample of n = 5 data points.
+
+The y-values of the regression are: 3.78, 6.08, 6.65, 9.25, and 9.92.
+
+The residuals from the regression are: -0.266, 0.489, -0.486, 0.569, and -0.306.
+
+What is the R-squared value for this regression?
+
+```{r}
+y <- c(3.78, 6.08, 6.65, 9.25, 9.92)
+
+SSTO <- sum( (y - mean(y))^2 )
+
+#SSTO = 24.83372
+
+res <- c(-0.266, 0.489, -0.486, 0.569, -0.306)
+
+SSE <- sum(res^2)
+
+#SSE = 0.96347
+
+R2 = 1 - SSE/SSTO
+
+#R2 = 0.9612032
+```
+
+### Question 2
+
+Open the mtcars data set in R.
+
+This data can be used to show that the displacement of the engine (disp) is positively correlated with the weight of the vehicle (wt).
+
+What is the R-squared value of this regression?
+
+```{r}
+mt.lm <- lm(disp ~ wt, data=mtcars)
+
+summary(mt.lm)
+```
+
+### Question 3
+
+Open the mtcars data set in R.
+
+Perform a regression of mpg on weight of the vehicle (mpg ~ wt).
+
+A certain statistics teacher at BYU-Idaho drives a 2001 Nissan Sentra that weighs approximately 2,700 lbs and currently gets only 21 mpg. Based on the regression you performed, how many mpg above or below average is this vehicle?
+
+```{r}
+mt.lm <- lm(mpg ~ wt, data=mtcars) #perform the regression
+
+plot(mpg ~ wt, data=mtcars) #draw the regression (not needed, but nice)
+
+abline(mt.lm) #add the regression line (not needed, but nice)
+
+points(2.7, 21, pch=16, col="skyblue") #add the Nissan Sentra value (not needed, but nice)
+
+predict(mt.lm, data.frame(wt=2.7)) #get predicted value for Nissan Sentra
+
+1
+
+22.85505
+
+lines(c(2.7, 2.7), c(21, 22.85505), col="skyblue") #add residual line (not needed, but nice)
+
+myresidual <- 21 - 22.85505 #calculate difference between Y and Y-hat
+
+myresidual
+# [1] -1.85505
+```
+

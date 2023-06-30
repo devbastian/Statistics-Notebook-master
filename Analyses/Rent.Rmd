@@ -1,0 +1,127 @@
+---
+title: "Rent"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+**Week 1 Analysis**
+
+```{r, include=FALSE}
+library(mosaic)
+library(pander)
+library(tidyverse)
+library(DT)
+library(ggtext)
+Rent <- read_csv("../Data/Rent.csv")
+```
+
+<br />
+
+## Background
+
+With an average of <a href="http://www.byui.edu/executive-strategy-and-planning/official-enrollment-statistics" target="_blank">11,032
+</a> single BYU-Idaho students scoming to campus since Winter 2017 and a total of 35,391 students attending in 2018, having information about BYU-Idaho's Approved Housing is necessary. This data is comprised with the 122 housing options. 57 of these options are female housing with the 65 remaining options being male housing. What we will explore here is how Cottonwood Apartment's time to campus and pricing compares to other BYU-Idaho Approved Housing.
+
+```{r, warning=FALSE}
+# Code to get you started. 
+# Only the first 100 observations are shown here because the dataset is really too big to show all of it in a markdown file.
+datatable(Rent, options=list(lengthMenu = c(3,10,30)), extensions="Responsive")
+```
+
+
+<!-- Write a few statements here that introduce the data table showing apartments for only your gender. -->
+
+<br>
+The following table only lists male BYU-Idaho approved apartments. If you are interested in community housing, consumers of this information will need explore other resources.
+</br>
+
+
+```{r}
+# Use this R-chunk to...
+# ...filter this data set down to show only your gender's apartment options. Use the R-chunk below to do this. Call your new data set `Rentf` if you are a female or `Rentm` if you are a male. Then show the new data table using the `datatable(...)` function. -->
+Rentm <- Rent %>%
+  mutate(MonthlyPrice = Price/3.5) %>%
+  filter(Gender=="M" & MonthlyPrice <= 300 & WalkingMinutes <= 8)
+   
+datatable(Rentm, options=list(lengthMenu = c(3,10,30)), extensions = "Responsive")
+
+Rentall <- Rent %>% mutate(MonthlyPrice = Price/3.5)
+
+```
+
+
+<!-- Write a few statements here that introduce your graphic and what it shows. -->
+
+My favorite BYU-Idaho Approved Housing for single men was Cottonwood. The ambience was wonderful, people were down to earth, and close to Broulim's. If you would like to know more, please see my <a href="https://goo.gl/maps/kviFY1SynQHVwQdZ9" target="_blank">Google Review</a>. Listed below is a graph comparing the amount of time it takes to walk to campus and how much an apartment at Cottonwood costs.
+
+
+```{r}
+# Use this R-chunk to...
+# ...create a graphic that shows how your apartment (or a friend's) compares to all of the options available.
+
+#plot(Rentm)
+  plot(WalkingMinutes ~ MonthlyPrice, data = Rentm, xlab="Monthly Price", ylab = "Walking Time to Campus", main = "The Best Apartment in Rexburg", col = "skyblue", pch=20)
+  points(318.33, 5, col = "red", pch=17)
+  
+ggplot(Rentall, aes(x=MonthlyPrice, y=WalkingMinutes, col = Gender)) +
+  geom_point() +
+  scale_color_manual(values=c('Gray','Gray')) +
+  labs(title="**BYU-Idaho Approved Housing**  
+       <span style='color:#EE7942;font-size:10pt'>**Male**</span>
+       <span style='font-size:10pt'>apartments for
+       <span style='color:#EE7942;'>**$300 or less**</span> and within
+       <span style='color:#EE7942;'>**8 minutes**</span> of campus
+       </span>",
+       caption  = "Data source: BYU-Idaho Math 325",
+    #subtitle = "<b style='color:#009E73'>Male</b> apartments for <b style='color:#009E73'>$300 or less</b> and within <b style='color:#009E73'>8 minutes</b> of campus", 
+       x="Monthly Price", 
+       y="Walking Minutes To Campus") + 
+  theme_classic() +
+  theme(
+    plot.title = element_markdown(lineheight = 1.1),
+    legend.text = element_markdown(size = 11),
+    legend.position = "none",
+    plot.caption = element_text(hjust = 0)) +
+  scale_x_continuous(labels=scales::dollar_format())+
+  geom_point(data = Rentm, aes(x=MonthlyPrice, y=WalkingMinutes), color = '#EE7942')
+
+ggsave("Utah_visual.png")    
+```
+
+<!-- Write a few statements here that introduce your table of numerical summaries and what they show. -->
+
+The following graphs will show you how Cottonwood compares to five quadrants of apartment units according to their price.
+
+
+```{r}
+# Use this R-chunk to...
+# ...compute and display a meaningful table of numerical summaries supporting your above graphic.
+Rentm %>% 
+  summarise(min = min(Price, na.rm=TRUE),
+            Q1 = quantile(Price, c(.25), na.rm=TRUE),
+            med = median(Price, na.rm=TRUE),
+            Q3 = quantile(Price, c(.75), na.rm=TRUE),
+            max = max(Price, na.rm=TRUE)) %>%
+  pander(caption = "What Will You Choose If You Had The Money?")
+
+Rentm %>% 
+  summarise(min = min(WalkingMinutes, na.rm=TRUE),
+            Q1 = quantile(WalkingMinutes, c(.25), na.rm=TRUE),
+            med = median(WalkingMinutes, na.rm=TRUE),
+            Q3 = quantile(WalkingMinutes, c(.75), na.rm=TRUE),
+            max = max(WalkingMinutes, na.rm=TRUE)) %>%
+  pander(caption = "Is Your Time Worth Your Money?")
+
+```
+
+
+## Conclusion
+
+As noted in these two tables, Cottonwood ranks fairly well in price and time to get to campus. I would highly recommend living there and getting to know a great group of people who are attracted to this complex.
+
+
+

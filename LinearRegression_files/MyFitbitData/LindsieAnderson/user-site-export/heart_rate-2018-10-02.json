@@ -1,0 +1,49 @@
+[{
+  "dateTime" : "10/03/18 05:59:15",
+  "value" : {
+    "bpm" : 70,
+    "confidence" : 2
+  }
+},{
+  "dateTime" : "10/03/18 05:59:25",
+  "value" : {
+    "bpm" : 69,
+    "confidence" : 3
+  }
+},{
+  "dateTime" : "10/03/18 05:59:30",
+  "value" : {
+    "bpm" : 69,
+    "confidence" : 2
+  }
+},{
+  "dateTime" : "10/03/18 05:59:35",
+  "value" : {
+    "bpm" : 69,
+    "confidence" : 3
+  }
+},{
+  "dateTime" : "10/03/18 05:59:40",
+  "value" : {
+    "bpm" : 69,
+    "confidence" : 2
+  }
+},{
+  "dateTime" : "10/03/18 05:59:45",
+  "value" : {
+    "bpm" : 73,
+    "confidence" : 2
+  }
+},{
+  "dateTime" : "10/03/18 05:59:50",
+  "value" : {
+    "bpm" : 72,
+    "confidence" : 3
+  }
+},{
+  "dateTime" : "10/03/18 05:59:55",
+  "value" : {
+    "bpm" : 70,
+    "confidence" : 3
+  }
+}]

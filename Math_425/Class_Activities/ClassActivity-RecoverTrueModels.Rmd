@@ -1,0 +1,114 @@
+---
+title: "Recovering a True Model"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r, message=FALSE, warning=FALSE}
+p1Data <- read.csv("../../Data/p1Data.csv", header=TRUE)
+p2Data <- read.csv("../../Data/p2Data.csv", header=TRUE)
+p3Data <- read.csv("../../Data/p3Data.csv", header=TRUE)
+```
+
+```{r}
+
+############ Try to figure out p2Data relation #########
+pairs(p2Data)
+lm4 <- lm(Y ~ I(X5^2), data = p2Data)
+pairs(cbind(R = lm4$residuals, Fit = lm4$fitted.values, data = p2Data))
+lm5 <- lm(Y ~ X5 + I(X5^2), data = p2Data)
+pairs(cbind(R = lm5$residuals, Fit = lm5$fitted.values, data = p2Data))
+############# Interactions are very hard to find #########
+lm6 <- lm(Y ~ X5 + I(X5^2) + X3 + X5:X3 + I(X5^2):X3, data = p2Data)
+summary(lm6)
+pairs(cbind(R = lm6$residuals, Fit = lm6$fitted.values, data = p2Data), as)
+############ Continuing Activity ##############
+
+```
+
+## Part 1 - Recovering a True Model (Beginner Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{\beta_0 + \beta_1 X_{1i} + \beta_2 X_{1i}^2 + \beta_3 X_2 + \beta_4 X_{1i} X_2 + \beta_5 X_{1}^2 X_2}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = \underbrace{\beta_0 + \beta_1 X_{1i} + \beta_2 X_{1i}^2 + \beta_3 X_2 + \beta_4 X_{1i} X_2 + \beta_5 X_{1}^2 X_2}_\text{The Estimated Model}
+$$
+
+with our estimate of $\sigma$ as ...
+
+```{r}
+
+```
+
+```{r In Class}
+#View(p1Data)
+pairs(p1Data)
+pairs(p1Data, col = as.factor(p1Data$X2))
+lm1<- lm(Y ~ X4, data = p1Data)
+summary(lm1)
+pairs(cbind(R = lm1$res, Fit = lm1$fit, p1Data), col = as.factor(p1Data$X2))
+lm2 <- lm(Y ~ X4 + X2, data = p1Data)
+summary(lm2)
+pairs(cbind(R = lm2$residuals, Fit = lm2$fitted.values, p1Data), col = as.factor(p1Data$X2))
+lm3 <- lm(Y ~ X4 + X4^2 +X2 + X4:X2 + X4^2:X2, data = p1Data)
+pairs(cbind(R = lm3$residuals, Fit = lm3$fitted.values, p1Data), col = as.factor(p1Data$X2))
+```
+
+
+## Part 2 - Recovering a True Model (Intermediate Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{...}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = ...
+$$
+
+with our estimate of $\sigma$ as ...
+
+```{r}
+
+```
+
+
+
+## Part 3 - Recovering a True Model (Advanced Level)
+
+We believe the true model to be...
+
+$$
+  Y_i = \underbrace{...}_\text{The True Model} + \epsilon_i
+$$
+
+And estimate that model by...
+
+$$
+  \hat{Y}_i = ...
+$$
+
+with our estimate of $\sigma$ as ...
+
+```{r, fig.width=10, fig.height=10}
+
+pairs(p1Data, panel = panel.smooth)
+pairs(p3Data)
+pairs(p3Data, panel = panel.smooth)
+pairs(p3Data, panel = panel.smooth, col = as.factor(p3Data$X6))
+lm7 <- lm(Y ~ X6, data = p3Data)
+summary(lm7)
+pairs(cbind(R = lm7$residuals, Fit = lm7$fitted.values, data = p3Data))
+pairs(cbind(R = lm6$residuals, Fit = lm6$fitted.values, data = p2Data), as)
+```

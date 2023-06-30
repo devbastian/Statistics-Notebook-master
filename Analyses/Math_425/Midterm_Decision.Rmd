@@ -1,0 +1,417 @@
+---
+title: "Mid-Term Decision"
+output:
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements)
+
+```
+
+```{r Load Data, message=FALSE, warning=FALSE}
+# NA = 0 in the gradebook
+# Can make quantitative data into T/F statements
+Midterm <- read.csv("../../Data/MidtermVsFinalGrades2.csv")
+
+#View(Midterm)
+```
+
+```{r Data Wrangling, message=FALSE, warning=FALSE}
+########## Cleaned data and created columns with people around me ####################
+########## Found mutate_all here (https://stackoverflow.com/questions/19379081/how-to-replace-na-values-in-a-table-for-selected-columns) ######################
+
+Midterm2 <- Midterm %>% 
+  select(-"Gender") %>%
+  mutate_all(~replace_na(., 0)) %>% 
+  mutate(Analyses86 = ifelse(AnalysesTheory > 86, 1, 0),
+#         AssesActual66 = ifelse(AssessmentQuizActual > 66, 1, 0),
+#         Mid76 = ifelse(Midterm == 76, 1, 0),
+         Mid72_80 = ifelse(Midterm >= 72 & Midterm < 80, 1, 0),
+         Overall = round(Midterm*.06 + FinalExam*.14 + AssessmentQuizCompletion*.05 + AssessmentQuizActual*0 + AnalysesTheory*.3 + PeerReviews*.1 + ClassActivities*.1 + SkillQuizzes*.1 + 100*.15, digits = 2),
+         Overall2.0 = round(((Midterm + AssessmentQuizCompletion + AssessmentQuizActual + AnalysesTheory + PeerReviews + ClassActivities + SkillQuizzes)/7), digits = 2)) %>% #View()
+  mutate(Grade = as.factor(case_when(
+    Overall >= 93 ~ "A",
+    Overall >= 90 & Overall < 93 ~ "A-",
+    Overall >= 87 & Overall < 90 ~ "B+",
+    Overall >= 83 & Overall < 87 ~ "B",
+    Overall >= 80 & Overall < 83 ~ "B-",
+    Overall >= 77 & Overall < 80 ~ "C+",
+    Overall >= 73 & Overall < 77 ~ "C",
+    Overall >= 70 & Overall < 73 ~ "C-",
+    Overall >= 67 & Overall < 70 ~ "D+",
+    Overall >= 63 & Overall < 67 ~ "D",
+    Overall >= 60 & Overall < 63 ~ "D-",
+    Overall > 0 & Overall < 60 ~ "F")),
+         Grade.group = as.factor(case_when(
+    Overall >= 90 ~ "A",
+    Overall >= 80 & Overall < 90 ~ "B",
+    Overall >= 70 & Overall < 80 ~ "C",
+    Overall >= 60 & Overall < 70 ~ "D",
+    Overall > 0 & Overall < 60 ~ "F")))
+
+#View(Midterm2)
+
+########### Removed all the people who didn't take the Midterm #######################
+
+Midterm_0_removed <- Midterm2[c(-3, -8, -26, -38, -53, -42), ] 
+# 3 0% Midterm. Didn't take midterm. Everything else seems okay.
+# 8 0% Midterm. Seems to have given a half-hearted effort.
+# 26 0% Midterm. 67% on Theories and 52% on Final.
+# 38 0% everything. Withdrawn?
+# 42 Removed as person appears to have given up after the midterm?
+# 53 0% on Mid/Final. Half-hearted effort rest of semester.
+
+
+# Need to replace NA with zeros.
+# View(Midterm2)
+# View(Midterm_0_removed)
+```
+
+----
+
+**Comments to Critiquers**
+
+1. How do I reorder the levels of the `Grade` and `Grade.group` columns since there are +, -, and the letter e is missing?
+2. Don't I want to base this entire analysis off of my midterm score? My `Overall` column seems to be a better option to use than `Midterm`, but I won't know my `Overall` score til the end of the semester. . . What do I do?
+3. Do I remove people that are messing with the data?
+
+**Corrections I made**
+
+1. I added my Midterm score to the Summary section. (Saunders)
+2. 
+
+----
+
+## Background
+
+I received a 76 out of 100 on my midterm. I get to determine whether I will keep or drop my mid-term score as it makes up 30% of the 20% that my Midterm and Final scores count toward my final grade.  
+
+## What You'd Like {.tabset .tabset-pills .tabset-fade}
+
+### Summary {.tabset}
+
+```{r eval=FALSE}
+Mid10.a.lm <- lm(FinalExam ~ Midterm + ClassActivities, data = Midterm2)
+predict(Mid10.a.lm, data.frame(Midterm = 76, ClassActivities = 100), interval = "prediction")
+```
+
+I am going to keep my midterm score of 76. My final exam score is projected to be a 72 with the ability of me scoring between 39 and 100.
+
+Just for kicks here is the prediction from Attempt 8:
+
+```{r}
+mid3 <- Midterm2[c(-38, -2), ]
+
+Mid8.lm <- lm(FinalExam ~ Midterm + AnalysesTheory + SkillQuizzes + Overall, data = mid3)
+pander(summary(Mid8.lm))
+
+predict(Mid8.lm, data.frame(Midterm = 76, AnalysesTheory = 93, SkillQuizzes = 100, Overall = 90), interval = "prediction")
+```
+
+With a 76 for my final, 14 out of 15 on my Analyses and Theories, get 100% on my Skill Quizzes, and hypothetically earn that A- I'm aiming for, I will receive a 57 on the Final. When playing around with the prediction function, I think it's because there's an expectation from that `Overall` column that if I did well with my Analyses and SkillQuizzes I should have received a higher `Final` score than I'm projecting for myself. I actually think it can be put this way: If I received a 90 in the course then it is expected that I should have received a Final exam score of the following if I completed everything in the course 100%:
+
+```{r}
+predict(Mid8.lm, data.frame(Midterm = 76, AnalysesTheory = 100, SkillQuizzes = 100, Overall = 90), interval = "prediction")
+
+predict(Mid8.lm, data.frame(Midterm = 76, AnalysesTheory = 80, SkillQuizzes = 100, Overall = 90), interval = "prediction")
+```
+
+
+### Analysis {.tabset .tabset-pills .tabset-fade}
+
+#### Attempt 1 {.tabset}
+
+```{r Pairs, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+pairs(Midterm2, panel = panel.smooth, pch = 16, cex = 0.8, col = "black")
+pairs(Midterm_0_removed, panel = panel.smooth, pch = 16, cex = 0.8, col = "black")
+```
+
+Added columns `Analyses86`, `Mid72_80`, `Overall`, `Grade`, and `Grade.group`.
+
+1. `Analyses86`: Those who got 13 out of 15.
+2. `Mid72_80`: Those who scored similarly to me.
+3. `Overall`: Overall course final grade. *Since no regression battleship column was available, everyone got a 100% to calculate this.*
+4. `Grade`: Letter grade (11 levels)
+5. `Grade.group`: Groupings of letter grades (5 levels)
+
+I'm not sure if it's better to remove these observations or not. Here is what I see:
+
+* 3 - 0% Midterm. Didn't take midterm. Everything else seems okay.
+* 8 - 0% Midterm. Seems to have given a half-hearted effort.
+* 26 - 0% Midterm. 67% on Theories and 52% on Final.
+* 38 - 0% everything. Withdrawn?
+* 42 - Person appears to have given up after the midterm?
+* 53 - 0% on Mid/Final. Half-hearted effort rest of semester.
+
+I believe `Midterm` and `Overall` will be the best ones to use. But can I use overall since I don't know what my final grade might be? Don't I want to base this off of my midterm score?
+
+#### Attempt 2
+
+```{r fig.width=10, fig.height=10}
+Mid.lm <- lm(FinalExam ~ Midterm, data = Midterm2)
+pander(summary(Mid.lm))
+
+Mid.rem.lm <- lm(FinalExam ~ Midterm, data = Midterm_0_removed)
+pander(summary(Mid.rem.lm))
+
+pairs(cbind(R = Mid.lm$res, Fit = Mid.lm$fit, Midterm2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+#pairs(cbind(R = Mid.rem.lm$res, Fit = Mid.rem.lm$fit, Midterm_0_removed), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid.lm, which=1:2)
+plot(Mid.lm$residuals, main = "Residuals vs Order")
+#plot(Mid.lm, which = 1)
+# qqPlot(Mid.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+# # Check Your Assumptions
+# par(mfrow=c(1,3))
+# plot(Mid.rem.lm, which=1:2)
+# plot(Mid.rem.lm$residuals, type = "b", main = "Residuals vs Order")
+# #plot(Mid.rem.lm, which = 1)
+# # qqPlot(Mid.rem.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+Mid.lm has `Midterm` with 7.86e-05. $R^2$ is 0.1974.
+
+Mid.rem.lm has `Midterm` with 0.000814, but the y is not significant. I think I'll keep the zeros in then.
+
+Assumptions: Surprisingly it appears that variance is okay, while linearity relation between x and y is not normal. The error terms are not normally distributed. I'm also not sure, but there may be a pattern to the error terms? Observation 42 was one that I thought to remove. Not sure if this is okay or not.
+
+`AssessmentQuizActual`, `AnalysesTheory`, `ClassActivities`, `SkillQuizzes`, `Analyses86`, and `Overall` seem to be some of the biggest players. Of these I think that `AnalysesTheory` and `Overall` do the best in explaining things. Before I wrote things out though I did a lm() with `AssessmentQuizActual` and `AnalysesTheory`. 
+
+#### Attempt 3
+
+```{r fig.width=10, fig.height=10}
+Mid3.lm <- lm(FinalExam ~ Midterm + AssessmentQuizActual + AnalysesTheory, data = Midterm2)
+pander(summary(Mid3.lm))
+
+pairs(cbind(R = Mid3.lm$res, Fit = Mid3.lm$fit, Midterm2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid3.lm, which=1:2)
+plot(Mid3.lm$residuals, main = "Residuals vs Order")
+#plot(Mid3.lm, which = 1)
+# qqPlot(Mid3.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+Why did `FinalExam` lose its significance? Does this matter? Everything else shows significance. $R^2$ is 0.4101.
+
+Assumptions: Observation 50 is causing problems. Variance again seems normal. Linearity relation between x and y is not okay. Error terms are not distributed normally. Potential pattern again.
+
+Pairs: I was thinking of adding `Overall` to this, but the more I think about it, I think I shouldn't be using this column and my other other columns I created. I'll need to ask Brother Saunders. I am going to try look at all of them and their interactions.
+
+#### Attempt 4
+
+```{r eval=FALSE, fig.width=10, fig.height=10}
+Mid4.lm <- lm(FinalExam ~ Midterm * AssessmentQuizActual * AnalysesTheory * ClassActivities * SkillQuizzes * Analyses86 * Overall, data = Midterm2)
+pander(summary(Mid4.lm))
+
+pairs(cbind(R = Mid4.lm$res, Fit = Mid4.lm$fit, Midterm2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid4.lm, which=1:2)
+plot(Mid4.lm$residuals, type = "b", main = "Residuals vs Order")
+#plot(Mid4.lm, which = 1)
+# qqPlot(Mid4.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+Well that didn't work. But I have an $R^2$ of 1! Haven't seen that before. Let's look at Attempt 2 again. I'm going to try `AnalysesTheory` and `Skillquizzes`.
+
+#### Attempt 5
+
+```{r fig.width=10, fig.height=10}
+Mid5.lm <- lm(FinalExam ~ Midterm + AnalysesTheory + SkillQuizzes, data = Midterm2)
+pander(summary(Mid5.lm))
+
+pairs(cbind(R = Mid5.lm$res, Fit = Mid5.lm$fit, Midterm2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid5.lm, which=1:2)
+plot(Mid5.lm$residuals, main = "Residuals vs Order")
+#plot(Mid5.lm, which = 1)
+# qqPlot(Mid5.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+I don't know what I'm doing at this point. What happens if I add `Overall`?
+
+#### Attempt 6
+
+```{r fig.width=10, fig.height=10}
+Mid6.lm <- lm(FinalExam ~ Midterm + AnalysesTheory + SkillQuizzes + Overall, data = Midterm2)
+pander(summary(Mid6.lm))
+
+pairs(cbind(R = Mid6.lm$res, Fit = Mid6.lm$fit, Midterm2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid6.lm, which=1:2)
+plot(Mid6.lm$residuals, main = "Residuals vs Order")
+#plot(Mid6.lm, which = 1)
+# qqPlot(Mid6.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+Assumptions: Observation 38 seems to be problamatic. I'm going to remove it and see what happens.
+
+#### Attempt 7
+
+```{r fig.width=10, fig.height=10}
+mid2<- Midterm2[-38, ]
+
+Mid7.lm <- lm(FinalExam ~ Midterm + AnalysesTheory + SkillQuizzes + Overall, data = mid2)
+pander(summary(Mid7.lm))
+
+pairs(cbind(R = Mid7.lm$res, Fit = Mid7.lm$fit, mid2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid7.lm, which=1:2)
+plot(Mid7.lm$residuals, main = "Residuals vs Order")
+#plot(Mid7.lm, which = 1)
+# qqPlot(Mid7.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+I first removed observation 38, but then observation 2 looks bad too. SO let's see.
+
+#### Attempt 8
+
+```{r fig.width=10, fig.height=10}
+mid3 <- Midterm2[c(-38, -2), ]
+
+Mid8.lm <- lm(FinalExam ~ Midterm + AnalysesTheory + SkillQuizzes + Overall, data = mid3)
+pander(summary(Mid8.lm))
+
+pairs(cbind(R = Mid8.lm$res, Fit = Mid8.lm$fit, mid3), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid8.lm, which=1:2)
+plot(Mid8.lm$residuals, main = "Residuals vs Order")
+#plot(Mid8.lm, which = 1)
+# qqPlot(Mid8.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+Everything looks **really** good. Did I mess something up here or is this the final model? Even $R^2$ is at 0.8569. So I'm going to roll with this. Here's the mathmatical model:
+
+$$
+  \underbrace{\hat{Y_i}}_\text{Average Final Score} = -165.1 + -0.2423 \underbrace{X_{1i}}_\text{Midterm} + -2.087 \underbrace{X_{2i}}_\text{AnalysesTheory} + -0.4726 \underbrace{X_{3i}}_\text{SkillQuizzes} + 5.358 \underbrace{X_{4i}}_\text{Overall}
+$$
+
+#### Attempt 9
+
+I realized when writing out that model that I can't control what my overall amount will be in order to predict my `Final` exam score. So I am going to look at Attempt 2 again, see what looks good, decide what I can control, and do that model.
+
+It looks like the AnalysesTheory and ClassActivities all look promising. I am going to try that first.
+
+```{r fig.width=10, fig.height=10}
+Mid9.lm <- lm(FinalExam ~ Midterm + AnalysesTheory + ClassActivities, data = Midterm2)
+pander(summary(Mid9.lm))
+
+pairs(cbind(R = Mid9.lm$res, Fit = Mid9.lm$fit, Midterm2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+#boxCox(Mid9.lm)
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid9.lm, which=1:2)
+plot(Mid9.lm$residuals, main = "Residuals vs Order")
+#plot(Mid9.lm, which = 1)
+# qqPlot(Mid9.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+Do I need to do a transformation on `AnalysesTheory`? Not sure why this isn't working. Also, the boxCox isn't working because y is negative? Why? Do I just need to remove `AnalysesTheory`?
+
+Assumptions: Does 53 need to be removed?
+
+Pair: Do I need to combine `AssessmentQuizActual` and `ClassActivities`?
+
+#### Attempt 10
+
+```{r fig.width=10, fig.height=10}
+Mid10.lm <- lm(FinalExam ~ Midterm + AssessmentQuizActual + ClassActivities, data = Midterm2)
+pander(summary(Mid10.lm))
+
+pairs(cbind(R = Mid10.lm$res, Fit = Mid10.lm$fit, Midterm2), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+#boxCox(Mid10.lm)
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid10.lm, which=1:2)
+plot(Mid10.lm$residuals, main = "Residuals vs Order")
+#plot(Mid10.lm, which = 1)
+# qqPlot(Mid10.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+plot(FinalExam ~ Midterm, data=Midterm2, pch=16, col="darkgray")
+lines(lowess(Midterm2$Midterm, Midterm2$FinalExam), col="firebrick")
+```
+
+I think I'm going to remove the zero people. They're throwing things off. 
+
+```{r fig.width=10, fig.height=10}
+Mid10.a.lm <- lm(FinalExam ~ Midterm + ClassActivities, data = Midterm2)
+pander(summary(Mid10.a.lm))
+```
+
+I'm going to go with this model for something to show.
+
+#### Attempt 11
+
+```{r fig.width=10, fig.height=10}
+Mid.0 <- Midterm_0_removed %>% 
+  select(c(-Analyses86, -Mid72_80, -Overall, -Grade, -Grade.group)) %>% view()
+
+Mid.rem.lm <- lm(FinalExam ~ Midterm, data = Mid.0)
+pander(summary(Mid.rem.lm))
+
+pairs(cbind(R = Mid.rem.lm$res, Fit = Mid.rem.lm$fit, Mid.0), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid.rem.lm, which=1:2)
+plot(Mid.rem.lm$residuals, main = "Residuals vs Order")
+#plot(Mid.rem.lm, which = 1)
+# qqPlot(Mid.rem.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+```
+
+This seems to be much better. I'm going to run this on `AssessmentQuizActual` and `AnalysesTheory`. 
+
+#### Attempt 12
+
+```{r fig.width=10, fig.height=10}
+Mid.12.lm <- lm(FinalExam ~ Midterm + AssessmentQuizActual + AnalysesTheory, data = Mid.0)
+pander(summary(Mid.12.lm))
+
+pairs(cbind(R = Mid.12.lm$res, Fit = Mid.12.lm$fit, Mid.0), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(Mid.12.lm, which=1:2)
+plot(Mid.12.lm$residuals, main = "Residuals vs Order")
+#plot(Mid.12.lm, which = 1)
+# qqPlot(Mid.12.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+```
+
+I give up. I don't know what to do at this point.
+
+### Data
+
+This data was provided to me by Brother Saunders. As a reminder, by downloading and using this data I have agreed to:
+
+1. Keep the raw data confidential (though I can share my analysis of the data with others)
+2. Not try to retrace any of the data to the original individuals in order to protect their rights and privacy.
+
+```{r Datatable, message=FALSE, warning=FALSE}
+datatable(Midterm)
+```
+

@@ -1,0 +1,465 @@
+---
+title: "Consulting Project"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: TRUE
+    toc_float: TRUE
+---
+
+
+```{r Library and Dataset, message=FALSE, warning=FALSE, include=FALSE}
+
+# Say my prayers
+
+library(mosaic)
+library(tidyverse)
+library(pander)
+library(ggplot2)
+library(car)
+library(DT)
+library(readr)
+library(readxl)
+library(stringr)
+library(dplyr)
+
+# Load my All_Submitted_Applications.csv file
+
+Posting_Information <- read.csv("../Data/UpdatedPosting.csv", header = TRUE)
+
+#View(All_Submitted)
+#View(Posting_Information)
+```
+
+
+----
+
+<!--If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+
+**Comments to Critiquers:**  
+
+Questions I have:
+
+* What is error 11?
+* I am completely off in making my bar charts. I'm not sure where I'm going wrong. Is it because the count is reading the Official.Title column instead of the Department or All.Submitted.Applications columns?
+* Why is there so much white space at the bottom of my analysis?
+* Not sure how to simplify this data set down with the number of departments and years.
+
+
+<!--End your comments to your critiquers before this line.-->
+
+
+----
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Background Information {.tabset .tabset-pills .tabset-fade}
+
+<!-- Add picture of BYU-Idaho and/or pictures of faculty members -->
+
+<!--![](../SAAB_sedan_vs._Wagon.jpg)-->
+
+Every year BYU-Idaho faculty positions become vacant for a variety of reasons. Towards the end of summer, positions start being posted. A member of the Faculty Employment Team in Human Resources is then tasked with advertising to help spread the word and fill these positions. The applications have never been measured from year to year. I am part of the team that manages those positions and I would like to see what the trend has been from year to year. Eventually, I would like be able to pull information on individuals and our advertising avenues. For now, I am only able to pull broad information. The hope is to see if there are any noticeable trends within a certain departments, years, or other scenerios to help with advertising and departmental needs. Some questions that I hope I can answer either now in this analysis, or later on during my time of employment with this team, is:
+
+### Questions For Now
+
+1. Are we increasing the number of applicants each year? <!--Linear Regression-->
+2. Are we able to predict the number of applicants a department might receive? <!--Linear Regression--> 
+3. Which departments are the hardest and easiest to obtain a hearty applicant pool? <!--ANOVA or Kruskal-Wallis-->
+4. How many faculty job postings have we had to fill each year? <!--Count, bar chart-->
+5. How many applicants do we receive every year? <!--Count, bar chart-->
+6. How many applicants does each department receive (i.e. by year, on average, for the last five years)? <!--Count, bar chart-->
+7. Is there a connection between the number of submitted and incomplete applications? <!--Chi-Square-->
+8. Do certain departments keep receiving reoccuring multiple job opening positions? <!--ANOVA, graphics-->
+
+### Questions For Later
+
+1. Are we increasing the number of applicants each year?
+2. Are we able to predict the number of applicants a department might receive?
+3. Which advertising avenues bring in our applicants?
+4. Which departments are the hardest and easiest to obtain a hearty applicant pool?
+5. How many faculty job postings have we had to fill each year?
+6. How many applicants do we receive every year?
+7. How many applicants do each department receive?
+8. Is there a connection between the number of submitted and incomplete applications?
+9. Is there a correlation between these variables:
+a. The amount of money we spend on advertising
+b. The type of advertising
+c. The number of applicants
+d. The number of incomplete applicants
+e. Residence of applicant
+f. The job market or company an applicant comes from  
+
+10. How did we find the correct candidate?
+11. How many times did we fail to fill a posting? Why? When? 
+12. How many applicants receive an Interest Card email?
+13. Did receiving an Interest Card email impact if a candidate started or submitted an application?
+14. When do we receive the fewest and highest number of applications in a job posting?
+15. How long does it take for an application to be submitted?
+16. Are applications normally submitted on the same day or spread out over time?
+17. At what length of time does an application become incomplete?
+18. Where on the application process do applicants commonly stop filling it out?
+19. Do letters of reference help an applicant receive a job?
+20. What is the ratio of male/female applicants?
+21. Are we hiring more Master or PhD degree level applicants?
+22. Do certain departments keep receiving reoccuring multiple job opening positions?
+23. Which departments are growing the most based upon a job opening?
+
+
+
+
+
+
+
+
+
+
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+```{r Formatting Data, message=FALSE, warning=FALSE}
+
+# Formatting the data I would like to work with: Faculty Positions.
+
+#str_detect(Posting_Information$Official.Title, "Full-time Faculty|Anticipated")
+
+Post_Info <- filter(Posting_Information, str_detect(Posting_Information$Official.Title, "Full-time Faculty|Anticipated"))
+
+Multiple_Openings <- filter(Post_Info, str_detect(Post_Info$Official.Title, "Position|position|Opening|opening"))
+
+#View(Post_Info) #This is for all positions
+#View(Multiple_Openings) #This is for positions with multiple openings
+
+Post_Info$Closing.Date <- as.character(Post_Info$Closing.Date)
+
+Clean_Post_Info <- Post_Info %>%
+  mutate(Year = str_replace_all(Post_Info$Closing.Date, "\\.+", "") ) %>%
+  mutate(Year = str_extract_all(Post_Info$Closing.Date, "[:digit:]{4,7}") )
+
+Clean_Post_Info$Year <- as.numeric(Clean_Post_Info$Year)
+Clean_Post_Info$ByYear <- as.factor(Clean_Post_Info$Year)
+
+#View(Clean_Post_Info)
+
+```
+
+
+
+
+### Basic Overview 
+
+**Multiple Linear Regression:**
+
+$$
+  \underbrace{\hat{Y}_i}_\text{Submitted Applications} = \overbrace{b_0}^\text{y-int} + \overbrace{b_1}^\text{slope} \underbrace{X_{1i}}_\text{Incomplete Applications} + b_2 \overbrace{X_{2i}}^\text{Is a Department} + b_3 \underbrace{X_{1i}X_{2i}}_\text{Interaction of Applic. and Dept.}
+$$
+
+* The number of Incomplete Applications has no impact on the number of submitted applications
+* A quick glance through the our test shows a few departments having an impact on the number of applications we receive. 
+
+$$
+  \alpha = 0.05
+$$
+
+English ($p$-value = 0.03603)  
+Religious Education (5.753e-05)  
+
+$$
+  \alpha = 0.1
+$$
+
+Art ($p$-value = 0.09502)  
+Languages & International Studies (0.05755)  
+Music (0.05138)  
+Teacher Education (0.08351)  
+
+* There is no significance between any of the interactions with Incomplete Applications and Departments. 
+* Error Terms may not be independent of one another.
+
+<br>
+
+**ANOVA**
+
+* We are looking at how the Year and Department impact the number of applications.
+
+* Both the type of year ($p$-value = 0.0007707) and department (1.172e-18) have had meaningful differences in the number of applications received.
+
+* The error terms are not normally distributed. Data and test cannot be fully trusted.
+
+* Looks like 2008 had some huge impact on application. Not sure why.
+
+* Looks like Foundations & Interdisciplinary Studies may be an influencer with 74.5 submitted applications.
+
+
+<center>
+
+```{r message=FALSE, warning=FALSE}
+Clean_Post_Info %>%
+  group_by(Year) %>%
+  summarise(Min = min(All.Submitted.Applications), 
+            Median = median(All.Submitted.Applications), 
+            Mean = mean(All.Submitted.Applications), 
+            Max = max(All.Submitted.Applications), 
+            SD = sd(All.Submitted.Applications), 
+            ) %>%
+pander(caption="Summary of Yearly Submissions")
+```
+
+<center>
+
+### Multiple Linear 
+<!-- Add another # when you do the entire analysis for the other commented out sections -->
+
+```{r Number of Applicants, message=FALSE, warning=FALSE}
+#mPlot(Clean_Post_Info)
+
+
+Posting.lm <- lm(All.Submitted.Applications ~ Incomplete.Applications + Department + Incomplete.Applications:Department, data = Clean_Post_Info)
+pander(summary(Posting.lm), split.table=Inf)
+```
+
+
+```{r Checking Assumptions, fig.height=3, message=FALSE, warning=FALSE}
+
+par(mfrow = c(1,3))
+plot(Posting.lm,
+     which = 1:2)
+plot(Posting.lm$residuals, 
+     main = "Residuals vs Order")
+```
+
+
+
+
+
+### Bar Plots
+<!-- Add another # when you do the entire analysis for the other commented out sections -->
+
+
+
+
+```{r Base R BarPlot, message=FALSE, warning=FALSE}
+barplot(table(Clean_Post_Info$ByYear, Clean_Post_Info$All.Submitted.Applications),
+        beside=TRUE,
+        col=c("white", "pink", "red", "orange", "yellow", "green", "blue", "mediumorchid1", "darkorchid4", "tan4", "seashell4", "gray8"),
+        legend.text=TRUE,
+        xlab="Number of Submitted Applications")
+```
+
+
+
+
+
+### ANOVA
+<!-- Add another # when you do the entire analysis for the other commented out sections -->
+
+```{r message=FALSE, warning=FALSE}
+Clean_Post_Info %>%
+  group_by(Year) %>%
+  summarise(Min = min(All.Submitted.Applications), 
+            Median = median(All.Submitted.Applications), 
+            Mean = mean(All.Submitted.Applications), 
+            Max = max(All.Submitted.Applications), 
+            SD = sd(All.Submitted.Applications), 
+            ) %>%
+pander(caption="Summary of Yearly Submissions")
+```
+
+```{r message=FALSE, warning=FALSE}
+Clean_Post_Info %>%
+  group_by(Department) %>%
+  summarise(Min = min(All.Submitted.Applications), 
+            Median = median(All.Submitted.Applications), 
+            Mean = mean(All.Submitted.Applications), 
+            Max = max(All.Submitted.Applications), 
+            SD = sd(All.Submitted.Applications), 
+            ) %>%
+pander(caption="Summary of Submissions For a Department")
+```
+
+
+
+```{r ANOVA Test, message=FALSE, warning=FALSE}
+# Perform the ANOVA
+Posting.myaov <- aov(All.Submitted.Applications ~ Year+Department+Year+Department, data=Clean_Post_Info) 
+
+# View the ANOVA Results
+pander(summary(Posting.myaov), caption = "Two-Way ANOVA Test Results")  
+```  
+
+```{r ANOVA Assumptions, message=FALSE, warning=FALSE}
+# Check ANOVA Assumptions
+par(mfrow = c(1,2))
+plot(Posting.myaov,
+     which = 1)
+qqPlot(Posting.myaov$residuals,
+       main = "Q-Q Plot of Residuals",
+       id = FALSE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--
+### Linear Regression: Q1 & Q2 {.tabset}
+
+#### Information from Linear Model
+
+```{r }
+
+```
+
+#### Checking Assumptions
+
+```{r message=FALSE, warning=FALSE}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### ANOVA: Q3 & Q8 {.tabset}
+
+#### Information from Linear Model
+
+```{r}
+
+```
+
+#### Checking Assumptions
+
+```{r fig.height=3, message=FALSE, warning=FALSE}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Chi-Squared: Q7 {.tabset}
+
+#### Information from Linear Model
+
+```{r}
+
+```
+
+#### Checking Assumptions
+
+```{r fig.height=3, message=FALSE, warning=FALSE}
+
+```
+
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Show Data {.tabset .tabset-pills .tabset-fade}
+
+The data comes from BYU-Idaho Human Resources's account with PeopleAdmin. The data is pulled on our job postings from 1 January 2008 to 30 November 2019.
+
+#### Modified and Used for Analysis {.tabset}
+
+```{r Modified and Used Datatable, include=TRUE}
+datatable(Post_Info)
+```
+
+#### Original Data
+
+```{r Original Datatable}
+datatable(Posting_Information)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Conclusion
+
+Looks like there the English and Religious Department impact our numbers heavily. I wonder if it's due to a growth in the department or that many people looking for work.  
+2008 and the Foundations & Interdisciplinary Studies department had an impact on the number of submitted applications. More work will have to done to understand why these two variables stand out and if they need to be removed since they average nearly double what other years' and departments' numbers are.  
+The biggest learning opportunity from this analysis is the work it takes to find and clean your data.  

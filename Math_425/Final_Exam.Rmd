@@ -1,0 +1,366 @@
+---
+title: "Practice Final Exam"
+author: "Devin Bastian"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, Lahman, blscrapeR, lubridate, riem, ggthemes, ggrepel, reshape2, plotly, MASS, party, lmtest)
+
+```
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+
+```
+
+### Question 1
+
+Question: 
+
+Answer: 4.0341
+
+```{r}
+library(MASS)
+
+View(cats)
+
+?cats
+
+summary(lm(Hwt~Bwt, data = cats))
+```
+
+### Question 2
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 3
+
+Question: Add a regression line to this plot. Then, provide an interval that estimates what this month's Total Bill will be when it is known that this month's Gas Bill is $150.
+
+Answer: 
+
+```{r}
+util.lm <- lm(totalbill ~ gasbill, data=Utilities)
+plot(totalbill ~ gasbill, data=Utilities)
+abline(util.lm)
+
+predict(util.lm, data.frame(gasbill=150), interval="prediction")
+```
+
+### Question 4
+
+Question: 
+
+Answer: 
+
+```{r}
+util.lm2 <- lm(ccf ~ thermsPerDay, data=Utilities)
+summary(util.lm2)
+plot(ccf ~ thermsPerDay, data=Utilities)
+```
+
+### Question 5
+
+Question: 
+
+Answer: 
+
+```{r}
+util.lm3 <- lm(temp ~ ccf, data=Utilities)
+
+boxCox(util.lm3)
+
+summary(util.lm3)
+```
+
+### Question 6
+
+Question: 
+
+Answer: 
+
+```{r}
+
+CO2.loess <- loess(totalbill ~ month, data= Utilities, span=0.3, method.args=list(degree=2))
+predict(CO2.loess, data.frame(month = 9), interval="prediction")
+```
+
+### Question 7
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 8
+
+Question: 
+
+Answer: 
+
+```{r}
+summary(lm(ccf ~ year, data = Utilities))
+mean(Utilities$ccf)
+```
+
+### Question 9
+
+Question: 
+
+Answer: 
+
+```{r}
+pairs(airquality)
+summary(lm(Wind ~ Temp, data = airquality)) 0.2045 
+summary(lm(Ozone ~ Temp, data = airquality))0.4832 
+summary(lm(Ozone ~ Wind, data = airquality))0.3563 
+summary(lm(Solar.R ~ Wind, data = airquality))
+
+```
+
+### Question 10
+
+Question: 
+
+Answer: 
+
+```{r}
+pairs(Utilities, panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+util.lm4 <- lm(totalbill ~ gasbill, data = Utilities)
+
+pairs(cbind(R = util.lm4$res, Fit = util.lm4$fit, Utilities), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+```
+
+### Question 11
+
+Question: Use the Utilities data set to perform a regression that predicts the electric bill from the kilowatt hours of electricity usage.
+
+Test the hypotheses that the true regression slope is $0.11. In other words, test to see if the kilowatt hours cost 11 cents per hour or not.
+
+Answer: 
+
+```{r}
+util.lm5 <- lm(elecbill ~ kwh, data = Utilities, mu = 0.11, alternative = "two.sided", conf.level = 0.95)
+
+summary(util.lm5)
+
+(Estimate (b_0 or b_1) - hypothesis number)/std.Error_{b_0 or b_1}
+b_0.lm <- (0.108754 - .11)/0.005816
+pt(-abs(b_0.lm), 113)*2
+```
+
+### Question 12
+
+Question: 
+
+Answer: 
+
+```{r}
+t <- qt(.025, 115)
+0.2339 + t * 0.2524
+0.2339 - t * 0.2524
+```
+
+### Question 13
+
+Question: 
+
+Answer: 
+
+```{r}
+util.lm6 <- lm(totalbill ~ kwh + ccf + year, data = Utilities)
+summary(util.lm6)
+```
+
+### Question 14
+
+Question: Use the Utilities data set to perform a regression that shows how kilowatt hours are impacted by the year and average temperature as well as their interaction.
+
+Within this regression there are a few minor outliers, but nothing too serious as shown by the appropriate diagnostic plots. Point 14 is currently having the most influence of any of the points on the regression, though still minimal in its influence.
+
+Which point has the second most amount of influence on the regression?
+
+Answer: 
+
+```{r}
+util.lm7 <- lm(kwh ~ year + temp + year:temp, data = Utilities)
+summary(util.lm7)
+
+par(mfrow=c(1,3))
+
+plot(util.lm7, which=c(1,4,5))
+```
+
+### Question 15
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 16
+
+Question: average billing period temperature on month of the year
+
+Answer: 
+
+```{r}
+util.lm8 <- lm(temp ~ month + I(month^2), data = Utilities)
+summary(util.lm8)
+Util.lm.co <- util.lm8$coefficients
+
+ggplot(Utilities, mapping = aes(y = temp, x = month)) +
+  geom_point() +
+  stat_function(fun = function(x) Util.lm.co[1] + Util.lm.co[2]*x + Util.lm.co[3]*x^2) +
+  labs(title="Single Residence in Minnisota", 
+       x="Month of the Year", 
+       y="Monthly Gas Bill (US Dollars)")
+```
+
+### Question 17
+
+Question: Use the Utilities data set from library(mosaic) to create a plot of a cubic regression showing the average billing period temperature on month of the year.
+
+Select the graph from the options below that matches your plot.
+
+Answer: 
+
+```{r}
+util.lm9 <- lm(temp ~ month + I(month^2) + I(month^3), data = Utilities)
+summary(util.lm9)
+Util.lm.co <- util.lm9$coefficients
+
+ggplot(Utilities, mapping = aes(y = temp, x = month)) +
+  geom_point() +
+  stat_function(fun = function(x) Util.lm.co[1] + Util.lm.co[2]*x + Util.lm.co[3]*x^2 + Util.lm.co[4]*x^3) +
+  labs(title="Single Residence in Minnisota", 
+       x="Month of the Year", 
+       y="Monthly Gas Bill (US Dollars)")
+```
+
+### Question 18
+
+Question: 
+
+Answer: 
+
+```{r}
+Prestige2 <- mutate(Prestige, type = as.factor(ifelse(type == "prof", "prof","other")))
+
+summary(lm(income ~ prestige + type, data = Prestige2))
+
+
+
+```
+
+### Question 19
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 20
+
+Question: 
+
+Answer: 
+
+```{r}
+Chile.lm <- lm(income ~ population, data = Chile)
+chil.co <- Chile.lm$coefficients
+summary(Chile.lm)
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(Chile.lm, which=1:2)
+plot(Chile.lm$residuals, main = "Residuals vs Order")
+
+ggplot(Chile, mapping = aes(y = income, x = population)) +
+  geom_point() +
+  stat_function(fun = function(x) chil.co[1] + chil.co[2]*x)
+```
+
+### Question 21
+
+Question: 
+
+Answer: 
+
+```{r}
+
+summary(lm(dist ~ speed, data=cars))
+```
+
+### Question 22
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 23
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 24
+
+Question: 
+
+Answer: 
+
+```{r}
+
+predict(0.2950, 150, interval="prediction")
+```
+
+### Question 25
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```

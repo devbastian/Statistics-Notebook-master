@@ -1,0 +1,310 @@
+---
+title: "House Prices General Advice"
+author: "Me"
+date: "3/18/2020"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(car)
+library(pander)
+
+train <- read.csv("~/Downloads/house-prices-advanced-regression-techniques (1)/train.csv", header=TRUE)
+
+train <- train %>%
+  mutate(TotalSqft = TotalBsmtSF + X1stFlrSF + X2ndFlrSF) %>%
+  mutate(Has2ndFl = as.factor(ifelse(X2ndFlrSF > 0, "Yes", "No")))
+
+pairs(train[,c("SalePrice", "TotalSqft", "Has2ndFl")], panel=panel.smooth)
+
+lm1 <- lm(SalePrice ~ TotalSqft, data=train)
+plot(lm1, which=1)
+
+## Remove outliers 524 and 1299
+
+train2 <- train[-c(524,1299), ]
+
+lm1 <- lm(SalePrice ~ TotalSqft, data=train2)
+plot(lm1, which=1)
+
+boxCox(lm1) #suggests maybe a sqrt(sqrt(y)) 0.25...
+
+plot(sqrt(sqrt(SalePrice)) ~ TotalSqft, data=train2, col=as.factor(Has2ndFl))
+
+
+lm2 <- lm(sqrt(sqrt(SalePrice)) ~ TotalSqft, data=train2) #Not interpretable
+summary(lm2)
+  ## Can only interpret the effect of TotalSqft on sqrt(sqrt(SalePrice)), so you have to always talk in square root square root dollars, whatever that is!?
+
+lm3 <- lm(log(SalePrice) ~ TotalSqft, data=train2) #Interpretable
+b2 <- coef(lm3)
+summary(lm3)
+  ## The log is interpreted as the percentage change in Y as X increases by 1 unit.
+  ## exp(slope) = %change in Y
+  ## exp(b2[2]) = 1.000426 or 0.0426% increase in Y per extra Total Square Foot.
+  ## exp(b2[2]*100) = 1.043537 or 4.4% increase in Y per extra 100 Total Square Feet
+  ## So, if your home was 2400 SQFT and was worth $250,000, then adding on 100 more SQFT would increase the value to 1.043537*250000 = 260884.2 which is an increase of $10,884.20.
+
+
+plot(SalePrice ~ TotalSqft, data=train)
+b <- coef(lm2)
+curve((b[1] + b[2]*x)^4, add=TRUE, col="skyblue")
+curve(exp(b2[1] + b2[2]*x), add=TRUE, col="orange")
+
+## When you transform, only the log transformation preserves interpretation.
+
+```
+
+
+## Going to 3D Space 
+
+```{r}
+pairs(cbind(R=lm3$res, Fit=lm3$fit, train2[,c("SalePrice","TotalSqft","Has2ndFl", "OverallQual","Neighborhood")]), panel=panel.smooth)
+
+train2$Neighborhood #look at this variable
+levels(train2$Neighborhood) #see names of all neighborhoods
+cbind(1:25, levels(train2$Neighborhood)) #Get neighborhood numbers
+
+## Find neighborhoods that are similar in prices
+par(mai=c(1,2,.8,.1))
+boxplot(SalePrice ~ Neighborhood, data=train2, horizontal=TRUE, las=1)
+
+## Fancy sorted table of median prices
+train2 %>%
+  group_by(Neighborhood) %>%
+  summarise(median = median(SalePrice)) %>%
+  arrange(median) %>%
+  pander()
+
+train2 <- train2 %>%
+  mutate(NeighborhoodGroups = case_when(Neighborhood %in% c("StoneBr","NoRidge","NridgHt") ~ "Most Expensive",
+                                        Neighborhood %in% c("SawyerW","Gilbert","NWAmes","Blmngtn","CollgCr","ClearCr","Crawfor","Veenker","Somerst","Timber") ~ "Moderately Expensive",
+                                        TRUE ~ "Poorer Neighborhoods"),
+         NeighborhoodGroups = as.factor(NeighborhoodGroups))
+
+pairs(cbind(R=lm3$res, Fit=lm3$fit, train2[,c("SalePrice","TotalSqft", "OverallQual","Neighborhood","NeighborhoodGroups")]), panel=panel.smooth, col=as.factor(train2$NeighborhoodGroups))
+
+
+lm4 <- lm(log(SalePrice) ~ TotalSqft + NeighborhoodGroups, data=train2)
+summary(lm4)
+
+plot(SalePrice ~ TotalSqft, data=train2, col=NeighborhoodGroups)
+b <- coef(lm4)
+NGME=0;NGPoor=0;
+curve(exp(b[1] + b[2]*x + b[3]*NGME + b[4]*NGPoor), add=TRUE, col=palette()[1])
+
+NGME=1;NGPoor=0;
+curve(exp(b[1] + b[2]*x + b[3]*NGME + b[4]*NGPoor), add=TRUE, col=palette()[2])
+
+NGME=0;NGPoor=1;
+curve(exp(b[1] + b[2]*x + b[3]*NGME + b[4]*NGPoor), add=TRUE, col=palette()[3])
+
+
+## Add interactions? 
+lm5 <- lm(log(SalePrice) ~ TotalSqft + NeighborhoodGroups + TotalSqft:NeighborhoodGroups, data=train2)
+summary(lm5) #No need to add the interaction terms.
+
+
+
+```
+
+
+
+## Graphing, Interpreting, and Validating
+
+```{r}
+## Validation 
+nrow(train)
+
+## Okay to mutate, but don't filter at this stage of validation
+train <- train %>%
+  mutate(NeighborhoodGroups = case_when(Neighborhood %in% c("StoneBr","NoRidge","NridgHt") ~ "Most Expensive",
+                                        Neighborhood %in% c("SawyerW","Gilbert","NWAmes","Blmngtn","CollgCr","ClearCr","Crawfor","Veenker","Somerst","Timber") ~ "Moderately Expensive",
+                                        TRUE ~ "Poorer Neighborhoods"),
+         NeighborhoodGroups = as.factor(NeighborhoodGroups))
+
+set.seed(121)
+keep <- sample(1:nrow(train), 1000)
+mytrain <- train[keep,]
+mytest <- train[-keep,]
+
+## Okay to filter when running the lm...
+which(rownames(mytrain) %in% c(411,633,917))
+lm_train <- lm(log(SalePrice) ~ TotalSqft + LotFrontage + NeighborhoodGroups + TotalSqft:NeighborhoodGroups, data=mytrain[-c(174,264,300),])
+summary(lm_train)
+plot(lm_train, which=1)
+
+## Validation
+
+### Impute missing values
+apply(mytest[,c("TotalSqft","LotFrontage","NeighborhoodGroups")], 2, function(x) sum(is.na(x)))
+
+mytest2 <- mytest %>%
+  mutate(LotFrontage = replace_na(LotFrontage, mean(LotFrontage, na.rm=TRUE)),
+         BsmtQual = replace_na(BsmtQual, "Gd")) 
+   #> table(mytest$BsmtQual)
+   # Ex  Fa  Gd  TA 
+   # 39   4 200 200 
+
+yhat <- predict(lm_train, newdata=mytest2)
+
+sum(is.na(yhat)) #87 missing values in yhat
+
+Y <- log(mytest2$SalePrice) #make sure Y is on the same scale that you used in your lm
+
+SSTO <- sum( (Y - mean(Y))^2 )
+SSE <- sum( (Y - yhat)^2 )
+n <- nrow(mytest2)
+p <- length(coef(lm_train))
+adjr2 <- 1 - (n-1)/(n-p)*SSE/SSTO #comes out to 0.651568
+summary(lm_train)$adj.r.squared #original value was 0.8084779
+
+## Best I've seen from students is 0.93 and a validation of 0.91
+
+
+
+## Draw it
+## log(SalePrice) ~ TotalSqft + LotFrontage + NeighborhoodGroups + TotalSqft:NeighborhoodGroups
+
+plot(SalePrice ~ TotalSqft, data=mytrain)
+plot(SalePrice ~ LotFrontage, data=mytrain)
+plot(SalePrice ~ NeighborhoodGroups, data=mytrain) #categorical
+
+b <- coef(lm_train)
+b
+
+plot(SalePrice ~ TotalSqft, data=mytrain, col=as.factor(NeighborhoodGroups))
+LotFrontage=20;NGMostExp=0;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[1])
+
+LotFrontage=50;NGMostExp=0;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[1])
+
+LotFrontage=100;NGMostExp=0;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[1])
+
+
+LotFrontage=20;NGMostExp=1;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[2])
+
+LotFrontage=50;NGMostExp=1;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[2])
+
+LotFrontage=100;NGMostExp=1;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[2])
+
+
+LotFrontage=20;NGMostExp=0;NGPoorer=1;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[3], lwd=1)
+
+LotFrontage=50;NGMostExp=0;NGPoorer=1;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[3], lwd=2)
+
+LotFrontage=100;NGMostExp=0;NGPoorer=1;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="TotalSqft", col=palette()[3], lwd=3)
+
+
+
+plot(SalePrice ~ LotFrontage, data=mytrain, col=as.factor(NeighborhoodGroups))
+
+TotalSqft=1000;NGMostExp=0;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[1], lwd=1)
+
+TotalSqft=3000;NGMostExp=0;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[1], lwd=2)
+
+TotalSqft=5000;NGMostExp=0;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[1], lwd=3)
+
+
+TotalSqft=1000;NGMostExp=1;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[2], lwd=1)
+
+TotalSqft=3000;NGMostExp=1;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[2], lwd=2)
+
+TotalSqft=5000;NGMostExp=1;NGPoorer=0;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[2], lwd=3)
+
+
+
+TotalSqft=1000;NGMostExp=0;NGPoorer=1;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[3], lwd=1)
+
+TotalSqft=3000;NGMostExp=0;NGPoorer=1;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[3], lwd=2)
+
+TotalSqft=5000;NGMostExp=0;NGPoorer=1;
+curve(exp(b[1] + b[2]*TotalSqft + b[3]*LotFrontage + b[4]*NGMostExp + b[5]*NGPoorer + b[6]*TotalSqft*NGMostExp + b[7]*TotalSqft*NGPoorer), add=TRUE, xname="LotFrontage", col=palette()[3], lwd=3)
+
+plot(SalePrice ~ NeighborhoodGroups, data=mytrain)
+
+
+## For interpretation of a log(Y) model
+exp(b)
+
+
+
+```
+
+
+## Interpret it
+
+`log(SalePrice) ~ TotalSqft + LotFrontage + NeighborhoodGroups + TotalSqft:NeighborhoodGroups`
+
+Since everything is in log(SalePrice) space, we have to interpret each coefficient by exp(b) and it's percentage change on the SalePrice.
+
+TotalSqft 1.000351 of the SalePrice for every 1 square foot increase. However, that isn't so interpretable, so try this instead `exp(b[2]*100)` = 1.03578 or a 3.578% increase in SalePrice for every addition 100 square feet. (Only true for the Moderately Priced Neighborhoods.)
+
+LotFrontage 1.000902 of the SalePrice for every 1 square foot increase in LotFrontage. Or, 9.4% increase in SalePrice for each addition 100 square feet of LotFrontage
+
+When the Neighborhood is among the "Most Expensive" types of neighborhoods, then the SalePrice is increased by `exp(b[4])` 27.8% as compared to "moderately priced" neighborhoods!
+
+When the Neighborhood is among the "poorer" types of neighborhoods, then the SalePrice is decreased by `exp(b[5]) = 0.9096101` 9.03% as compared to "moderately priced" neighborhoods.
+
+TotalSqft `exp((3.513394e-04-3.182852e-05)*100) = 1.032467`  increases of 100 square feet result in a 3.2% increase in the SalePrice for the Most Expensively Priced Neighborhoods.
+
+TotalSqft `exp((3.513394e-04-6.637285e-05)*100) = 1.028907`  increases of 100 square feet result in a 2.89% increase in the SalePrice for the Most Expensively Priced Neighborhoods.
+
+
+
+
+
+
+## Q & A
+
+### Question
+
+The column name for second floor sqr footage is "2ndFlrSF". R won't let us access it because it starts with a number. How did you deal with that?
+
+#### Answer
+
+```{r, eval=FALSE}
+train <- train %>%
+  mutate(TotalSqft = TotalBsmtSF + X1stFlrSF + X2ndFlrSF + `2ndFlrSF`)
+```
+
+### Question
+
+How can we see the list of columns again?
+
+```{r}
+names(train)
+```
+
+### Question
+
+Would you consider ratios to be valuable/easily interpretable (i.e. 1st floor sqft/2nd floor sqft)?
+
+> Sometimes, these could be useful, could be dangerous. But definitely worth trying.
+
+### Question
+
+So, a quick question about your office hours. Will they be through zoom and only through zoom?
+
+> They will be in my "personal meeting room" the ID: 671-623-1070
+

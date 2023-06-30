@@ -1,0 +1,797 @@
+---
+title: "Math 425 Final Exam"
+author: "Devin Bastian"
+output: 
+  html_document:
+    theme: cerulean
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r, include=FALSE}
+# Be sure to run these in your console as well:
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, Lahman, blscrapeR, lubridate, riem, ggthemes, ggrepel, reshape2, plotly, MASS, party, lmtest)
+
+
+```
+
+<!-- Place your answer to each question in the curly brackets
+     For example:
+     
+     # Question 1 {a}
+     # Question 2 {b}
+     # Question 3 {c} 
+     
+     Submit your completed exam to the I-Learn dropbox:
+       Final Exam: Final Attempt 
+     for final grading.
+     
+     Note: you can submit the file once before it is officially graded 
+     and get feedback about how many questions are correct, if you want.
+     
+     Just use the "First Attempt" dropbox in I-Learn. -->
+
+
+
+## Question 1 { }
+
+Open the RailTrail dataset from library(mosaic).
+
+Perform an appropriate analysis in R to determine the slope of the "orangered" line in the plot below.
+
+![](Q1scatterplot.png)
+
+(a) -2.581
+
+(b) -2.315
+
+(c) -2.953
+
+(d) -2.408
+
+
+
+
+
+
+
+
+
+## Question 2 { }
+
+Open the ChickWeight data set in R.
+
+Perform a linear regression that predicts the weight of chickens according to how old the chick is in days.
+
+Which of the following correctly diagnoses the appropriateness of this regression?
+
+
+(a) Everything looks good except for the non-normal errors.
+
+(b) The constant variance is violated, but linearity and normality look fine.
+
+(c) Constant Variance and normal errors are both violated, but the linear relation isn't too bad.
+
+(d) Linear Relation is the only assumption being violated. The data looks to have constant variance and normal errors.
+
+
+
+
+
+
+
+
+
+## Question 3 { }
+
+The points in all four scatter plots below are the same. Which of the following is the least squares regression line for these points?
+
+![](Q3scatterplots.png)
+
+(a) The plot on the left.
+
+(b) The plot in the middle-left.
+
+(c) The plot in the middle-right.
+
+(d) The plot on the right.
+
+
+
+
+
+
+
+
+
+## Question 4 { }
+
+The points in all four plots below are the same. Which plot shows the robust regression line?
+
+Here are the points if you are interested.
+
+```{r}
+Y <- c('9.8', '8.74', '8.72', '9.49', '7.54', '7.92', '8.6', '9.06', '10.14', '9.36', '9.34', '8.69', '9.14', '8.2', '8.62', '8.02', '9.11', '9.99', '9.05', '9.93', '9.61', '8.53', '9.13', '6.63', '10.49', '10.7', '8.3', '11.97', '9.08', '8.82')
+X <- c('13.75', '15.37', '13.33', '18.19', '15.66', '13.36', '15.97', '16.48', '16.15', '14.39', '18.02', '15.78', '13.76', '10.57', '17.25', '14.91', '14.97', '16.89', '16.64', '16.19', '16.84', '16.56', '15.15', '11.02', '16.24', '14.89', '14.69', '12.06', '14.04', '15.84')
+```
+
+![](Q4scatterplots.png)
+
+(a) The plot on the left.
+
+(b) The plot in the middle-left.
+
+(c) The plot in the middle-right.
+
+(d) The plot on the right.
+
+
+
+
+
+
+
+
+
+## Question 5 { }
+
+Fit an appropriate regression model to the following scatterplot using only the variables shown in the plot. Which of the following is the adjusted r-squared of a "best" model for this data?
+
+```{r}
+plot(Temp ~ Month, data=airquality, main="airquality data")
+```
+
+(a) 0.5895
+
+(b) 0.5075
+
+(c) 0.5102
+
+(d) 0.1717
+
+
+
+
+
+
+
+
+
+## Question 6 { }
+
+Use the airquality dataset to fit the model
+
+$$
+  \underbrace{Y_i}_\text{Temp} = \beta_0 + \beta_1 \underbrace{X_{i1}}_\text{Wind} + \beta_2 \underbrace{X_{i2}}_\text{Month==7} + \beta_3 X_{i1}X_{i2} + \beta_4 \underbrace{X_{i3}}_\text{Month==9} + \beta_5 X_{i1} X_{i3} + \epsilon_i
+$$
+
+```{r}
+plot(Temp ~ Wind, data=subset(airquality, Month %in% c(5,7,9)), col=as.factor(Month))
+```
+
+What is the estimate of $\beta_4$?
+
+(a) -0.6526
+
+(b) 0.2907
+
+(c) 16.9497
+
+(d) 13.8133
+
+
+
+
+
+
+
+
+
+## Question 7 { }
+
+Consider the model $\overbrace{Y_i}^\text{dist} = \beta_0 + \beta_1 \overbrace{X_i}^\text{speed} + \epsilon_i$ for the cars data. Which of the following would add the most information to this model?
+
+```{r}
+X2 <- c(0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0)
+X3 <- c(13.7, 16.53, 17.4, 19.07, 15.29, 15.12, 14.3, 22.33, 11.04, 10.18, 11.29, 12.62, 14.45, 17.58, 9.02, 11.11, 11.19, 13.59, 18.51, 20.56, 13.98, 13.86, 14.96, 8.7, 18.79, 19.99, 12.81, 12.98, 18.02, 16.51, 11.13, 12.4, 9.94, 12.58, 9.98, 14.46, 15.08, 17.33, 12.64, 18.07, 21.49, 14.62, 16.79, 19.72, 20.33, 19.85, 18.84, 16.55, 13.71, 14.18)
+X4 <- c(4.55, 4.53, 7.56, 7.51, 8.56, 9.54, 10.54, 10.3, 10.52, 11.39, 11.57, 12.6, 12.48, 12.44, 12.47, 13.54, 13.43, 13.7, 13.55, 14.35, 14.56, 14.7, 14.52, 15.58, 15.39, 15.44, 16.48, 16.45, 17.44, 17.73, 17.48, 18.52, 18.5, 18.46, 18.44, 19.61, 19.54, 19.56, 20.56, 20.58, 20.39, 20.41, 20.53, 22.4, 23.33, 24.34, 24.52, 24.56, 24.42, 25.59)
+X5 <- c(16, 16, 49, 49, 64, 81, 100, 100, 100, 121, 121, 144, 144, 144, 144, 169, 169, 169, 169, 196, 196, 196, 196, 225, 225, 225, 256, 256, 289, 289, 289, 324, 324, 324, 324, 361, 361, 361, 400, 400, 400, 400, 400, 484, 529, 576, 576, 576, 576, 625)
+```
+
+(a) `X2`
+
+(b) `X3`
+
+(c) `X4`
+
+(d) `X5`
+
+
+
+
+
+
+
+
+
+## Question 8 { }
+
+Use the `mtcars` dataset and a quadratic regression model to predict the average `mpg` for a manual transmission vehicle with `hp = 150` with 95% confidence.
+
+(a) (15.90904, 19.85342)
+
+(b) (16.41787, 19.34459)
+
+(c) (11.41947, 24.34299)
+
+(d) (9.172623, 26.58984)
+
+
+
+
+
+
+
+
+
+## Question 9 { }
+
+What is the estimated value of $\sigma^2$ in the model
+
+$$
+  Y_i = \beta_0 + \beta_1 X_i + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)
+$$
+
+for $Y_i = \text{Temp}$ and $X_i = \text{Wind}$ in the `airquality` data set?
+
+(a) 8.442047
+
+(b) 71.26816
+
+(c) -1.2305
+
+(d) 90.1349
+
+
+
+
+
+
+
+
+
+## Question 10 { }
+
+Use the `KidsFeet` data set (library(mosaic)) to obtain the value of the residual for the child named `Lang` in the simple linear regression that uses `length` of foot to predict `width` of foot?
+
+(a) -0.51302239
+
+(b) -0.48248134
+
+(c) -0.18576493
+
+(d) -0.23371269
+
+
+
+
+
+
+
+
+
+## Question 11 { }
+
+Which of the following cominations could be values for SSE, SSR, and SSTO for the regression model $Y_i = \beta_0 + \beta_1 X_i + \epsilon_i$?
+
+(a) SSE = 178.05, SSR = 502.35, SSTO = 704.40
+
+(b) SSE = 6959.2, SSR = 102.48, SSTO = 8992.5
+
+(c) SSE = 57.149, SSR = 0.0024, SSTO = 57.147
+
+(d) SSE = 4.0557, SSR = 5.8120, SSTO = 9.8677
+
+
+
+
+
+
+
+
+
+## Question 12 { }
+
+Which of the following statements contains no error?
+
+(a) $Y_i = \beta_0 + \beta_1 X_i + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0,\sigma^2_i)$
+
+(b) $Y_i = \beta_0 + \beta_1 X_{ii} + \beta_2 X_{ii} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)$
+
+(c) $Y_i = \beta_i + \beta_0 X_{i1} + \beta_2 X_{i2} + \beta_3 \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)$
+
+(d) $Y_i = \beta_0 + \beta_1 X_{i1}' + \beta_2 X_{i2} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)$
+
+
+
+
+
+
+
+
+
+## Question 13 { }
+
+Which model from the list below has the best AIC criterian for the `KidsFeet` data set? Let $Y_i$ be `length`, $X_{1i}$ be `width`, $X_{2i}$ be 1 when girl and 0 when boy.
+
+(a) $Y_i = \beta_0 + \beta_1 X_{1i} + \epsilon_i$
+
+(b) $Y_i = \beta_0 + \beta_1 X_{2i} + \epsilon_i$
+
+(c) $Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \epsilon_i$
+
+(d) $Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \beta_3 X_{1i} X_{2i} + \epsilon_i$
+
+
+
+
+
+
+
+
+
+## Question 14 { }
+
+Open the `mtcars` data set. A simple linear regression of vehicle `mpg` on `qsec` is performed. Which Y transformation produces the highest $R^2$ value?
+
+(a) $Y' = \log(Y)$
+
+(b) $Y' = Y$
+
+(c) $Y' = \sqrt{Y}$
+
+(d) $Y' = 1/Y$
+
+
+
+
+
+
+
+
+
+## Question 15 { }
+
+Would a residual of 3.8 be considered an outlier or a typical value in the regression of `mpg` on `drat`?
+
+(a) A residual of 3.8 would be surprisingly small for this regression.
+
+(b) A residual of 3.8 would be quite typical for this regression.
+
+(c) A residual of 3.8 would be exceptionally large for this regression.
+
+(d) A residual of 3.8 would be somewhat extreme, but not impossible for this regression.
+
+
+
+
+
+
+
+
+
+## Question 16 { }
+
+A regression of the square root of circumference is performed on the explanatory variable of age using the `Orange` data set. Which of the following plots correctly shows this regression in the original units?
+
+![](Q16scatterplots.png)
+
+(a) The plot on the left.
+
+(b) The plot in the middle-left.
+
+(c) The plot in the middle-right.
+
+(d) The plot on the right.
+
+
+
+
+
+
+
+
+
+## Question 17 { }
+
+Use the regression output below to predict the average length of feet for girls with a foot width of 8.2 cm.
+
+```{r}
+summary(lm(length ~ width + sex, data=KidsFeet))
+```
+
+
+(a) 23.38376 cm
+
+(b) 41.55233 cm
+
+(c) 18.22010 cm
+
+(d) 21.95480 cm
+
+
+
+
+
+
+
+
+
+## Question 18 { }
+
+Which of the following regressions least satisfies the constant variance requirement for the airquality data set?
+
+(a) lm(Temp ~ Day)
+
+(b) lm(Wind ~ Temp)
+
+(c) lm(Month ~ Day)
+
+(d) lm(Solar.R ~ Temp)
+
+
+
+
+
+
+
+
+
+## Question 19 { }
+
+Perform a lack-of-fit test for the `mtcars` data with `mpg` on the explanatoary variable of `cyl`.
+
+Report the p-value and conclusion of the test.
+
+(a) p-value = 0.4161, which shows evidence of a non-linear pattern.
+
+(b) p-value = 9.266e-10, which shows evidence of a non-linear pattern.
+
+(c) p-value = 0.4161, which shows we can assume linearity of the data.
+
+(d) p-value = 9.266e-10, which shows we can assume linearity of the data.
+
+
+
+
+
+
+
+
+
+## Question 20 { }
+
+Test the hypothesis $H_0: \beta_1 = -3$ against $H_a: \beta_1 > -3$ in the regression of `mpg ~ cyl` from the `mtcars` data set. Select the p-value of the test.
+
+(a) 0.3852357
+
+(b) 0.3513904
+
+(c) 6.11e-10
+
+(d) 5.98e-09
+
+
+
+
+
+
+
+
+
+## Question 21 { }
+
+Interpret the slope in context of the model
+
+$$
+  \underbrace{Y_i}_\text{mpg} = \beta_0 + \beta_1 \underbrace{X_i}_\text{cyl} + \epsilon_i 
+$$
+
+(a) There is a -2.8758 chage in `mpg` for every 1 unit increase in `cyl`.
+
+(b) There is a -2.8758 change in `mpg`, on average, for every 1 unit increase in `cyl`.
+
+(c) There is an average change of -2.8758 in `mpg` for every 1 unit increase in `cyl`. 
+
+(d) There is a -2.8758 change in the average `mpg` for every 1 unit incrase in `cyl`.
+
+
+
+
+
+
+
+
+
+## Question 22 { }
+
+Compute the value of $SSE$ for the model
+
+$$
+  \underbrace{Y_i}_\text{mpg} = \beta_0 + \beta_1 \underbrace{X_i}_\text{cyl} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2) 
+$$
+
+(a) 818
+
+(b) 308
+
+(c) 80
+
+(d) 10
+
+
+
+
+
+
+
+
+
+## Question 23 { }
+
+Which scatterplot is best suited for a double quadratic model?
+
+```{r, fig.height=3}
+par(mfrow=c(1,4), mai=c(.3,.3,.1,.1))
+plot(width ~ length, data=KidsFeet, col=as.factor(sex))
+text(21.8,9.8,"(a)")
+plot(uptake ~ conc, data=subset(CO2, conc>250 & Treatment=="chilled" & Plant != "Mc2"), col=Type)
+text(205,42.5,"(b)")
+plot(Temp ~ Solar.R, data=subset(airquality, Month %in% c(5,9)), col=as.factor(Month), ylim=c(50,100))
+text(58,333,"(c)")
+plot(mpg ~ qsec, data=mtcars, col=as.factor(am))
+text(15, 34, "(d)")
+```
+
+(a) The left plot.
+
+(b) The middle-left plot.
+
+(c) The middle-right plot.
+
+(d) The right plot.
+
+
+
+
+
+
+
+
+
+## Question 24 { }
+
+Which graph shows a scenario where SSE is larger than the SSR?
+
+![](Q24scatterplots.png)
+
+
+(a) The plot on the left.
+
+(b) The plot in the middle-left.
+
+(c) The plot in the middle-right.
+
+(d) The plot on the right.
+
+
+
+
+
+
+
+
+
+## Question 25 { }
+
+What type of analysis would be most appropriate for predicting whether or not a student will have a job upon graduation based on their GPA?
+
+(a) A logistic regression model.
+
+(b) A two-lines regression model.
+
+(c) A double quadratic regression model.
+
+(d) A three-dimensional regression model.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,55 @@
+---
+title: "11 October 2019 - Make-up Work"
+Output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: TRUE
+    toc_float: TRUE
+---
+
+This is the Skills Quiz - Data Wrangling and Visualization
+
+
+
+```{r}
+  
+
+library(mosaic)
+View(KidsFeet)  
+?KidsFeet
+table(KidsFeet$sex)
+table(KidsFeet$biggerfoot)
+table(KidsFeet$birthmonth)
+barplot(KidsFeet$birthmonth)
+
+#I am not understanding how to write/use histograms and bar plots. 
+
+table(KidsFeet$sex, KidsFeet$domhand)
+
+#How do you make this a pretty table? What is the probability of a Type I and Type II error? Cause I have no idea. Never show a graph without having a p-value.
+```
+
+
+
+```{r}
+library(tidyverse)
+  KidsFeet %>%
+  group_by(sex) %>%
+  summarise(min = min(length), 
+            Q1 = quantile(length, 0.25),
+            med = median(length), 
+            Q3 = quantile(length, 0.75), 
+            max = max(length),
+            sd_Length = sd(length),
+            Sample_Size = n())
+```
+
+
+
+```{r}
+?airquality
+View(airquality) 
+library(mosaic)
+```
+

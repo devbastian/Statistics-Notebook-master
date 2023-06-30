@@ -1,0 +1,424 @@
+---
+title: "Skills Quiz: Hypothesis Tests"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+```{r Libraries and Data, message=FALSE, warning=FALSE}
+# Load your libraries
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(Ecdat)
+library(scales)
+```
+
+## Instructions
+
+Use this file to keep a record of your work as you complete the "Skills Quiz: Hypothesis Tests" assignment in Canvas.
+
+
+----
+
+<!-- Note: The {} after each Problem and Part header allows you to keep track of what work you have completed. Write something like {Done} once you complete each problem and your html file will then show you a nice summary of what you have "done" already. -->
+
+
+## Problem 1 {done}
+
+Install the `Ecdat` library in R: `install.packages("Ecdat")`.
+
+From `library(Ecdat)` open the `Caschool` data set in R.  As stated in the help file for this data set, this data is a collection of measurements on 420 different school districts from California during the 1998-1999 school year.
+
+The school districts in California offer a reduced-price lunch program. This is in a way, a measure of the poverty of the student body of the school district. We will assume that the higher the percentage of participants, the greater the general level of poverty. The question is, does the poverty level (or at least the percentage of participation in the reduced-lunch program) predict how well the student body will perform overall on a standardized test?
+
+`> ?Caschool`
+
+`> View(Caschool)`
+
+### Part (a) {done}
+
+Type out the mathematical equation for this regression model and label both $Y$ and $X$ in the equation.
+
+<div class="YourAnswer">
+
+$$
+  \underbrace{Y_i}_\text{Test Score} = \beta_0 + \beta_1 \underbrace{X_i}_\text{Percentage of Reduced Lunch} + \epsilon_i
+$$
+
+</div>
+
+
+### Part (b) {done}
+ 
+Plot a scatterplot of the data with your regression line overlaid. Write out the fitted regression equation.
+
+<div class="YourAnswer">
+
+```{r}
+Pov.lm <- lm(testscr ~ mealpct, data = Caschool)
+b.Pov <- Pov.lm$coefficients
+#summary(Pov.lm)
+
+Caschool %>%
+  ggplot() +
+  aes(y = testscr, x = mealpct) + # How would I group and color the data according to poverty?
+  geom_point(color = "navyblue") +
+  stat_function(fun = function(x){(b.Pov[1] + b.Pov[2]*x)}, color = "red") +
+  labs(x = "Percentage of Kids Eating A Reduced-Cost Lunch (mealpct)",
+       y = "Average Test Score (testscr)",
+       title = "Are Test Scores Impacted By Poverty Within CA School Districts?") +
+  theme_bw()
+```
+
+$$
+  \underbrace{\hat{Y_i}}_\text{Test Score} = b_0 + b_1 \underbrace{X_i}_\text{Percentage of Reduced Lunch}
+$$
+
+</div>
+
+
+### Part (c) {done}
+
+Report the test statistics and p-values for the following hypotheses.
+
+$$ 
+  \begin{array}{l}
+    H_0: \beta_0 = 0 \\
+    H_a: \beta_0 \neq 0 \\
+  \end{array} \quad 
+  \begin{array}{l}
+    H_0: \beta_1 = 0 \\
+    H_a: \beta_1 \neq 0 \\
+  \end{array}
+$$
+
+<div class="YourAnswer">
+
+```{r Test Stat and P-value, message=FALSE, warning=FALSE}
+summary(Pov.lm)
+```
+
+| Hypothesis | Test Statstic | P-value |
+|---------|---------|---------|
+| Intercept | 766.16 | <2e-16 |
+| Slope | -35.87 | <2e-16 |
+
+</div> 
+ 
+ 
+### Part (d) {done}
+
+
+State the slope, y-intercept, and $R^2$ of this regression. Further, provide 95% confidence intervals for the slope and intercept. Interpret the values.
+
+<div class="YourAnswer">
+
+```{r Slope, y-int, R^2, message=FALSE, warning=FALSE}
+confint(Pov.lm, level = .95)
+```
+
+| Hypothesis | Estimate| 2.5% | 97.5% | 
+|---------|---------|---------|---------|
+| Intercept | 766.16 | 679.69 | 683.19 |
+| Slope | -35.87 | -0.64 | -0.58 |
+| $R^2$ | 0.75 | | |
+
+My $R^2$ helps me describe/explain what the variability is in our Y-intercept. **Variability** is the difference a data point is from the regression or more accurately the estimated regression. The **confidence interval**, the standard error provides us with the information about how much our regression line will deviate per sample *or known as the gray line*, additionally supports how $R^2$ explains the variability because it will show me how accurately or close the lower and upper bound confidence intervals are to the estimate values.
+
+
+</div>
+
+
+### Part (e) {done}
+
+Create a residuals vs fitted-values plot and Q-Q Plot of the residuals for this regression. What do these plots show?
+
+<div class="YourAnswer">
+
+```{r Assumptions Plots, message=FALSE, warning=FALSE}
+par(mfrow=c(1,3))
+plot(Pov.lm, which=1:2)
+plot(Pov.lm$residuals,main = "Residuals vs Order")
+```
+
+These plots show that the data is linear and has a constant variance, except for data observation outliers 163, 180, and 367.
+
+</div>
+
+
+
+
+----
+
+## Problem 2 {}
+
+Open the `Clothing` data set from library(Ecdat).
+
+Although this data is from 1990, it contains two interesting variables (1) the total `tsales` of the clothing stores and (2) the average number of hours worked per employee during the year, `hourspw`. 
+
+`> ?Clothing`
+
+`> View(Clothing)`
+
+### Part (a) {done}
+
+Type out the mathematical equation for this regression model and label both $Y$ and $X$ in the equation.
+
+<div class="YourAnswer">
+
+$$
+  \underbrace{Y_i}_\text{Total Sales} = \overbrace{\beta_0}^\text{Intercept} + \overbrace{\beta_1}^\text{Slope} \ \underbrace{X_i}_\text{Hours Worked} + \overbrace{\epsilon_i}^\text{Error Term} 
+$$
+| Parameter | Explanation |
+|-----------|--------------------|
+| $Y_i$ | Total Sales |
+| $\epsilon_i$ | Each clothing companies difference from the average Total Sales. |
+| $\beta_1$ | Change in the Average Total Sales as Hours Worked per Employee increases by 1. |
+| $X_i$ | Hours Per Employee |
+| $\beta_0$ | Average Total Sales when Zero Hours are Worked per Employee. |
+
+</div>
+
+
+### Part (b) {done}
+ 
+Plot a scatterplot of the data with your regression line overlaid. Write out the fitted regression equation.
+
+<div class="YourAnswer">
+```{r Data_Wrangle, message=FALSE, warning=FALSE}
+Clothing.lm <- lm(tsales ~ hourspw, data = Clothing)
+# summary(Clothing.lm)
+Clothing.lm.co <- Clothing.lm$coefficients
+```
+
+```{r}
+Clothing %>%
+  ggplot(aes(y = tsales, x = hourspw)) +
+  geom_point() +
+  stat_function(fun = function(x){(Clothing.lm.co[1] + Clothing.lm.co[2]*x)}) +
+  theme_classic() +
+  labs(title = "Sales Data of Men's Fashion Stores in Netherland in 1990",
+         x = "Number Of Hours Worked Per Worker (hourspw)",
+         y = "Annual Sales In Dutch Guilders (tsales)") +
+  scale_y_continuous(labels = comma) # I have to load library(scales) for labels = comma
+```
+
+$$
+  \underbrace{\hat{Y_i}}_\text{Estimated Total Sales} = \overbrace{b_0}^\text{Intercept Estimate} + \overbrace{b_1}^\text{Slope Estimate} \ \underbrace{X_i}_\text{Hours Worked} 
+$$
+
+| Parameter Estimate | Explanation |
+|-----------|--------------------|
+| $\hat{Y_i}$ | The Estimated Total Sales |
+| $\epsilon_i$ | Is not used in the fitted regression equation because it only belongs with the equation for the actual $Y_i$  values. |
+| $b_1$ | The estimated change in the average Total Sales per 1 hour increase in Hours Worked per Employee. |
+| $X_i$ | Hours Worked Per Employee |
+| $b_0$ | The estimated average Total Sales when the Hours Worked per Employee is zero. |
+
+</div>
+
+
+### Part (c) {done}
+
+Report the test statistics and p-values given by your summary(...) in R for the following hypotheses.
+
+$$ 
+  \begin{array}{l}
+    H_0: \beta_0 = 0 \\
+    H_a: \beta_0 \neq 0 \\
+  \end{array} \quad 
+  \begin{array}{l}
+    H_0: \beta_1 = 0 \\
+    H_a: \beta_1 \neq 0 \\
+  \end{array}
+$$
+
+<div class="YourAnswer">
+
+```{r Manuel t-stat and p-value, message=FALSE, warning=FALSE}
+summary(Clothing.lm)
+
+
+# To calculate by myself:
+
+# #T-stat math formula: (Estimate (b_0 or b_1) - hypothesis number)/std.Error_{b_0 or b_1}
+# (43885 - 0)/3320 # Slope t-stat
+# (1745 - 0)/67479 # Interc t-stat
+# 
+# #P-value is hard to calculate use this: pt(-abs(tvalue), degrees of freedom)
+# pt(-abs((43885 - 0)/3320), 398) # Slope p-value
+# pt(-abs((1745 - 0)/67479), 398) # Interc p-value
+
+```
+
+| | Test Statistic | $p$-Value |
+|----------|-----------|--------------------|
+| Intercept Hypothesis | 0.026 | 0.979 |
+| Slope Hypothesis | 13.218 | <2e-16 |
+
+</div> 
+ 
+ 
+### Part (d) {done}
+
+Now, use your own calculations to obtain test statistics and p-values for the following hypotheses.
+
+You may find useful information on how to do this in the "Explanation" tab under "t Tests" from your Math 325 Notebook, Simple Linear Regression page.
+
+$$ 
+  \begin{array}{l}
+    H_0: \beta_0 = 1500 \\
+    H_a: \beta_0 \neq 1500 \\
+  \end{array} \quad 
+  \begin{array}{l}
+    H_0: \beta_1 = 35000 \\
+    H_a: \beta_1 \neq 35000 \\
+  \end{array}
+$$
+
+Note that these hypotheses come from previous knowledge about clothing sales and employee hours. They state that in years past, the average annual sales when no employees worked any hours on average, was 1500. And that as average eployee hours worked increases by 1 hour, the average total annual sales increases by 35,000. The question now, is if the earning pattern has changed from what it used to be.
+
+<div class="YourAnswer">
+
+```{r}
+# summary(Clothing.lm)
+
+#T-stat math formula: (Estimate (b_0 or b_1) - hypothesis number)/std.Error_{b_0 or b_1}
+(43885 - 35000)/3320 # Slope t-stat
+(1745 - 1500)/67479 # Interc t-stat
+
+#P-value is hard to calculate use this: pt(-abs(tvalue), degrees of freedom)
+pt(-abs((43885 - 35000)/3320), 398) # Slope p-value
+pt(-abs((1745 - 1500)/67479), 398) # Interc p-value
+```
+
+| | Test Statistic | $p$-Value |
+|----------|-----------|--------------------|
+| Intercept Hypothesis | 0.003630759 | 0.4985524 |
+| Slope Hypothesis | 2.676205 | 0.003876855 |
+
+</div>  
+ 
+### Part (e) {done}
+
+State the slope, y-intercept, and $R^2$ of this regression. Further, provide 95% confidence intervals for the slope and intercept. Interpret the values.
+
+<div class="YourAnswer">
+
+```{r}
+pander(confint(Clothing.lm, interval = ".95"))
+```
+
+| Hypothesis | Estimate| 2.5% | 97.5% | 
+|---------|---------|---------|---------|
+| Intercept | 43885 | -130915.29 | 134404.41 |
+| Slope | 1745 | 37357.77 | 50411.97 |
+| $R^2$ | 0.3051 | | |
+
+</div>
+
+
+### Part (f) {done}
+
+Create a residuals vs fitted-values plot and Q-Q Plot of the residuals for this regression. What do these plots show?
+
+<div class="YourAnswer">
+
+```{r}
+par(mfrow=c(1,3))
+plot(Clothing.lm, which=1:2)
+plot(Clothing.lm$residuals, main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+```{r}
+Clothing.clean <- Clothing[-397,]
+Clothing.clean.lm <- lm(tsales ~ hourspw, data = Clothing.clean)
+Clothing.clean.lm.co <- Clothing.clean.lm$coefficients
+# summary(Clothing.clean.lm)
+```
+
+```{r}
+par(mfrow=c(1,3))
+plot(Clothing.clean.lm, which=1:2)
+plot(Clothing.clean.lm$residuals, main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+</div>
+ 
+
+### Part (g) {done}
+
+Do any x-transformations or y-transformations improve the regression? If so, which ones?
+
+<div class="YourAnswer">
+
+```{r}
+boxCox(Clothing.clean.lm)
+Clothing.clean.lm.t <- lm(sqrt(sqrt(tsales)) ~ hourspw, data = Clothing.clean)
+Clothing.clean.lm.t.co <- Clothing.clean.lm.t$coefficients
+mylines <- predict(Clothing.clean.lm.t, data.frame(hourspw = 30), interval = "prediction")^4
+```
+
+```{r}
+par(mfrow=c(1,3))
+plot(Clothing.clean.lm.t, which=1:2)
+plot(Clothing.clean.lm.t$residuals, main = "Residuals vs Order")
+```
+
+```{r}
+Clothing.clean %>%
+  ggplot(aes(y = (tsales)^(.25), x = log(hourspw))) +
+  geom_point() +
+  labs(title = "Sales Data of Men's Fashion Stores in Netherland in 1990",
+         x = "Number Of Hours Worked Per Worker (hourspw)",
+         y = "Annual Sales In Dutch Guilders (tsales)") +
+  theme_test() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = c(0.25, .85)) +
+  scale_color_manual("",
+                     values = c("black", "firebrick"),
+                     labels = c("Regression Line", "Transformed Regression")) +
+  scale_y_continuous(labels = comma)
+```
+This second plot doesn't do as much for the linearity problem.
+
+</div>
+
+
+
+----
+
+
+
+
+
+
+
+<style>
+
+.YourAnswer {
+  color: #317eac;
+  padding: 10px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: skyblue4;
+  border-radius: 5px;
+}
+
+</style>
+
+ 
+ 

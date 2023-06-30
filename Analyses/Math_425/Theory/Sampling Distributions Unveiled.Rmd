@@ -1,0 +1,181 @@
+---
+title: "Theory Assignment - Sampling Distributions Unveiled"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+
+```{r Library and Data, message=FALSE, warning=FALSE, include=FALSE}
+library(mosaic)
+library(tidyverse)
+library(pander)
+library(ggplot2)
+library(car)
+library(DT)
+library(readr)
+library(readxl)
+library(stringr)
+library(dplyr)
+library(expss)
+
+```
+
+```{r Data Wrangling, message=FALSE, warning=FALSE}
+
+```
+
+----
+
+<!--If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+
+**Comments to Critiquers:**
+
+1. I don't understand what I'm doing with the simulation model. How do I use it for this theory assignment?
+2. I don't understand how the confidence interval works.
+
+
+<!--End your comments to your critiquers before this line.-->
+
+----
+
+In this theory assignment, we will be discussing some aspects of how to read and understand where we get our information from a linear model output found in the summary(lm) function.
+
+| | | $b_0$ or $b_1$ | | Test Stat ($t$, $F$, $W$) | $p$robability-value |
+|----------|----------|----------|----------|----------|----------|
+| | | Estimate | Std. Error | $t$-value | Pr ($>|t|$) |
+| $\beta_0$ or $y$ | (Intercept) | $b_0 = \bar{Y} - b_1\bar{X}$ | $s^2_{b_0} = MSE\left[\frac{1}{n} + \frac{\bar{X}^2}{\sum(X_i-\bar{X})^2}\right]$ | $t = \frac{b_0 - \overbrace{0}^\text{a number}}{s_{b_0}}$ | `pt(-abs(t-value), df)` |
+| $\beta_1$ or $x$ | (Column) | $b_1 = \frac{\sum X_i(Y_i-\bar{Y})}{\sum(X_i-\bar{X})^2}$ | $s^2_{b_1} = \frac{MSE}{\sum(X_i-\bar{X})^2}$ | $t = \frac{b_1 - \overbrace{0}^\text{a number}}{s_{b_1}}$ | `pt(-abs(t-value), df)` |
+
+| $\sqrt{MSE}$ | Residual Standard Error | `###` on `###` Degrees of Freedom ($n$ - parameter) | | |
+|----------|----------|------------------------------|----------|----------|
+| $R^2$ | Multiple $R$-squared | `###` | Adjusted R-squared | `###` |
+
+## Topics in Sampling Distribution {.tabset .tabset-pills .tabset-fade}
+
+### Sampling Distributions {.tabset}
+
+<!-- Define the term "sampling distribution." Demonstrate how the sampling distribution is obtained for both the slope and the intercept estimates in regression. Clearly explain what the mean and standard deviation (often called the standard error) are for each of these two distributions. -->
+
+Sampling Distribution is the mean of the means. If we were to take 30 sample sizes and get the average, but do that ten total times, the sampling distribution will be the average of those ten means plus doing that same process over until we get 30 samples or more for the sample distribution (30 samples * 10 trials * 30 total means = 9,000 total data samples needed). That's A LOT of data samples that's needed to find a correct regression line. So instead we can reverse engineer the process by seeing what all the possible options are with one set of sampling, say with 30 data points, and determine what the regression line could be.
+
+```{r}
+## Simulation to Show relationship between Standard Errors
+
+##-----------------------------------------------
+## Edit anything in this area... 
+
+n <- 100 #sample size
+Xstart <- 30 #lower-bound for x-axis
+Xstop <- 100 #upper-bound for x-axis
+
+beta_0 <- 2 #choice of true y-intercept
+beta_1 <- 3.5 #choice of true slope
+sigma <- 13.8 #choice of st. deviation of error terms
+
+## End of Editable area.
+##-----------------------------------------------
+```
+
+```{r, fig.height=8, fig.width=8}
+X <- rep(seq(Xstart,Xstop, length.out=n/2), each=2) #Create X
+N <- 5000 #number of times to pull a random sample
+storage_b0 <- storage_b1 <- storage_rmse <- rep(NA, N)
+for (i in 1:N){
+  Y <- beta_0 + beta_1*X + rnorm(n, 0, sigma) #Sample Y from true model
+  mylm <- lm(Y ~ X)
+  storage_b0[i] <- coef(mylm)[1]
+  storage_b1[i] <- coef(mylm)[2]
+  storage_rmse[i] <- summary(mylm)$sigma
+}
+
+
+layout(matrix(c(1,1,2,3), 2, 2, byrow = TRUE), widths=c(2,2), heights=c(3,3))
+
+Ystart <- 0 #min(0,min(Y)) 
+Ystop <- 500 #max(max(Y), 0)
+Yrange <- Ystop - Ystart
+
+plot(Y ~ X, xlim=c(min(0,Xstart-2), max(0,Xstop+2)), 
+     ylim=c(Ystart, Ystop), pch=16, col="gray",
+     main="Regression Lines from many Samples\n Plus Residual Standard Deviation Lines")
+text(Xstart, Ystop, bquote(sigma == .(sigma)), pos=1)
+text(Xstart, Ystop-.1*Yrange, bquote(sum ((x[i]-bar(x))^2, i==1, n) == .(var(X)*(n-1))), pos=1)
+text(Xstart, Ystop-.25*Yrange, bquote(sqrt(MSE) == .(mean(storage_rmse))), pos=1)
+
+
+for (i in 1:N){
+  abline(storage_b0[i], storage_b1[i], col="darkgray")  
+}
+abline(beta_0, beta_1, col="green", lwd=3)
+abline(beta_0+sigma, beta_1, col="green", lwd=2)
+abline(beta_0-sigma, beta_1, col="green", lwd=2)
+abline(beta_0+2*sigma, beta_1, col="green", lwd=1)
+abline(beta_0-2*sigma, beta_1, col="green", lwd=1)
+abline(beta_0+3*sigma, beta_1, col="green", lwd=.5)
+abline(beta_0-3*sigma, beta_1, col="green", lwd=.5)
+
+par(mai=c(1,.6,.5,.01))
+
+  addnorm <- function(m,s, col="firebrick"){
+    curve(dnorm(x, m, s), add=TRUE, col=col, lwd=2)
+    lines(c(m,m), c(0, dnorm(m,m,s)), lwd=2, col=col)
+    lines(rep(m-s,2), c(0, dnorm(m-s, m, s)), lwd=2, col=col)
+    lines(rep(m-2*s,2), c(0, dnorm(m-2*s, m, s)), lwd=2, col=col)
+    lines(rep(m-3*s,2), c(0, dnorm(m-3*s, m, s)), lwd=2, col=col)
+    lines(rep(m+s,2), c(0, dnorm(m+s, m, s)), lwd=2, col=col)
+    lines(rep(m+2*s,2), c(0, dnorm(m+2*s, m, s)), lwd=2, col=col)
+    lines(rep(m+3*s,2), c(0, dnorm(m+3*s, m, s)), lwd=2, col=col)
+    legend("topleft", legend=paste("Std. Error = ", round(s,3)), cex=0.7, bty="n")
+  }
+
+  h0 <- hist(storage_b0, 
+             col="skyblue3", 
+             main="Sampling Distribution\n Y-intercept",
+             xlab=expression(paste("Estimates of ", beta[0], " from each Sample")),
+             freq=FALSE, yaxt='n', ylab="")
+  m0 <- mean(storage_b0)
+  s0 <- sd(storage_b0)
+  addnorm(m0,s0, col="green")
+  
+  h1 <- hist(storage_b1, 
+             col="skyblue3", 
+             main="Sampling Distribution\n Slope",
+             xlab=expression(paste("Estimates of ", beta[1], " from each Sample")),
+             freq=FALSE, yaxt='n', ylab="")
+  m1 <- mean(storage_b1)
+  s1 <- sd(storage_b1)
+  addnorm(m1,s1, col="green")
+
+
+
+```
+
+### P-values
+
+<!-- Demonstrate how the standard errors of the sampling distributions for both the slope and intercept estimates are used to obtain p-values for the tests of hypotheses about $\beta_0$ and $\beta_1$ (the true intercept and slope of the regression model). -->
+
+In days prior to using the p-value for guideance on accepting or rejecting a null hypothesis, statisticans would typically do something entirely different. It will be useful to understand how they tested things differently in order to grasp the power of a p-value. Typically, we state our hypothesis in order to determine what we believe is occurring with our numbers. Something like the following:
+
+$$
+  H_o: \beta_1 = 0
+$$
+$$
+  H_a: \beta_1 \neq 0
+$$
+$$
+  \alpha = 0.05
+$$
+
+However, for the days of a statistican prior to the ease of what computers offer us today, they would state that if $\alpha = 0.05$ then their $t$-test value could not go past $2.011$. We [obtain this value](http://byuimath.com/apps/normprob.html) because a percentile of 0.975 sets the $t*$ value to $2.011$. Obtaining the t-value was much easier than trying to solve this equation to obtain the $p$-value:
+$$
+  f(x|p) = \frac{\Gamma\left(\frac{p+1}{2}\right)}{\Gamma\left(\frac{p}{2}\right)}\frac{1}{\sqrt{p\pi}}\frac{1}{\left(1 + \left(\frac{x^2}{p}\right)\right)^{(p+1)/2}}
+$$
+So instead of solving the above equation to determine whether the data went outside the bounds of the confidence area, statisticans would test to see if the data stayed within the confidence level area. Today though, we get to easily solve for that $p$-value equation and determine whether our hypothesis is correct or not. We do so by taking the .025 portion of a percentile, the degrees of freedom, and times the results by two.
+
+### Confidence Intervals
+
+<!-- Demonstrate how the standard errors are also used to create confidence intervals for the true regression intercept, $\beta_0$, and true regression slope, $\beta_1$. -->
+
+*I don't understand this part.*

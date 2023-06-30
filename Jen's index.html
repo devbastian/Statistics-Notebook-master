@@ -1,0 +1,2258 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Statistics Notebook</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cerulean.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Statistics Notebook</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    R Help
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="RCommands.html">R Commands</a>
+    </li>
+    <li>
+      <a href="RMarkdownHints.html">R Markdown Hints</a>
+    </li>
+    <li>
+      <a href="RCheatSheetsAndNotes.html">R Cheatsheets &amp; Notes</a>
+    </li>
+    <li>
+      <a href="DataSources.html">Data Sources</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Describing Data
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="GraphicalSummaries.html">Graphical Summaries</a>
+    </li>
+    <li>
+      <a href="NumericalSummaries.html">Numerical Summaries</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Making Inference
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="MakingInference.html">Making Inference</a>
+    </li>
+    <li>
+      <a href="tTests.html">t Tests</a>
+    </li>
+    <li>
+      <a href="WilcoxonTests.html">Wilcoxon Tests</a>
+    </li>
+    <li>
+      <a href="ANOVA.html">ANOVA</a>
+    </li>
+    <li>
+      <a href="Kruskal.html">Kruskal-Wallis</a>
+    </li>
+    <li>
+      <a href="LinearRegression.html">Linear Regression</a>
+    </li>
+    <li>
+      <a href="LogisticRegression.html">Logistic Regression</a>
+    </li>
+    <li>
+      <a href="ChiSquaredTests.html">Chi Squared Tests</a>
+    </li>
+    <li>
+      <a href="PermutationTests.html">Randomization Testing</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Analyses
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="./Analyses/AnalysisRubric.html">Analysis Rubric</a>
+    </li>
+    <li>
+      <a href="./Analyses/StudentHousing.html">Good Example Analysis</a>
+    </li>
+    <li>
+      <a href="./Analyses/StudentHousingPOOR.html">Poor Example Analysis</a>
+    </li>
+    <li>
+      <a href="./Analyses/Rent.html">Rent Analysis</a>
+    </li>
+    <li>
+      <a href="./Analyses/Stephanie.html">Stephanie Analysis</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Statistics Notebook</h1>
+
+</div>
+
+
+<!-- You can delete the following copyright statement if you wish: -->
+<div style="color:gray;">
+<!-- Code to change the following paragraphs to gray text -->
+<p>This page, and all pages of this notebook, are meant to be customized to become a useful <em>Guide to Statistical Analysis</em> in R for your <em>current</em> and <em>future</em> self.</p>
+<div style="font-size:.8em;">
+<!-- Code to shrink font-size of following paragraph -->
+<p>To begin customizing, <a href="https://github.com/saundersg/Statistics-Notebook">download</a> your own copy of the book <span style="font-size:.8em;">(if you haven’t already)</span>. Please note the <a href="https://choosealicense.com/licenses/gpl-3.0/">GNU General Public License</a> when downloading. You are free to delete this commentary in your own copy of the notebook.</p>
+</div>
+<!-- Ends smaller font-size section -->
+</div>
+<!-- End gray text section -->
+<!-- End of download and copyright instructions. -->
+<div id="table-of-contents" class="section level2">
+<h2>Table of Contents</h2>
+<!-- This is how to comment text out. You can comment out the above instructions if you wish. Comments allow the text to remain in the Rmd file, but not be displayed in the html file. -->
+</div>
+<div id="section" class="section level2 tabset tabset-fade">
+<h2></h2>
+<div id="hide" class="section level3">
+<h3>Hide</h3>
+</div>
+<div id="show-notes" class="section level3 tabset tabset-fade">
+<h3>Show Notes</h3>
+<!-- This is a great place to add general notes --------------- -->
+<p><a href="RMarkdownHints.html">Customization Help</a></p>
+<div id="odd-and-ends" class="section level4">
+<h4>Odd and Ends</h4>
+<p>To filter a selected column inside a function use: function(Dataset$datacolumn[dataset$filterbycolumnFilterRule1]) for example mean(KidsFeet$length[KidsFeet$birthmonth==3]) gives us the mean length of the feet of all the kids born in March.</p>
+<p>To insert a <em>degree symbol</em> use the following inline (or label) code: “Temperature (\u00B0C)” to get Temperature (Â°C). Or use, “It is 78<code>$^{\circ}$</code>F today” to get “It is 78<span class="math inline">\(^{\circ}\)</span>F today”.</p>
+<p>To break a label into 2 or more lines insert \n where you want it to break.</p>
+<p>To <em>multiply, subtract, or add</em> a dataset column by a number or another dataset column, use the math (*,-,+) symbols. Example: KidsFeet$length - 3*KidsFeet$width, will subtract 3 times the width from the length.</p>
+<p>Select columns (characteristics of individuals)<br />
+Filter rows (the individuals in the data set)</p>
+<p>A # in R is like &lt;!– x –&gt; in Rmarkdown</p>
+<p>If <strong>NAs</strong> cause problems omit them by <strong>inserting na.omit()</strong> %&gt;% early in the pipe sequence (<em>after selecting columns and before filtering rows</em>).</p>
+<p>Use text() to add text to a graph. (See ?text.) Use abline() to add a line to a graph. (See ?abline.)</p>
+<p>fav_stats() gives the 5-number summary, the mean, sd, n, and the number of missing values</p>
+<p>Proportions can’t be computed in R, you must do it manually.</p>
+<p>mutate(parse_number(NameOfColumn) will drop non-numeric characters before or after the first number. (See ?parse_number)</p>
+</div>
+<div id="graphs" class="section level4">
+<h4>Graphs</h4>
+<p>Make sure graphs can stand alone:</p>
+<ol style="list-style-type: decimal">
+<li><p>Check help files for pertinant information</p></li>
+<li><p>Choose the correct graph for the information</p></li>
+<li><p>Label the graphs with all information necessary to stand alone</p></li>
+</ol>
+<p>Always put the explanation <em>before</em> the graph</p>
+<p>In <strong>plot()</strong>:</p>
+<ol style="list-style-type: decimal">
+<li><strong>dty=“x”</strong> alters the type of box around the plot:
+<ul>
+<li>o = default box</li>
+<li>n = no box</li>
+<li>l, 7, c, u, or ] = boxes that resemble their uppercase shapes</li>
+</ul></li>
+<li><strong>las=x</strong> alters the axes label orientation:
+<ul>
+<li>0 = default (parallel to axis)</li>
+<li>1 = horizontal</li>
+<li>2 = perpendicular</li>
+<li>3 = vertical</li>
+</ul></li>
+<li><strong>cex=x</strong>, changes text font size inside plot; <strong>cex.main=x</strong> alters size of main title text, <strong>cex.lab=x</strong> changes axis label text size, and <strong>cex.axis=x</strong> alters the axis tick values text
+<ul>
+<li>1 = default</li>
+<li>0.5 = half default size</li>
+<li>1.5 = 1.5 default size</li>
+</ul></li>
+</ol>
+<p><a href="https://www.statmethods.net/advgraphs/axes.html">Go here</a> for more ideas for graphing axis and text options. <a href="https://www.statmethods.net/advgraphs/parameters.html">This webpage</a> gives instructions for the helpful <strong>par()</strong> function.</p>
+</div>
+<div id="tables" class="section level4">
+<h4>Tables</h4>
+<p><a href="RCommands.html#table">Tables</a> are not data! They do not represent individuals, but groups. Don’t View() tables, make them. They are good for catagorial data. Save using: <code>mytable &lt;- table(NameOfDataset$columnName)</code>.</p>
+</div>
+<div id="p-values" class="section level4">
+<h4>P-values</h4>
+<p>Need a test statistic and the distribution of that test statistic, not a donkey and a hoola hoop, to find the P-value!</p>
+</div>
+<div id="df" class="section level4">
+<h4>DF</h4>
+<p>Degrees of freedom (DF) = <em>n-1</em> if sampling distribution of sample means is normal.</p>
+<p>The higher the DF, the more normal the distributions becomes (30 is close to normal).</p>
+</div>
+<div id="t-tests" class="section level4">
+<h4>t Tests</h4>
+<p>Checks the means.</p>
+<p><em>Always</em> make a qqPlot to see if the distribution of sample means is normal. If it isn’t, you need a larger sample size.</p>
+<p>Examples:</p>
+<ul>
+<li><p>One Sample - What is the average height of women in the US?</p></li>
+<li><p>Paired Samples - Are people taller in the morning than the evening?</p></li>
+<li><p>Independent Samples - Are men taller than women?</p></li>
+</ul>
+</div>
+<div id="checking-assumptions" class="section level4">
+<h4>Checking Assumptions</h4>
+<p><a href="https://www.jmp.com/en_us/statistics-knowledge-portal/what-is-regression/simple-linear-regression-assumptions.html">A website</a> showing how to read regression model assumption graphs.</p>
+<p>How to interpret <a href="https://support.minitab.com/en-us/minitab-express/1/help-and-how-to/modeling-statistics/anova/how-to/two-way-anova/interpret-the-results/all-statistics-and-graphs/">Two-WAy Anova</a> stats and graphs.</p>
+</div>
+</div>
+<div id="my-analyses" class="section level3 tabset tabset-fade">
+<h3>My Analyses</h3>
+<style>
+.col2 {
+    columns: 2 200px;
+    -webkit-columns: 2 200px;
+    -moz-columns: 2 200px;
+  }
+</style>
+<div class="col2">
+<p><a href="Analyses/Stephanie.html">Stephanie</a> No test was run</p>
+<p><a href="Analyses/Rent.html">Rent</a> No test was run</p>
+<p><a href="Analyses/t%20Tests/HighSchoolSeniors.html">HighSchoolSeniors</a> Independent Samples t-Test</p>
+<p><a href="Analyses/Wilcoxon%20Tests/RecallingWords.html">RecallingWords</a> Wilcoxon Rank Sum Test</p>
+<p><a href="Analyses/Anova/DayCare.html">Day Care</a> Two-way ANOVA</p>
+<p><a href="Analyses/Project1.html">Project1</a> Two-way ANOVA</p>
+<p><a href="Analyses/Kruskal-Wallis%20Test/Chocolate.html">Chocolate</a> Kruskal-Wallis Rank Sum Test</p>
+<p><a href="Analyses/Linear%20Regression/MySimpleLinearRegression.html">MySimpleLinearRegression</a></p>
+<p><a href="Analyses/Linear%20Regression/Examples/CarPrices.html">CarPrices</a> Multiple Linear Regression</p>
+<p><a href="Analyses/Logistic%20Regression/MyLogisticRegression.html">MyLogisticRegression</a></p>
+<p><a href="Analyses/Chi%20Squared%20Tests/MyChiSquaredTest.html">MyChiSquaredTest</a></p>
+</div>
+</div>
+<div id="general-repository" class="section level3">
+<h3>General Repository</h3>
+<!--
+<style>
+.col2 {
+    columns: 2 200px;
+    -webkit-columns: 2 200px;
+    -moz-columns: 2 200px;
+  }
+</style>
+
+<div class="col2">
+-->
+Means or other numerical summaries:
+<div style="padding-left:10px;">
+<pre><code>mean(DataSet$C) #for the mean of y
+mean(y ~ x, data = DataSet) #for the mean of y by 1 variable
+mean(y ~ x1 + x2, data = DataSet) #for the mean of y by 2 variables
+EXAMPLEs:
+mean(length ~ domhand + sex, data=KidsFeet)
+mean(starwars$height[starwars$hair_color==&quot;blond&quot;], na.rm = TRUE)
+mean(height ~ species, data = starwars, na.rm = TRUE)</code></pre>
+</div>
+Table of Counts (aka Table)
+<div style="padding-left:10px;">
+<pre><code>table(Dataset$C) #for 1 variable
+table(Dataset$R, Dataset$C) #for 2 variables
+table(Name1=Dataset$R, Name2=Dataset$C) #to name the variables in the table
+NameYouChoose &lt;- AnyofAbove #to save the table</code></pre>
+<ul>
+<li>first listed = rows in table, last = columns</li>
+</ul>
+</div>
+Filter
+<div style="padding-left:10px;">
+<pre><code>NameYouChoose &lt;- DataSet %&gt;% filter(ColumnName %in% c(a, b, c))</code></pre>
+<ul>
+<li>“a”,“b”,“c” if not numeric</li>
+</ul>
+</div>
+Filter on the Fly
+<div style="padding-left:10px;">
+<pre><code>function(Dataset$datacolumn[DataDet$filterbycolumn==x])
+EXAMPLEs:
+mean(KidsFeet$length[KidsFeet$birthmonth==3])
+mean(starwars$height[starwars$hair_color==&quot;blond&quot;], na.rm = TRUE)</code></pre>
+<ul>
+<li>use “x” if not numeric</li>
+<li><strong>na.rm=TRUE</strong> for NA results</li>
+</ul>
+</div>
+<!-- End your notes before here. ------------------------------------- -->
+</div>
+</div>
+<div id="section-1" class="section level2">
+<h2></h2>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/QuantY.png" width=35px;> <span class="tooltipimagetext">Y is a single quantitative variable of interest. This would be like “heights” of BYU-Idaho students.</span></p>
+</div>
+<div id="one-quantitative-response-variable-y" class="section level3 tabset tabset-pills">
+<h3>One Quantitative Response Variable Y</h3>
+<p>Use when studying one quantitative variable (ie. speed).</p>
+<div id="graphics" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p><a href="GraphicalSummaries.html#histogram"> <img class="myhover" src="./Images/histogram.png" alt="Histogram" title="Histogram"> </a> <a href="GraphicalSummaries.html#dot-plots"> <img class="myhover" src="./Images/dotplotsingle.png" alt="Dot Plot" title="Dot Plot"> </a> <a href="GraphicalSummaries.html#boxplots"> <img class="myhover" src="./Images/boxplotsingle.png" alt="Boxplot" title="Boxplot, include a 5-number summary"> </a></p>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+<div id="numerics" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+Useful numerical summaries include:
+<div style="padding-left:30px;">
+<p><a href="NumericalSummaries.html#fns">5-number summary</a> which must be included if a <strong>boxplot</strong> is used</p>
+<pre><code> summary(DataSet$Column)
+ or
+ library(tidyverse)
+ DataSet %&gt;% 
+   group_by(Column) %&gt;% 
+   summarise(min=min(Column), Q1=quantile(Column, 0.25), med=median(Column), Q3=quantile(Column, 0.75), max=max(Column)) %&gt;% 
+   pander()
+   </code></pre>
+<p><a href="NumericalSummaries.html#mean">Mean</a> focus on this in numerical summaries for <strong>One-Sample</strong> and <strong>Paired-Sample t</strong> tests</p>
+<pre><code>mean(DataSet$Column)</code></pre>
+<p><a href="NumericalSummaries.html#median">Median</a> should be the focus of numerical summaries when using the <strong>Wilcoxon Signed-Rank</strong> test</p>
+<pre><code>median(DataSet$Column)</code></pre>
+<p><a href="NumericalSummaries.html#sd">Standard Deviation</a> a measure of spread</p>
+<pre><code>sd(DataSet$Column)</code></pre>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+</div>
+<div id="tests" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: 
+
+Add your own notes about appropriate inferential procedures for this type of data here. 
+[correlation](NumericalSummaries.html#correlation)
+-->
+<p><a href="tTests.html#one-sample-t-test">One-Sample t-Test</a> </br></p>
+<div style="padding-left:30px;">
+<p>Use for testing the <strong>mean</strong> of one quantitative variable.</p>
+<p>“Test statistic measures how far the sample mean is from <span class="math inline">\(\mu\)</span>.” - Kruskal-Wallis Assessment Quiz</p>
+<ul>
+<li>What’s the average height of women in the US?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>data is normally distributed</li>
+<li>population mean (<span class="math inline">\(\mu\)</span>) is known</li>
+<li>sample represents population (SRS or large sample size (30+))</li>
+</ul>
+<p>Testing Assumptions:</p>
+<pre><code>library(car)
+qqPlot(NameOfYourData$Y)</code></pre>
+</div>
+<p><a href="tTests.html#paired-samples-t-test">Paired-Sample t-Test</a> </br></p>
+<div style="padding-left:30px;">
+<p>Use for testing the <strong>mean of differences</strong> (pre-test/post-test and matched-pairs scenarios).</p>
+<ul>
+<li>Are people are taller in the morning than the evening?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>data is normally distributed</li>
+<li>population mean (<span class="math inline">\(\mu\)</span>) is known</li>
+<li>sample of differences represents population differences (SRS or <span class="math inline">\(n\)</span> of the differences is large)</li>
+</ul>
+<p>Testing Assumptions:</p>
+<pre><code>library(car)
+qqPlot(Y1 - Y2)</code></pre>
+</div>
+<p><a href="WilcoxonTests.html#wilcoxon-signed-rank-test">Wilcoxon Signed-Rank</a> </br></p>
+<div style="padding-left:30px;">
+<p>Use for testing the <strong>median</strong> of one quantitative variable or the difference of paired data. May also be used with ordinal data.</p>
+<ul>
+<li>Are the people in my family taller in the morning than the evening?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>data is <strong>not</strong> normally distributed</li>
+<li>the sample size is <strong>small</strong></li>
+<li>there are relatively few ‘ties’ in the paired data</li>
+</ul>
+<p>With paired data, you might use a dotplot to check for ties in data (differences). They would show up as zeros on the plot.</p>
+<pre><code>stripchart(object ~ group, data=NameOfYourData, method=&quot;stack&quot;)</code></pre>
+</div>
+</div>
+</div>
+<div id="math-model" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+Hypotheses:
+<div style="padding-left:30px;">
+<p>One Sample t-test</p>
+<p><span class="math display">\[
+    H_0: \mu = 5.2
+\]</span></p>
+<p><span class="math display">\[
+    H_a: \mu \neq 5.2
+\]</span></p>
+<pre><code>$$
+H_0: \mu = 5.2
+$$
+
+$$
+H_a: \mu \neq 5.2
+$$</code></pre>
+<p>Paired Sample t-test</p>
+<p><span class="math display">\[
+    H_0: \mu_d = 0
+\]</span></p>
+<p><span class="math display">\[
+    H_a: \mu_d \neq 0
+\]</span></p>
+<pre><code>$$
+H_0: \mu_d = 0
+$$
+
+$$
+H_a: \mu_d \neq 0
+$$</code></pre>
+<p>Wilcoxon Signed-Rank</p>
+<p><span class="math display">\[
+    H_0: \text{median of differences} = 0
+\]</span></p>
+<p><span class="math display">\[
+    H_a: \text{median of differences} \neq 0
+\]</span></p>
+<pre><code>$$
+H_0: \text{median of differences} = 0
+$$
+
+$$
+H_a: \text{median of differences} \neq 0
+$$</code></pre>
+</div>
+Math Model:
+<div style="padding-left:30px;">
+<pre><code>?</code></pre>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+<div id="code-repository" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<a href="tTests.html#one-sample-t-test">One-Sample t-Test</a> </br>
+<div style="padding-left:30px;">
+<p>To run the t-test:</p>
+<pre><code>t.test(NameOfYourData$Y, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)</code></pre>
+<ul>
+<li>where Y is numeric</li>
+<li>alternative = “two.sided”, “greater”, “less”</li>
+<li>conf.level = 1-<span class="math inline">\(\alpha\)</span>, usually 0.95</li>
+</ul>
+<p>To test assumptions:</p>
+<pre><code>library(car)
+qqPlot(NameOfYourData$Y)</code></pre>
+</div>
+<p><a href="tTests.html#paired-samples-t-test">Paired-Sample t-Test</a> </br></p>
+<div style="padding-left:30px;">
+<p>To run the test:</p>
+<pre><code>t.test(NameOfYourData$Y1, NameOfYourData$Y2, paired = TRUE, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)</code></pre>
+<ul>
+<li>where Y1 and Y2 are numeric</li>
+<li>alternative = “two.sided”, “greater”, “less”</li>
+<li>conf.level = 1-<span class="math inline">\(\alpha\)</span>, usually 0.95</li>
+</ul>
+<p>To test assumptions:</p>
+<pre><code>library(car)
+qqPlot(NameOfYourData$Y1 - NameOfYourData$Y2)</code></pre>
+<p>To filter try:</p>
+<pre><code>NameYouChoose1 &lt;- filter(DataSet, ColumnToGroupBy == 1)
+NameYOuChoose2 &lt;- filter(DataSet, ColumnToGroupBy == 2)
+t.test(NameYouChoose1$YColumn, NameYouChoose2$YColumn, paired = TRUE, mu = 0, alternative = &quot;t&quot;, conf.level = 0.95)</code></pre>
+</div>
+<p><a href="WilcoxonTests.html#wilcoxon-signed-rank-test">Wilcoxon Signed-Rank</a> </br></p>
+<div style="padding-left:30px;">
+<p>Test for <strong>paired data</strong>:</p>
+<pre><code>wilcox.test(DataSet$Column[DataSet$ColumnToGroupBy==YourChoice1], DataSet$Column[DataSet$ColumnToGroupBy==YourChoice2], mu = YourNull, alternative = YourAlternative, paired = TRUE, conf.level = 0.95)
+
+Here&#39;s an example from the KidsFeet dataset that groups width by sex:
+wilcox.test(KidsFeet$width[KidsFeet$sex==&quot;B&quot;], KidsFeet$width[KidsFeet$sex==&quot;G&quot;], mu=0, alternative = &quot;t&quot;, conf.level = 0.95)</code></pre>
+<p>Test for <strong>one sample</strong>:</p>
+<pre><code>wilcox.test(object, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)</code></pre>
+</div>
+<a href="./GraphicalSummaries.html">Graphics</a>
+<div style="padding-left:30px;">
+<p><strong>Histogram code:</strong></p>
+<pre><code>hist(DataSet$Column)</code></pre>
+<p><strong>Dot plot code:</strong></p>
+<p>Basic</p>
+<pre><code>stripchart(DataSet$Column, method = &quot;stack&quot;)</code></pre>
+<p>Side-by-side</p>
+<pre><code>stripchart(object ~ group, data=NameOfYourData, method = &quot;stack&quot;)</code></pre>
+<p><strong>Basic boxplot code:</strong></p>
+<p>Basic</p>
+<pre><code>boxplot(DataSet$Column)</code></pre>
+<p>Side-by-side</p>
+<pre><code>boxplot(object ~ group, data=NameOfYourData)</code></pre>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+<div id="section-2" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/QuantYQualXg2.png" width=59px;> <span class="tooltipimagetext">Y is a single quantitative variable of interest. This would be like “heights” of BYU-Idaho students. X is a qualitative (categorical) variable of interest like “gender” that has just two groups “A” and “B”. So this logo represents situtations where we would want to compare heights of male (group A) and female (group B) students.</span></p>
+</div>
+<div id="quantitative-y-categorical-x-2-groups" class="section level3 tabset tabset-pills">
+<h3>Quantitative Y | Categorical X (2 Groups)</h3>
+<p>Used when comparing 2 catagories of quantitative data (ie. speed of 4 cylinder cars with speed of 6 cylinder cars).</p>
+<div id="graphics-1" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>With a boxplot, you need to include a <a href="NumericalSummaries.html#fns">5-number summary</a>.</p>
+<p><a href="GraphicalSummaries.html#boxplots"> <img class="myhover" src="./Images/boxplot.png" alt="Side-by-side Boxplots" title="Side-by-side Boxplots, include 5-number summaries"> </a> <a href="GraphicalSummaries.html#dot-plots"> <img class="myhover" src="./Images/dotplotdouble.png" alt="Dot Plot" title="Side-by-side Dot Plots"> </a></p>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="numerics-1" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+Useful numerical summaries include:
+<div style="padding-left:30px;">
+<a href="NumericalSummaries.html#quartiles">5-number summary</a> which must be included if a <strong>boxplot</strong> is used
+<div style="padding-left:30px;">
+<pre><code> summary(DataSet$Column)
+ or
+ library(tidyverse)
+ DataSet %&gt;% 
+   group_by(Column) %&gt;% 
+   summarise(min=min(Column), Q1=quantile(Column, 0.25), med=median(Column), Q3=quantile(Column, 0.75), max=max(Column)) %&gt;% 
+   pander()</code></pre>
+</div>
+<a href="NumericalSummaries.html#mean">Mean</a> focus on this in numerical summaries for <strong>Independent Samples t</strong> tests
+<div style="padding-left:30px;">
+<pre><code>mean(DataSet$Column)</code></pre>
+</div>
+<a href="NumericalSummaries.html#median">Median</a> should be the focus of numerical summaries when using the <strong>Wilcoxon Rank Sum</strong> test
+<div style="padding-left:30px;">
+<pre><code>median(DataSet$Column)</code></pre>
+</div>
+<a href="NumericalSummaries.html#sd">Standard Deviation</a> a measure of spread
+<div style="padding-left:30px;">
+<pre><code>sd(DataSet$Column)</code></pre>
+</div>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+</div>
+<div id="tests-1" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: 
+
+Add your own notes about appropriate inferential procedures for this type of data here.-->
+<h5 id="independent-samples-t-test"><a href="tTests.html#independent-samples-t-test">Independent Samples t-Test</a> </br></h5>
+<div style="padding-left:30px;">
+<p>Use for testing the difference between the <strong>means</strong> of two (possibly) different populations.</p>
+<ul>
+<li>Are men are taller than women?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>data is normally distributed</li>
+<li>population mean of the differences (<span class="math inline">\(\mu\)</span>) is known</li>
+<li>sample represents population (SRS or <span class="math inline">\(n\)</span> of the differences is large))</li>
+</ul>
+<p>Testing Assumptions:</p>
+<pre><code>library(car)
+qqPlot(Y ~ X, data=YourData)</code></pre>
+<p>Example: See <a href="./Analyses/t%20Tests/HighSchoolSeniors.html#analysis">High School Seniors</a> analysis for an example.</p>
+</div>
+<h5 id="wilcoxon-rank-sum-mann-whitney"><a href="WilcoxonTests.html#wilcoxon-rank-sum-mann-whitney-test">Wilcoxon Rank Sum (Mann-Whitney)</a> </br></h5>
+<div style="padding-left:30px;">
+<p>Use for testing equality of <strong>medians</strong> of 2 (possibly) different distributions of a quantitative variable. This test is like the Independent Samples t Test but is nonparametric. If testing 3+ distributions, use the <a href="./Kruskal.html#kruskal-wallis-rank-sum-test">Kruskal-Wallis Rank Sum</a> test.</p>
+<p>“Sums the ranks from one of the groups for its test statistic.” - Kruskal-Wallis Assessment Quiz</p>
+<ul>
+<li>Are the men in my family taller than the women?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>data is <strong>not</strong> normally distributed</li>
+<li>the sample size is <strong>small</strong></li>
+<li>there are relatively few ‘ties’ in the paired data</li>
+</ul>
+<p>Use ‘stochastically greater’ when distributions are not identically distributed.</p>
+<p>To check for ties use a boxplot overlayed with a stripchart. See <a href="./Analyses/Wilcoxon%20Tests/RecallingWords.html#analysis">Recalling Words</a> analysis for an example or “code repository” for more info.</p>
+<pre><code>boxplot(y~x) 
+stripchart(y~x)
+    where y= numeric vector and x= is the factor or character vector</code></pre>
+</div>
+</div>
+</div>
+<div id="math-model-1" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>No apparent math models for either test?!</p>
+<a href="tTests.html#independent-samples-t-test">Independent Samples t-Test</a>
+<div style="padding-left:30px;">
+Hypotheses:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+    H_0: \mu_\text{label 1} - \mu_\text{label 2} = 13.2
+\]</span></p>
+<p><span class="math display">\[
+    H_a: \mu_\text{label 1} - \mu_\text{label 2} \neq 13.2
+\]</span></p>
+<pre><code>$$
+H_0: \mu_\text{label 1} - \mu_\text{label 2} = 13.2
+$$
+
+$$
+H_a: \mu_\text{label 1} - \mu_\text{label 2} \neq 13.2
+$$</code></pre>
+</div>
+</div>
+<a href="WilcoxonTests.html#wilcoxon-rank-sum-mann-whitney-test">Wilcoxon Rank Sum (Mann-Whitney)</a>
+<div style="padding-left:30px;">
+Hypotheses:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+    H_0: \text{difference in medians} = 0
+\]</span></p>
+<p><span class="math display">\[
+    H_a: \text{difference in medians} \neq 0
+\]</span></p>
+<pre><code>$$
+H_0: \text{difference in medians} = 0
+$$
+
+$$
+H_a: \text{difference in medians} \neq 0
+$$</code></pre>
+<p>OR (if distributions are <strong>not identically distributed</strong>):</p>
+<p><span class="math display">\[
+    (H_0: \text{the distributions are stochastically equal})
+\]</span></p>
+<p><span class="math display">\[
+    (H_a: \text{one distribution is stochastically greater than the other})
+\]</span></p>
+<pre><code>$$
+(H_0: \text{the distributions are stochastically equal})
+$$
+
+$$
+(H_a: \text{one distribution is stochastically greater than the other})
+$$</code></pre>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="code-repository-1" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<a href="tTests.html#independent-samples-t-test">Independent Samples t-Test</a>
+<div style="padding-left:30px;">
+The test (Option 1):
+<div style="padding-left:30px;">
+<pre><code>t.test(Y ~ X, data = YourData, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)</code></pre>
+<p>Test assumptions:</p>
+<pre><code>library(car)
+qqPlot(Y ~ X, data=YourData)</code></pre>
+</div>
+The test (Option 2):
+<div style="padding-left:30px;">
+<pre><code>t.test(NameOfYourData$Y1, NameOfYourData$Y2, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)</code></pre>
+<p>Test assumptions:</p>
+<pre><code>library(car)
+par(mfrow=c(1,2))
+qqPlot(NameOfYourData$Y1)
+qqPlot(NameOfYourData$Y2)
+par(mfrow=c(1,1)) #resets par()</code></pre>
+</div>
+</div>
+<a href="WilcoxonTests.html#wilcoxon-rank-sum-mann-whitney-test">Wilcoxon Rank Sum (Mann-Whitney)</a>
+<div style="padding-left:30px;">
+<p>There are <strong>no assumptions</strong> for this test.</p>
+The Test (Option 1):
+<div style="padding-left:30px;">
+<pre><code>wilcox.test(Y ~ X, data = YourData, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)</code></pre>
+<ul>
+<li>Y = numeric</li>
+<li>X = “factor” or “character” of 2 groups</li>
+</ul>
+</div>
+The Test (Option 2):
+<div style="padding-left:30px;">
+<pre><code>wilcox.test(object1, object2, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)</code></pre>
+<ul>
+<li>Y = numeric, 1st group</li>
+<li>X = numeric, 2nd group</li>
+</ul>
+</div>
+</div>
+<a href="./GraphicalSummaries.html">Graphics</a>
+<div style="padding-left:30px;">
+Side-by-side <strong>boxplots</strong>:
+<div style="padding-left:30px;">
+<pre><code>boxplot(object ~ group, data=NameOfYourData)</code></pre>
+<p>To add dots to <strong>boxplots</strong>:</p>
+<pre><code>stripchart(object ~ group, data=NameOfYourData, method = &quot;stack&quot;, add = TRUE, vertical = TRUE, pch = 16, col = &quot;YourChoice&quot;)</code></pre>
+</div>
+Side-by-side Dot Plots:
+<div style="padding-left:30px;">
+<pre><code>stripchart(object ~ group, data=NameOfYourData)</code></pre>
+<ul>
+<li>object = numeric column</li>
+<li>group = “factor” or “character” column</li>
+</ul>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="section-3" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/QuantYQualXg3plus.png" width=59px;> <span class="tooltipimagetext">Y is a single quantitative variable of interest, like “heights” of BYU-Idaho students. X is a categorical (qualitative) variable like which Math 221 you took, 221A, 221B, or 221C. In other words, X has three or more groups. So “Classrank” could be X, with groups “Freshman”, “Sophomore”, “Junior”, and “Senior”.</span></p>
+</div>
+<div id="quantitative-y-categorical-x-3-groups" class="section level3 tabset tabset-pills">
+<h3>Quantitative Y | Categorical X (3+ Groups)</h3>
+<p>Used when comparing 3+ catagories of quantitative data (ie. speed of 4 cylinder, 6 cylinder, and 8 cylinder cars).</p>
+<div id="graphics-2" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>When discussing the graphs of a Kruskal-Wallis test, don’t reference spread or consistancy of data. Concentrate on the <strong>shift of the data</strong>!</p>
+<p><a href="GraphicalSummaries.html#boxplots"> <img class="myhover" src="./Images/boxplotthree.png" alt="Side-by-side Boxplots" title="Side-by-side Boxplots 3+ Groups, include 5-number summary"> </a> <a href="GraphicalSummaries.html#dot-plots"> <img class="myhover" src="./Images/dotplottriple.png" alt="Side-by-side Dot Plots" title="Side-by-side Dot Plots 3+ Groups"> </a></p>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="numerics-2" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+Useful numerical summaries include:
+<div style="padding-left:30px;">
+<a href="NumericalSummaries.html#fns">5-number summary</a> which must be included if a <strong>boxplot</strong> is used
+<div style="padding-left:30px;">
+<pre><code> summary(DataSet$Column)
+ or
+ library(tidyverse)
+ DataSet %&gt;% 
+   group_by(Column) %&gt;% 
+   summarise(min=min(Column), Q1=quantile(Column, 0.25), med=median(Column), Q3=quantile(Column, 0.75), max=max(Column)) %&gt;% 
+   pander()</code></pre>
+</div>
+Favstats
+<div style="padding-left:30px;">
+<pre><code>pander(favstats(object ~ group, data = DataSet)[c(&quot;group&quot;, &quot;Q1&quot;, &quot;median&quot;, &quot;mean&quot;, &quot;Q3&quot;, &quot;n&quot;)])</code></pre>
+<p>You may leave off the [c(…)] if you don’t want to choose which stats to use.</p>
+</div>
+<a href="NumericalSummaries.html#mean">Mean</a> focus on this in numerical summaries for the <strong>ANOVA</strong> tests, along with other comparisons
+<div style="padding-left:30px;">
+<pre><code>    mean(DataSet$Column)</code></pre>
+</div>
+A table of means
+<div style="padding-left:30px;">
+<pre><code>DataSet %&gt;% 
+group_by(group, subgroup) %&gt;% 
+summarise(Mean = mean(ColumnToBeAveraged)) %&gt;% 
+pander(caption = &quot;Table of Means by `Group` and `Subgroup`&quot;)</code></pre>
+</div>
+<p><a href="NumericalSummaries.html#sd">Standard Deviation</a> a measure of spread</p>
+<pre><code>sd(DataSet$Column)</code></pre>
+</div>
+When using the <strong>Kruskal-Wallis</strong> test, focus on the 1st &amp; 3rd quartiles, mean, and median and not the min, max, or sd. You’re looking for differences or similarities in <strong>shift</strong> of the data, not spread or consistancy:
+<div style="padding-left:30px;">
+<p><a href="NumericalSummaries.html#fns">5-number summary</a> which must be included if a <strong>boxplot</strong> is used</p>
+<pre><code> summary(DataSet$Column)
+ or
+ library(tidyverse)
+ DataSet %&gt;% 
+   group_by(Column) %&gt;% 
+   summarise(min=min(Column), Q1=quantile(Column, 0.25), med=median(Column), Q3=quantile(Column, 0.75), max=max(Column)) %&gt;% 
+   pander()</code></pre>
+</div>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+<div id="tests-2" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: 
+
+Add your own notes about appropriate inferential procedures for this type of data here.-->
+<p>Check the <strong>degrees of freedom</strong> = one less than the number of levels of the factor. If not, use as.factor(DataSet$Column).</p>
+<h5 id="one-way-anova"><a href="ANOVA.html#one-way-anova">One-way ANOVA</a> </br></h5>
+<div style="padding-left:15px;">
+<p>Use for testing several <strong>means</strong> simultaneously. Uses 1 quantitative variable and 1 qualitative factor with multiple levels.</p>
+<p>The ratio of the “between groups variation” to the “within groups variation” provides the test statistic for ANOVA. Note that the test statistic of ANOVA is an <span class="math inline">\(F\)</span> statistic.</p>
+<p><span class="math display">\[
+  F = \frac{\text{Between groups variation}}{\text{Within groups variation}}
+\]</span></p>
+<ul>
+<li>Is the average height of women the same in all states?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>sample represents population (SRS or <span class="math inline">\(n\)</span> of the differences is large))</li>
+<li>data is normally distributed in each group (check residuals - Normal Q-Q)</li>
+<li>population variance is the same for each group (check constant variance - Residuals vs Fitted)</li>
+</ul>
+<p>Testing Assumptions:</p>
+<pre><code>par(mfrow=c(1,2))
+plot(chick.aov, which=1:2, pch=16)
+par(mfrow=c(1,1)) #resets par</code></pre>
+</div>
+<h5 id="two-way-anova"><a href="ANOVA.html#two-way-anova">Two-way ANOVA</a> </br></h5>
+<div style="padding-left:15px;">
+<p>Use for testing several <strong>means</strong> simultaneously. Uses one quantitative variable and 2+ qualitative factors with multiple levels.</p>
+<p>“F = (Between groups variance)/(Within groups variance) test statistic.” - Kruskal-Wallis Assessment Quiz</p>
+<ul>
+<li>Is the average height of women the same as the average height for men in all states?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>sample represents population (SRS or <span class="math inline">\(n\)</span> of the differences is large))</li>
+<li>data is normally distributed in each group (check residuals - Normal Q-Q)</li>
+<li>population variance is the same for each group (check constant variance - Residuals vs Fitted)</li>
+</ul>
+<p>Testing Assumptions:</p>
+<pre><code>par(mfrow=c(1,2))
+plot(chick.aov, which=1:2, pch=16) 
+par(mfrow=c(1,1)) #resets par</code></pre>
+<p>Notes: Check your <strong>degrees of freedom (df)</strong>, they should be -1 than the number of levels of the factor. If not, use this to fix the problem:</p>
+<pre><code>as.factor(DataSet$Column)</code></pre>
+<p>Here’s my <a href="Analyses/Anova/DayCare.html">Day Care</a> analysis.</p>
+</div>
+<h5 id="block-design-anova"><a href="./ANOVA.html#block-design">Block Design ANOVA</a> </br></h5>
+<div style="padding-left:15px;">
+<p>Use for testing when blocks are included in the study design. <strong>Won’t be used in Math 325</strong></p>
+<p>“F = (Between groups variance)/(Within groups variance) test statistic.” - Kruskal-Wallis Assessment Quiz</p>
+<ul>
+<li>?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>sample represents population (SRS or <span class="math inline">\(n\)</span> of the differences is large))</li>
+<li>data is normally distributed in each group (check residuals - Normal Q-Q)</li>
+<li>population variance is the same for each group (check constant variance - Residuals vs Fitted)</li>
+</ul>
+<p>Testing Assumptions:</p>
+<pre><code>par(mfrow=c(1,2))
+plot(chick.aov, which=1:2, pch=16) 
+par(mfrow=c(1,1)) #resets par</code></pre>
+<p>Notes: Check your <strong>degrees of freedom (df)</strong>, they should be -1 than the number of levels of the factor. If not, use this to fix the problem:</p>
+<pre><code>as.factor(DataSet$Column)</code></pre>
+</div>
+<h5 id="kruskal-wallis-rank-sum"><a href="./Kruskal.html#kruskal-wallis-rank-sum-test">Kruskal-Wallis Rank Sum</a> </br></h5>
+<div style="padding-left:15px;">
+<p>Use for testing if 3+ samples come from the same population or if at least one is from a different one. Ordinal data can be used. Use <a href="WilcoxonTests.html#wilcoxon-rank-sum-mann-whitney-test">Wilcoxon Rank Sum</a> if only testing 2 samples. Don’t reference spread or consistancy of data. <strong>Concentrate on shift</strong>!</p>
+<p>H - “It is a combined measurement of how much the average ranks differ between each group.” - Kruskal-Wallis Assessment Quiz</p>
+<ul>
+<li>Does a woman’s hair color affect her annual income?</li>
+</ul>
+<p>When…</p>
+<ul>
+<li>populations are assumed to be about the same form, just shifted or translated</li>
+<li>data is <strong>not</strong> normally distributed</li>
+</ul>
+<p>Testing Assumptions:</p>
+<pre><code>None</code></pre>
+<p>Notes:</p>
+<ul>
+<li>Avoid min, max, + sd comparisons; focus on mean, median, 1Q + 3Qs instead</li>
+<li>Graphs can be misleading, if p-value is high it may be due to random chance patterns</li>
+<li>Use color for directing focus where desired</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="math-model-2" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="one-way-anova-1"><a href="ANOVA.html#one-way-anova">One-way ANOVA</a> </br></h5>
+<div style="padding-left:15px;">
+Hypotheses:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+  H_0: \alpha_1 = \alpha_2 = \ldots = 0
+\]</span> <span class="math display">\[
+  H_a: \alpha_i \neq 0 \ \text{for at least one} \ i
+\]</span></p>
+<pre><code>$$
+H_0: \alpha_1 = \alpha_2 = \ldots = 0
+$$
+$$
+H_a: \alpha_i \neq 0 \ \text{for at least one} \ i
+$$</code></pre>
+</div>
+Math Model:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+  Y_{ij} = \mu + \alpha_i + \epsilon_{ij}
+\]</span> where <span class="math inline">\(\mu\)</span> is the grand mean, <span class="math inline">\(\alpha_i\)</span> is a factor with at least two levels, and <span class="math inline">\(\epsilon_{ijk} \sim N(0,\sigma^2)\)</span> is the error term.</p>
+<pre><code>$$
+Y_{ij} = \mu + \alpha_i + \epsilon_{ij}
+$$</code></pre>
+</div>
+</div>
+<h5 id="two-way-anova-1"><a href="ANOVA.html#two-way-anova">Two-way ANOVA</a> </br></h5>
+<div style="padding-left:15px;">
+Hypotheses:
+<div style="padding-left:30px;">
+<p>With a two-way ANOVA there are three sets of hypotheses.</p>
+<p>One for the first factor: <span class="math display">\[
+  H_0: \alpha_1 = \alpha_2 = \ldots = 0
+\]</span> <span class="math display">\[
+  H_a: \alpha_i \neq 0 \ \text{for at least one} \ i
+\]</span></p>
+<pre><code>$$
+H_0: \alpha_1 = \alpha_2 = \ldots = 0
+$$
+$$
+H_a: \alpha_i \neq 0 \ \text{for at least one} \ i
+$$</code></pre>
+<p>One for the second factor: <span class="math display">\[
+  H_0: \beta_1 = \beta_2 = \ldots = 0
+\]</span> <span class="math display">\[
+  H_a: \beta_j \neq 0 \ \text{for at least one} \ j
+\]</span></p>
+<pre><code>$$
+H_0: \beta_1 = \beta_2 = \ldots = 0
+$$
+$$
+H_a: \beta_j \neq 0 \ \text{for at least one} \ j
+$$ </code></pre>
+<p>One for the interaction of the two factors: <span class="math display">\[
+  H_0: \text{The effect of} \ \alpha \ \text{is the same for all levels of} \ \beta
+\]</span> <span class="math display">\[
+  H_a: \text{The effect of} \ \alpha \ \text{is different for at least one level of} \ \beta
+\]</span></p>
+<pre><code>$$
+H_0: \text{The effect of} \ \alpha \ \text{is the same for all levels of} \ \beta
+$$
+$$
+H_a: \text{The effect of} \ \alpha \ \text{is different for at least one level of} \ \beta
+$$</code></pre>
+</div>
+Math Model:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+  Y_{ijk} = \mu + \alpha_i + \beta_j + \alpha\beta_{ij} + \epsilon_{ijk}
+\]</span> where <span class="math inline">\(\mu\)</span> is the grand mean, <span class="math inline">\(\alpha_i\)</span> is one factor with at least two levels, <span class="math inline">\(\beta_j\)</span> is another factor with at least two levels, <span class="math inline">\(\alpha\beta_{ij}\)</span> is the interaction of the two factors, and <span class="math inline">\(\epsilon_{ijk} \sim N(0,\sigma^2)\)</span> is the error term.</p>
+<p>Note that more than two factors are allowed, i.e., more than <span class="math inline">\(\alpha_i\)</span> and <span class="math inline">\(\beta_j\)</span>, and is sometimes called three-way ANOVA, four-way ANOVA, and so on. It is not required to include interaction terms, like <span class="math inline">\(\alpha\beta_{ij}\)</span>. The error term <span class="math inline">\(\epsilon\)</span> is always required.</p>
+<pre><code>$$
+Y_{ijk} = \mu + \alpha_i + \beta_j + \alpha\beta_{ij} + \epsilon_{ijk}
+$$</code></pre>
+</div>
+</div>
+<h5 id="kruskal-wallis-rank-sum-1"><a href="./Kruskal.html#kruskal-wallis-rank-sum-test">Kruskal-Wallis Rank Sum</a> </br></h5>
+<div style="padding-left:15px;">
+Hypotheses:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+  H_0: \text{All samples are from the same distribution.}
+\]</span> <span class="math display">\[  
+  H_a: \text{At least one sample&#39;s distribution is stochastically different.}
+\]</span></p>
+<pre><code>H_0: \text{All samples are from the same distribution.}
+H_a: \text{At least one sample&#39;s distribution is stochastically different.}</code></pre>
+</div>
+Math Model:
+<div style="padding-left:30px;">
+<pre><code>NONE</code></pre>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="code-repository-2" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="one-way-anova-2"><a href="ANOVA.html#one-way-anova">One-way ANOVA</a> </br></h5>
+<div style="padding-left:15px;">
+Run the test:
+<div style="padding-left:30px;">
+<pre><code>myaov &lt;- aov(y ~ A, data=YourDataSet)
+summary(myaov)</code></pre>
+</div>
+Check assumptions:
+<div style="padding-left:30px;">
+<pre><code>par(mfrow = c(1, 2))
+plot(myaov, which=1:2)
+par(mfrow = c(1, 1)) #to reset graphs</code></pre>
+<ul>
+<li>y must be a “numeric” vector of the quantitative response variable.</li>
+<li>A is a qualitative variable (should have class(A) equal to factor or character. If it does not, use as.factor(A) inside the aov() command</li>
+</ul>
+</div>
+</div>
+<h5 id="two-way-anova-2"><a href="ANOVA.html#two-way-anova">Two-way ANOVA</a> </br></h5>
+<div style="padding-left:15px;">
+Run the test:
+<div style="padding-left:30px;">
+<pre><code>myaov &lt;- aov(y ~ A+B+A:B, data=YourDataSet)
+summary(myaov)</code></pre>
+</div>
+Check assumptions:
+<div style="padding-left:30px;">
+<pre><code>par(mfrow = c(1, 2))
+plot(myaov, which=1:2)
+par(mfrow = c(1, 1)) #to reset graphs</code></pre>
+<ul>
+<li>y must be a “numeric” vector of the quantitative response variable.</li>
+<li>A is a qualitative variable (should have class(A) equal to factor or character. If it does not, use as.factor(A) inside the aov() command.</li>
+<li>B is a second qualitative variable that should also be either a factor or a character vector.</li>
+<li>Note that factors C, D, and so on could also be added + to the model if desired.</li>
+<li>A:B denotes the interaction of the factors A and B. It is not required and should only be included if the interaction term is of interest.</li>
+</ul>
+</div>
+</div>
+<h5 id="kruskal-wallis-rank-sum-2"><a href="./Kruskal.html#kruskal-wallis-rank-sum-test">Kruskal-Wallis Rank Sum</a> </br></h5>
+<div style="padding-left:15px;">
+Run the test:
+<div style="padding-left:30px;">
+<pre><code>kruskal.test(x ~ g, data=YourDataSet)</code></pre>
+<ul>
+<li>x is a numeric vector of data values that represents the quantatitive response variable.</li>
+<li>g is a qualitative grouping variable defining which groups each value in x belongs to. It must either be a character vector or a factor vector.</li>
+</ul>
+<p>For an alternative, see R Instructions under the <a href="./Kruskal.html#kruskal-wallis-rank-sum-test">Kruskal-Wallis Rank Sum</a> tab.</p>
+</div>
+Check assumptions:
+<div style="padding-left:30px;">
+<pre><code>NONE</code></pre>
+</div>
+<h5 id="graphics-3"><a href="GraphicalSummaries.html">Graphics</a> </br></h5>
+<div style="padding-left:15px;">
+Side-by-side <strong>boxplots</strong>:
+<div style="padding-left:30px;">
+<pre><code>boxplot(object ~ group, data=NameOfYourData)</code></pre>
+<p>To add dots to <strong>boxplots</strong>:</p>
+<pre><code>stripchart(object ~ group, data=NameOfYourData, method = &quot;stack&quot;, add = TRUE, vertical = TRUE, pch = 16, col = &quot;YourChoice&quot;)</code></pre>
+</div>
+Side-by-side Dot Plots:
+<div style="padding-left:30px;">
+<pre><code>stripchart(object ~ group, data=NameOfYourData)</code></pre>
+<ul>
+<li>object = numeric column</li>
+<li>group = “factor” or “character” column</li>
+</ul>
+</div>
+XYPlot (Side-by-side dot plot with a connecting line and grouped by color)
+<div style="padding-left:30px;">
+<pre><code>xyplot(object ~ group, data = NameOfYourData, type = c(&quot;p&quot;, &quot;a&quot;), groups = group2, jitter.x = TRUE, pch = 16, auto.key = list(corner = c(1,1)))</code></pre>
+<p>You may remove groups=group2 and auto.key=… if you only need to visualize 1 grouping. See the <a href="Analyses/Anova/DayCare.html">Day Care</a> analysis for an example.</p>
+</div>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+<div id="section-4" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/QuantYQuantX.png" width=59px;> <span class="tooltipimagetext">Y is a single quantitative variable of interest, like “height”. X is another single quantitative variable of interest, like “shoe-size”. This would imply we are using “shoe-size” (X) to explain “height” (Y).</span></p>
+</div>
+<div id="quantitative-y-quantitative-x" class="section level3 tabset tabset-pills">
+<h3>Quantitative Y | Quantitative X</h3>
+<p>Determine which explanatory variables (<span class="math inline">\(X_i\)</span>) have a significant effect on the <em>mean</em> of the quantitative response variable.</p>
+<div id="graphics-4" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>With a scatterplot, you need to include the <a href="NumericalSummaries.html#correlation">correlation</a>. </br> With a bar chart, you need to include the <a href="RCommands.html#table">table of counts</a>.</p>
+<p><a href="GraphicalSummaries.html#scatterplots"> <img class="myhover" src="./Images/scatterplot.png" alt="Scatterplot" title="Scatterplot"> </a> <a href="GraphicalSummaries.html#bar-charts"> <img class="myhover" src="./Images/barplot.png" alt="Bar Charts" title="Bar Charts"> </a></p>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="numerics-3" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>Useful numerical summaries include:</p>
+<a href="NumericalSummaries.html#correlation">Correlation</a> must be included if a scatterplot is used
+<div style="padding-left:30px;">
+<pre><code>cor(object1,object2) %&gt;% 
+pander()</code></pre>
+<p>where objects = DataSet$column</p>
+</div>
+With a bar chart, you need to include the <a href="RCommands.html#table">table of counts</a>
+<div style="padding-left:30px;">
+<pre><code>NameYouChoose &lt;- table(DataSet$Column)
+NameYouChoose
+ 
+NameYouChoose &lt;- table(as.factor(DataSet$Column))
+NameYouChoose</code></pre>
+<p>This gives the number of entries grouped by the specified column. Must be a factor or use as.factor() to fix.</p>
+</div>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+<div id="tests-3" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="simple-linear-regression"><a href="LinearRegression.html#simple-linear-regression">Simple Linear Regression</a></h5>
+<div style="padding-left:15px;">
+<p>Use for testing a single quantitative response variable (Y) and a single quantitative explanatory variable (X).</p>
+<p>Test statistic = t</p>
+<ul>
+<li>What affect does height have on shoe size?</li>
+</ul>
+<p>Use when…</p>
+<ul>
+<li>Linear Relation: the true regression relation between Y and X is linear. <br/></li>
+<li>Normal Errors: the error terms <span class="math inline">\(\epsilon_i\)</span> are normally distributed with a mean of zero. <br/></li>
+<li>Constant Variance: the variance <span class="math inline">\(\sigma^2\)</span> of the error terms is constant (the same) over all Xi values. <br/></li>
+<li>Fixed X: the Xi values can be considered fixed and measured without error. <br/></li>
+<li>Independent Errors: the error terms <span class="math inline">\(\epsilon_i\)</span> are independent.</li>
+</ul>
+<p>Testing assumptions (1, 2, 3, and 5):</p>
+<pre><code>par(mfrow=c(1,3))
+plot(mylm,which=1:2)
+plot(mylm$residuals)
+par(mfrow=c(1,1)) #resets par</code></pre>
+<p>The slope is interpreted as, “the change in the <strong><em>average y-value</em></strong> for a one unit change in the x-value.”</p>
+<p>The y-intercept is interpreted as, “the <strong><em>average y-value</em></strong> when x is zero.” It is often not meaningful, but is sometimes useful.</p>
+<p>Examples: <a href="../Analysis%20by%20Peers/MySimpleLinearRegression02.html">Classmate’s</a>, <a href="./Analyses/Linear%20Regression/MySimpleLinearRegression.html">mine</a>, Brother Cromar created <a href="https://rpubs.com/blakecromar/CarPrices">this one</a>. <!--- End of Add content area.  ------------------></p>
+</div>
+</div>
+</div>
+<div id="math-model-3" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="simple-linear-regression-shortcut"><a href="LinearRegression.html#simple-linear-regression">Simple Linear Regression</a> shortcut</h5>
+<div style="padding-left:15px;">
+Hyoptheses:
+<div style="padding-left:30px;">
+Intercept hypotheses (sometimes useful):
+<div style="padding-left:20px;">
+<p><span class="math display">\[
+H_0: \beta_0 = 0 \\
+H_0: \beta_0 \neq 0
+\]</span></p>
+<pre><code>$$
+H_0: \beta_0 = 0 \\
+H_0: \beta_0 \neq 0
+$$</code></pre>
+<p>If <span class="math inline">\(\beta_0 = 0\)</span>, then the model reduces to <span class="math inline">\(Y_i = \beta_1X + \epsilon_i\)</span>, a line going through the origin. This means the average <span class="math inline">\(Y\)</span>-value is <span class="math inline">\(0\)</span> when <span class="math inline">\(X = 0\)</span> if the null hypothesis is true.</p>
+</div>
+Slope hypotheses (most common):
+<div style="padding-left:20px;">
+<p><span class="math display">\[
+H_0: \beta_1 = 0 \\
+H_a: \beta_1 \neq 0
+\]</span></p>
+<pre><code>$$
+H_0: \beta_1 = 0 \\
+H_a: \beta_1 \neq 0
+$$</code></pre>
+<p>If <span class="math inline">\(\beta_1 = 0\)</span>, then the model reduces to <span class="math inline">\(Y_i = \beta_0 + \epsilon_i\)</span>, which is a flat line. This means <span class="math inline">\(X\)</span> does not improve our understanding of the mean of <span class="math inline">\(Y\)</span> if the null hypothesis is true.</p>
+</div>
+</div>
+Math Models:
+<div style="padding-left:30px;">
+True regression model:
+<div style="padding-left:20px;">
+<p><span class="math display">\[
+  \underbrace{Y_i}_\text{Some Label} = \overbrace{\beta_0}^\text{y-int} + \overbrace{\beta_1}^\text{slope} \underbrace{X_i}_\text{Some Label} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)
+\]</span></p>
+<pre><code>$$
+\underbrace{Y_i}_\text{Some Label} = \overbrace{\beta_0}^\text{y-int} + \overbrace{\beta_1}^\text{slope} \underbrace{X_i}_\text{Some Label} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)
+$$</code></pre>
+</div>
+Estimated regression line:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+  \underbrace{\hat{Y}_i}_\text{Some Label} = \overbrace{b_0}^\text{est. y-int} + \overbrace{b_1}^\text{est. slope} \underbrace{X_i}_\text{Some Label}
+\]</span></p>
+<pre><code>$$
+\underbrace{\hat{Y}_i}_\text{Some Label} = \overbrace{b_0}^\text{est. y-int} + \overbrace{b_1}^\text{est. slope} \underbrace{X_i}_\text{Some Label}
+$$</code></pre>
+</div>
+<p>Where:</p>
+<ul>
+<li>lower case letters = samples, capitals = parameters (rarely known, ‘God’s law’)</li>
+<li><span class="math inline">\(y_i\)</span> = individual y value</li>
+<li><span class="math inline">\(\bar{y}\)</span> = average of all y-values in sample (it will always be a flat line, no x involved)</li>
+<li><span class="math inline">\(\hat{y}\)</span> = a sloped line, x is figured in</li>
+<li><span class="math inline">\(\hat{y_i}\)</span> = the single dot on <span class="math inline">\(\hat{y}\)</span> line</li>
+<li>residual = <span class="math inline">\(y_i - \hat{y_i}\)</span></li>
+<li><span class="math inline">\(\epsilon_i\)</span> is the error term or the distance of the measured dot to the true line.</li>
+<li><span class="math inline">\(r_1\)</span> is the residual or the distance of the measured dot to the estimated line.</li>
+<li><span class="math inline">\(\beta_0\)</span> is the <em>true</em> y-intercept</li>
+<li><span class="math inline">\(b_0\)</span> is the <em>estimated</em> y-intercept</li>
+<li><span class="math inline">\(\beta_1\)</span> is the <em>true</em> slope</li>
+<li><span class="math inline">\(b_1\)</span> is the <em>estimated</em> slope (the change in the average <span class="math inline">\(y_i\)</span> value)</li>
+<li><span class="math inline">\(E\{Y_i\}\)</span> is the expected value of <span class="math inline">\(Y_i\)</span>, the true line (the regression relation), usually unknown (dotted line)</li>
+<li><span class="math inline">\(\hat{Y_i}\)</span> is the estimated (fitted) line, the line we get from a sample of data (solid line)</li>
+<li><span class="math inline">\(Y_i\)</span> is the data, the regression relation plus an error term (the dots)</li>
+</ul>
+<div class="figure">
+<img src="Images/Yvariations.JPG" />
+
+</div>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="code-repository-3" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="simple-linear-regression-1"><a href="LinearRegression.html#simple-linear-regression">Simple Linear Regression</a></h5>
+<div style="padding-left:15px;">
+Perform Regression
+<div style="padding-left:30px;">
+<pre><code>mylm &lt;- lm(Y ~ X, data = NameOfYourDataset)
+summary(mylm)</code></pre>
+</div>
+Check Assumptions
+<div style="padding-left:30px;">
+<pre><code>par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals)
+par(mfrow=c(1,1)) #resets to single graphs</code></pre>
+</div>
+Plot Regression Line
+<div style="padding-left:30px;">
+<pre><code>plot(Y ~ X, data = YourDataSet)
+abline(mylm, col = &quot;firebrick&quot;)</code></pre>
+</div>
+Making Predictions
+<div style="padding-left:30px;">
+<pre><code>predict(mylm, data.frame(X=Xh))
+
+Here&#39;s an example:
+mylm &lt;- lm(dist ~ speed, data = cars)
+predict(mylm, data.frame(speed = 12), interval = &quot;confidence&quot;)</code></pre>
+<p>Options include: interval=“prediction” or “confidence”</p>
+</div>
+Find a Confidence Interval
+<div style="padding-left:30px;">
+<pre><code>confint(mylm, level=someConfidenceLevel)</code></pre>
+</div>
+</div>
+<h5 id="graphics-5"><a href="GraphicalSummaries.html">Graphics</a> </br></h5>
+<div style="padding-left:15px;">
+Bar Chart:
+<div style="padding-left:30px;">
+<pre><code>barplot(table(as.factor(DataSet$Column)), legend.text = TRUE)</code></pre>
+<p>Leave out as.factor() if the data is already factors.</p>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+<div id="section-5" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/QuantYMultX.png" width=100px;> <span class="tooltipimagetext">Y is a single quantitative variable of interest, like height. While we could use an X1 of “shoe-size” to explain height, we might also want to use a second x-variable, X2, like “gender” to help explain height. Further x-variables could also be used.</span></p>
+</div>
+<div id="quantitative-y-multiple-x" class="section level3 tabset tabset-pills">
+<h3>Quantitative Y | Multiple X</h3>
+<div id="graphics-6" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>With a scatterplot, you need to include the <a href="NumericalSummaries.html#correlation">Correlation</a>.</p>
+<p><a href="GraphicalSummaries.html#scatterplots"> <img class="myhover" src="./Images/scatterplotmany.png" alt="Scatterplot" title="Scatterplot with Color and Sizing"> </a></p>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="numerics-4" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>Useful numerical summaries include:</p>
+<a href="NumericalSummaries.html#correlation">Correlation</a> must be included if a scatterplot is used
+<div style="padding-left:30px;">
+<pre><code>cor(object1,object2) %&gt;% 
+pander()</code></pre>
+<p>where objects = DataSet$column</p>
+</div>
+With a bar chart, you need to include the <a href="RCommands.html#table">table of counts</a>
+<div style="padding-left:30px;">
+<pre><code>NameYouChoose &lt;- table(DataSet$Factor1, DataSet$Factor2))
+NameYouChoose</code></pre>
+<p>This gives the number of entries grouped by the specified column. Must be a factor or use <strong>as.factor()</strong> to fix. <!--- End your notes before here.  ------------------></p>
+</div>
+</div>
+<div id="tests-4" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="multiple-linear-regression"><a href="LinearRegression.html#multiple-linear-regression">Multiple Linear Regression</a></h5>
+<div style="padding-left:15px;">
+<p>Use for testing a single quantitative response variable (Y) and 2+ quantitative explanatory variables (X).</p>
+<p>Test statistic = t</p>
+<ul>
+<li>Does height and weight have an influence on shoe size?</li>
+</ul>
+<p>Use when…</p>
+<ul>
+<li>Linear Relation: the true regression relation between Y and X is linear. <br/></li>
+<li>Normal Errors: the error terms <span class="math inline">\(\epsilon_i\)</span> are normally distributed with a mean of zero. <br/></li>
+<li>Constant Variance: the variance <span class="math inline">\(\sigma^2\)</span> of the error terms is constant (the same) over all Xi values. <br/></li>
+<li>Fixed X: the Xi values can be considered fixed and measured without error. <br/></li>
+<li>Independent Errors: the error terms <span class="math inline">\(\epsilon_i\)</span> are independent.</li>
+</ul>
+<p>Testing assumptions (1, 2, 3, and 5):</p>
+<pre><code>par(mfrow=c(1,3))
+plot(mylm,which=1:2)
+plot(mylm$residuals)
+par(mfrow=c(1,1)) #resets par</code></pre>
+<p>The slope coefficient (<span class="math inline">\(\beta_j\)</span>) is interpreted as, the change in the expected value of <span class="math inline">\(Y\)</span> for a unit increase in <span class="math inline">\(X_j\)</span>, when all other variables are constant.</p>
+</div>
+</div>
+</div>
+<div id="math-model-4" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="multiple-linear-regression-1"><a href="LinearRegression.html#multiple-linear-regression">Multiple Linear Regression</a></h5>
+<div style="padding-left:15px;">
+Hypotheses:
+<div style="padding-left:30px;">
+To test for <strong>equal y-intercepts</strong> (not always useful):
+<div style="padding-left:20px;">
+<p>If <span class="math inline">\(\beta_2\)</span> is zero, then the y-intercepts of the two lines are the same.</p>
+<p><span class="math display">\[
+  H_0: \beta_2 = 0 \quad \text{(Equal average whatever your Y is at x=0)} \\
+  H_a: \beta_2 \neq 0 \quad \text{(Non-equal average whatever your Y is at x=0)}
+\]</span></p>
+<pre><code>$$
+H_0: \beta_2 = 0 \quad \text{(Equal average whatever your Y is at x=0)} \\
+H_a: \beta_2 \neq 0 \quad \text{(Non-equal average whatever your Y is at x=0)}
+$$</code></pre>
+</div>
+To test for <strong>equal slopes</strong>:
+<div style="padding-left:20px;">
+<p>If <span class="math inline">\(\beta_3\)</span> is zero, then the slopes of the two lines are the same.</p>
+<p><span class="math display">\[
+  H_0: \beta_3 = 0 \quad \text{(Equal rates of whatever the slope represents)} \\
+  H_a: \beta_3 \neq 0 \quad \text{(Non-equal rates of whatever the slope represents)}
+\]</span></p>
+<pre><code>$$
+H_0: \beta_3 = 0 \quad \text{(Equal rates of whatever the slope represents)} \\
+H_a: \beta_3 \neq 0 \quad \text{(Non-equal rates of whatever the slope represents)}
+$$</code></pre>
+</div>
+</div>
+Math Model:
+<div style="padding-left:30px;">
+<p><span class="math display">\[
+  \underbrace{Y_i}_\text{Price} = \overbrace{
+   \beta_0 + \beta_1
+   \underbrace{X_{i1}}_\text{Mileage}
+   }^\text{Grand Am line} + 
+   \overbrace{\beta_2
+   \underbrace{X_{i2}
+   }_\text{1 if Grand Prix} + \beta_3 \underbrace{X_{i1} X_{i2}}_{\text{Interaction}}}^\text{Grand Prix line adjustments} + \epsilon_i
+\]</span></p>
+<pre><code>$$
+\underbrace{Y_i}_\text{Price} = \overbrace{
+\beta_0 + \beta_1
+\underbrace{X_{i1}}_\text{Mileage}
+}^\text{Grand Am line} + 
+\overbrace{\beta_2
+\underbrace{X_{i2}
+}_\text{1 if Grand Prix} + \beta_3 \underbrace{X_{i1} X_{i2}}_{\text{Interaction}}}^\text{Grand Prix line adjustments} + \epsilon_i
+$$</code></pre>
+<p><a href="Analyses/Linear%20Regression/Examples/CivicVsCorollaMLR.html">Civic vs Corolla</a> has a wonderful example and explanation. <a href="Analyses/Linear%20Regression/Examples/CarPrices.html">CarPrices</a> might also help.</p>
+<p>Don’t forget to alter text to conform to your project!</p>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="code-repository-4" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="multiple-linear-regression-2"><a href="LinearRegression.html#multiple-linear-regression">Multiple Linear Regression</a></h5>
+<div style="padding-left:15px;">
+Perform Regression
+<div style="padding-left:30px;">
+<pre><code>mylm &lt;- lm(Y ~ X1 + X2 + X1:X2, data = NameOfYourDataset)
+summary(mylm)</code></pre>
+</div>
+Check Assumptions
+<div style="padding-left:30px;">
+<pre><code>par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals)
+par(mfrow=c(1,1)) #resets to single graphs</code></pre>
+</div>
+Plot Regression Line
+<div style="padding-left:30px;">
+<pre><code>plot(Y ~ X1, col = as.factor(X2), data = YourDataSet)
+b &lt;- mylm$coefficients
+abline(b[1], b[2], col = &quot;firebrick&quot;)
+abline((b[1]+b[3]), (b[2]+b[4]), col = &quot;royalblue3&quot;)</code></pre>
+</div>
+Making Predictions
+<div style="padding-left:30px;">
+<pre><code>predict(mylm, data.frame(X1=X1h, X2=X2h), type=&quot;response&quot;)
+
+Here&#39;s an example:
+mylm &lt;- lm(mpg ~ hp + am + hp:am, data = mtcars)
+predict(mylm, data.frame(hp = 120, am = 1), data = mtcars, type = &quot;response&quot;)</code></pre>
+<p>Options include: interval=“prediction” or “confidence”</p>
+</div>
+Finding Variables
+<div style="padding-left:30px;">
+<pre><code>pairs(cbind(Res=mylm$residuals, YourDataSet), panel=panel.smooth, col=as.factor(YourDataSet$X))</code></pre>
+</div>
+</div>
+<h5 id="graphics-7"><a href="GraphicalSummaries.html">Graphics</a> </br></h5>
+<div style="padding-left:15px;">
+2-Factor Bar Chart
+<div style="padding-left:30px;">
+<pre><code>barplot(table(DataSet$Factor1, DataSet$Factor2), beside = TRUE, col=c(&quot;olivedrab3&quot;, &quot;royalblue2&quot;), legend.text = TRUE)</code></pre>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+<div id="section-6" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/BinomYQuantX.png" width=59px;> <span class="tooltipimagetext">Y is a single categorical (qualitative) variable of interest where 1 (success) or 0 (failure) are the only possible values for Y. This would be like “getting an A in Math 325” where 1 means you got an A and 0 means you didn’t. We might use an explanatory variable X of “height” to see if taller students are more likely to get an A in Math 325 than shorter students. (They aren’t, if you were wondering.)</span></p>
+</div>
+<div id="binomial-y-quantitative-x" class="section level3 tabset tabset-pills">
+<h3>Binomial Y | Quantitative X</h3>
+<div id="graphics-8" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>With a scatterplot, you need to include the <a href="NumericalSummaries.html#correlation">Correlation</a>.</p>
+<p><a href="GraphicalSummaries.html#scatterplots"> <img class="myhover" src="./Images/scatterplotbinomY.png" alt="Scatterplot with Binomial Y" title="Scatterplot with Binomial Y"> </a></p>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="numerics-5" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<a href="NumericalSummaries.html#correlation">Correlation</a> must be included if a scatterplot is used
+<div style="padding-left:30px;">
+<pre><code>cor(object1,object2)</code></pre>
+<ul>
+<li>where objects = DataSet$column</li>
+<li>use as.numeric() to change an object to numeric</li>
+</ul>
+</div>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+<div id="tests-5" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="simple-logistic-regression-model"><a href="LogisticRegression.html#simple-logistic-regression-model">Simple Logistic Regression Model</a></h5>
+<div style="padding-left:15px;">
+<p>Use this for a 0-1, Yes-No, True-False response variable and 1 explanatory variable (qualitative or quantitative).</p>
+<p>Test statistic = Z-value</p>
+<ul>
+<li>Does <code>class</code> help explain who survived when the Titanic sunk?</li>
+</ul>
+<p>Use when:</p>
+<ul>
+<li><p>the response variable is binary (Yi=0 or 1), and</p></li>
+<li><p>there is a single explanatory variable X that is typically quantitative but could be qualitative (if X is binary or ordinal)</p></li>
+</ul>
+<p>Use the Hosmer-Lemeshow Goodness of Fit Test if there <strong>aren’t many replicated values</strong> of each <span class="math inline">\(x_i\)</span>.</p>
+<pre><code>library(ResourceSelection)
+hoslem.test(YourObjectName$y, YourObjectName$fitted)</code></pre>
+<p>Use the Deviance Goodness of Fit Test, if there <strong>are many replicated values</strong> of each <span class="math inline">\(x_i\)</span>.</p>
+<pre><code>pchisq(residual deviance, df for residual deviance, lower.tail = FALSE)</code></pre>
+</div>
+</div>
+</div>
+<div id="math-model-5" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="simple-logistic-regression-model-1"><a href="LogisticRegression.html#simple-logistic-regression-model">Simple Logistic Regression Model</a></h5>
+<div style="padding-left:15px;">
+Hypotheses:
+<div style="padding-left:20px;">
+<p><span class="math display">\[
+  H_0: \beta_1 = 0 \\
+  H_a: \beta_1 \neq 0
+\]</span></p>
+<pre><code>$$
+H_0: \beta_1 = 0 \\
+H_a: \beta_1 \neq 0
+$$</code></pre>
+<p>If <span class="math inline">\(\beta_1 = 0\)</span>, then there is no relationship between <span class="math inline">\(x_i\)</span> and the log of the odds that <span class="math inline">\(Y_i = 1\)</span>. In other words, <span class="math inline">\(x_i\)</span> is not useful in predicting the probability that <span class="math inline">\(Y_i = 1\)</span>. If <span class="math inline">\(\beta_1 \neq 0\)</span>, then there is information in <span class="math inline">\(x_i\)</span> that can be utilized to predict the probability that <span class="math inline">\(Y_i = 1\)</span>, i.e., the logistic regression is meaningful.</p>
+</div>
+Math Model:
+<div style="padding-left:20px;">
+<p><span class="math display">\[
+  P(Y_i = 1|x_i) = \frac{e^{\beta_0+\beta_1 x_i}}{1+e^{\beta_0 + \beta_1 x_i}} = \pi_i
+\]</span></p>
+<pre><code>P(Y_i = 1|x_i) = \frac{e^{\beta_0+\beta_1 x_i}}{1+e^{\beta_0 + \beta_1 x_i}} = \pi_i</code></pre>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+<div id="code-repository-5" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<div id="simple-logistic-regression-model-2" class="section level5">
+<h5><a href="LogisticRegression.html#simple-logistic-regression-model">Simple Logistic Regression Model</a></h5>
+<div style="padding-left:15px;">
+To <strong>perform</strong> a logistic regression:
+<div style="padding-left:30px;">
+<pre><code>YourObjectName &lt;- glm(Y &gt; 0 ~ X, data = YourDataset, family = binomial)
+summary(YourObjectName)</code></pre>
+<p>Where Y&gt;0 can be altered to whatever equals the alternative null.</p>
+</div>
+Goodness of fit test with <strong>many replicated <em>x</em>-values</strong>:
+<div style="padding-left:30px;">
+<pre><code>pchisq(residual deviance, df for residual deviance, lower.tail = FALSE)</code></pre>
+</div>
+Goodness of fit test with <strong>few or no replicated <em>x</em>-values</strong>
+<div style="padding-left:30px;">
+<pre><code>library(ResourcesSelection)
+hoslem.test(YourObjectName$y, YourObjectName$fitted)</code></pre>
+</div>
+To <strong>predict the probability</strong> that <span class="math inline">\(Y_i = 1\)</span> for a given <em>x</em>-value:
+<div style="padding-left:30px;">
+<pre><code>predict(YourObjectName, data.frame(ColumnName = DesiredValue), type = &quot;response&quot;)</code></pre>
+<p>Example from the challenger analysis:</p>
+<pre><code>predict(chall.glm, data.frame(Temp=31), type=&#39;response&#39;)</code></pre>
+</div>
+To <strong>predict by-hand</strong>
+<div style="padding-left:30px;">
+<pre><code>exp(b[1]+b[2]*x)/(1+exp(b[1]+b[2]*x))</code></pre>
+<p>Where b1 and b2 are numbers from the glm summary and x is the explanatory value for the prediction.</p>
+<p>In other words: <span class="math display">\[
+Prediction = \frac{e^{\beta_0+\beta_1 x_i}}{1+e^{\beta_0 + \beta_1 x_i}}
+\]</span></p>
+</div>
+To <strong>plot the Regression</strong> with Base R:
+<div style="padding-left:30px;">
+<pre><code>plot(Y &gt; 0 ~ X, data = YourDataSet)
+curve(exp(b0 + b1*x)/(1+ exp(b0 + b1*x)), add = TRUE)</code></pre>
+<p>Where b0 and b1 are the ‘estimate numbers’ from your ‘glm’ and Y&gt;0 can be altered to whatever equals the alternative null. Use ‘from = x_d, to = x_c’ to control the where the curve begins and ends, if desired.</p>
+</div>
+To find the <strong>estimated value</strong> of <span class="math inline">\(e^{\beta_1}\)</span>
+<div style="padding-left:30px;">
+<p>This gives us the <strong>odds that <span class="math inline">\(Y_i\)</span> has changed</strong> by <span class="math inline">\(Answer\%\)</span> for every 1 unit change in <span class="math inline">\(x\)</span>.</p>
+<pre><code>exp(b1)</code></pre>
+<p>Where ‘b1’ is the corresponding ‘estimate number’ from your ‘glm’. Similar to when you are figuring sales tax, ignore the leading 1; but if it is a 2, it’s like a 1.</p>
+</div>
+</div>
+</div>
+<div id="graphics-9" class="section level5">
+<h5><a href="GraphicalSummaries.html">Graphics</a> </br></h5>
+<div style="padding-left:15px;">
+Scatterplot:
+<div style="padding-left:30px;">
+<pre><code>plot(Y ~ X, data=YourDataSet)
+curve(exp(b0 + b1*x)/(1 + exp(b0 + b1*x)), add = TRUE)</code></pre>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="section-7" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/BinomYMultX.png" width=100px;> <span class="tooltipimagetext">Y is a single categorical (qualitative) variable of interest where 1 (success) or 0 (failure) are the only possible values for Y. This would be like “getting an A in Math 325” where 1 means you got an A and 0 means you didn’t. We might use an explanatory variable X1 of “height” and a second explanatory variable X2 of “gender” to try to predict whether or not a student will get an A in Math 325.</span></p>
+</div>
+<div id="binomial-y-multiple-x" class="section level3 tabset tabset-pills">
+<h3>Binomial Y | Multiple X</h3>
+<div id="graphics-10" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>With a scatterplot, you need to include the <a href="NumericalSummaries.html#correlation">Correlation</a></p>
+<p><a href="GraphicalSummaries.html#scatterplots"> <img class="myhover" src="./Images/scatterplotbinomYmult.png" alt="Scatterplot with Binomial Y" title="Scatterplot with Binomial Y, including coloring and shading"> </a></p>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="numerics-6" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<a href="NumericalSummaries.html#correlation">Correlation</a> must be included if a scatterplot is used
+<div style="padding-left:30px;">
+<pre><code>cor(object1,object2)</code></pre>
+<ul>
+<li>where objects = DataSet$column</li>
+<li>use as.numeric() to change an object to numeric</li>
+</ul>
+</div>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+<div id="tests-6" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="multiple-logistic-regression"><a href="LogisticRegression.html#multiple-logistic-regression-model">Multiple Logistic Regression</a></h5>
+<div style="padding-left:30px;">
+<p>Logistic regression for multiple explanatory variables that can either be quantitative or qualitative or a mixture of the two.</p>
+<p>Use this for a 0-1, Yes-No, True-False response variable and 2+ explanatory variables (qualitative or quantitative).</p>
+<p>Test statistic = Z-value</p>
+<ul>
+<li>Do <code>class</code> and <code>Age</code> help explain who survived when the Titanic sunk?</li>
+</ul>
+<p>Used when</p>
+<ul>
+<li>the response variable is binary <span class="math inline">\((Y_i=0\)</span> or <span class="math inline">\(1)\)</span>, and</li>
+<li>there are multiple explanatory variables <span class="math inline">\(X_1,\ldots,X_p\)</span> that can be either quantitative or qualitative.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="math-model-6" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="multiple-logistic-regression-1"><a href="LogisticRegression.html#multiple-logistic-regression-model">Multiple Logistic Regression</a></h5>
+<div style="padding-left:30px;">
+Hypotheses:
+<div style="padding-left:20px;">
+<p>One set for each variable.</p>
+<p><span class="math display">\[
+  H_0: \beta_0 = 0 \\
+  H_a: \beta_0 \neq 0
+\]</span></p>
+<pre><code>H_0: \beta_0 = 0 \\
+H_a: \beta_0 \neq 0</code></pre>
+<p><span class="math display">\[
+  H_0: \beta_1 = 0 \\
+  H_a: \beta_1 \neq 0
+\]</span> <span class="math display">\[
+  H_0: \beta_2 = 0 \\
+  H_a: \beta_2 \neq 0
+\]</span></p>
+</div>
+Math Model:
+<div style="padding-left:20px;">
+<p><span class="math display">\[
+  P(Y_i = 1|\, x_{i1},x_{i2},x_{i3},x_{i4},x_{i5},x_{i6}) = \frac{e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \beta_5 x_{i5} + \beta_6 x_{i6}}}{1+e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \beta_5 x_{i5} + \beta_6 x_{i6}}} = \pi_i
+\]</span></p>
+<pre><code>P(Y_i = 1|\, x_{i1},x_{i2},x_{i3},x_{i4},x_{i5},x_{i6}) = \frac{e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \beta_5 x_{i5} + \beta_6 x_{i6}}}{1+e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4} + \beta_5 x_{i5} + \beta_6 x_{i6}}} = \pi_i</code></pre>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="code-repository-6" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="multiple-logistic-regression-2"><a href="LogisticRegression.html#multiple-logistic-regression-model">Multiple Logistic Regression</a></h5>
+<div style="padding-left:30px;">
+Perform the test
+<div style="padding-left:30px;">
+<pre><code>YourObjectName &lt;- glm((Y==YourChoice ~ X1 + X2, data = YourDataSet, family=binomial)
+summary(YourObjectName)</code></pre>
+<p>I’m not sure about the above test. The operator between X1 and X2 could be + or *, I saw it used both ways.</p>
+</div>
+Goodness of Fit wwith <em>many replicated x-values</em>
+<div style="padding-left:30px;">
+<pre><code>pchisq(residual deviance, df for residual deviance, lower.tail = FALSE)</code></pre>
+</div>
+Goodness of Fit with <em>few replicated x-values</em>
+<div style="padding-left:30px;">
+<pre><code>library(ResourceSelection)
+hoslem.test(YourObjectName$y, YourObjectName$fitted)</code></pre>
+</div>
+Predict the probability the <span class="math inline">\(Y_i = 1\)</span> for a given <span class="math inline">\(x\)</span>-value
+<div style="padding-left:30px;">
+<pre><code>predict(YourObjectName, newdata = NewDataFrame, type = &quot;response&quot;)</code></pre>
+<p>This one is also confusing, not sure how the ‘NewDataFrame’ thing works. But Brother Saunders didn’t give an explanation and I doubt I’ll need this for Math325.</p>
+</div>
+Plot the Regression
+<div style="padding-left:30px;">
+<pre><code>b &lt;- YourObjectName$coefficients
+palette(c(&quot;SomeColor&quot;, &quot;DifferentColor&quot;))
+plot((Y==2) ~ X1, data = YourDataSet, pch = 16)
+curve(exp((b[1]+b[2])*x)/(1+exp(b[1]+b[2]*x)), col = palette()[1], add = TRUE)
+curve(exp((b[1]+b[3])+(b[2]+b[4])*x)/(1+exp((b[1]+b[3])+(b[2]+b[4]*x))), col = palette()[2], add = TRUE)
+legend(&quot;PositionChoice&quot;, legend=c(&quot;Level 1&quot;, &quot;Level 2&quot;), col = palette(), lty = 1, bty = &quot;n&quot;)</code></pre>
+</div>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+<div id="section-8" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<div class="tooltipimage" style="float:left;width:125px;" align="center">
+<p><img src="Images/QualYQualX.png" width=59px;> <span class="tooltipimagetext">Y is a single categorical variable of interest, like gender. X is another categorical variable of interest, like “hair color”. This type of data would help us understand if men or women are more likely to have certain hair colors than the other gender.</span></p>
+</div>
+<div id="caterogical-y-categorical-x" class="section level3 tabset tabset-pills">
+<h3>Caterogical Y | Categorical X</h3>
+<div id="graphics-11" class="section level4">
+<h4>Graphics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p>With a barplot, you need to include a <a href="RCommands.html#table">table of counts</a>.</p>
+<p><a href="GraphicalSummaries.html#bar-charts"> <img class="myhover" src="./Images/barplot.png" alt="Bar Chart" title="Bar Chart"> </a></p>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="numerics-7" class="section level4">
+<h4>Numerics</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+With a bar chart, you need to include the <a href="RCommands.html#table">table of counts</a>
+<div style="padding-left:30px;">
+<pre><code>NameYouChoose &lt;- table(DataSet$Column)
+NameYouChoose
+ 
+NameYouChoose &lt;- table(as.factor(DataSet$Column))
+NameYouChoose</code></pre>
+<p>This gives the number of entries grouped by the specified column. Must be a factor or use as.factor() to fix.</p>
+</div>
+<!--- End your notes before here.  ------------------>
+</div>
+</div>
+<div id="tests-7" class="section level4">
+<h4>Tests</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<h5 id="chi-squared-test-of-independence"><a href="ChiSquaredTests.html">Chi Squared Test of Independence</a></h5>
+<div style="padding-left:30px;">
+<p>Compares observed counts with expected counts to see if the variables are associated (<span class="math inline">\(H_a\)</span>) or independent (<span class="math inline">\(H_0\)</span>).</p>
+<p>Test Statistic: <span class="math inline">\(X^2\)</span></p>
+<p>Requirements:</p>
+<ul>
+<li>All expected counts should be <span class="math inline">\(\ge5\)</span></li>
+</ul>
+<p>Will also work if all expected counts are <span class="math inline">\(\ge1\)</span> <em>and the average of expected counts is <span class="math inline">\(\ge5\)</span></em></p>
+<p>Used when</p>
+<ul>
+<li>there are only 2 variables and</li>
+<li>both are categorical</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="math-model-7" class="section level4">
+<h4>Math Model</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+Hypotheses:
+<div style="padding-left:20px;">
+<p><span class="math display">\[
+    H_0: \text{The row variable and column variable are independent.}
+\]</span></p>
+<p><span class="math display">\[
+    H_a: \text{The row variable and column variable are associated (not independent).}
+\]</span></p>
+<pre><code>$$
+H_0: \text{The row variable and column variable are independent.}
+$$
+
+$$
+H_a: \text{The row variable and column variable are associated (not independent).}
+$$</code></pre>
+</div>
+Math Model:
+<div style="padding-left:20px;">
+<p>The following formula gives us the <span class="math inline">\(X^2\)</span> test statistic:</p>
+<p><span class="math display">\[
+  \chi^2 = \sum_{i=1}^m \frac{(O_i - E_i)^2}{E_i}
+\]</span></p>
+<pre><code>\chi^2 = \sum_{i=1}^m \frac{(O_i - E_i)^2}{E_i}</code></pre>
+<ul>
+<li><span class="math inline">\(O_i\)</span> represents each of the <span class="math inline">\(m\)</span> observed counts</li>
+<li><span class="math inline">\(E_i\)</span> represents the <span class="math inline">\(m\)</span> expected counts</li>
+<li><span class="math inline">\(m = r\times c\)</span>
+<ul>
+<li>where <span class="math inline">\(r\)</span> represents the number of rows in the contingency table and</li>
+<li><span class="math inline">\(c\)</span> represents the number of columns.</li>
+</ul></li>
+</ul>
+<p>The expected counts are obtained by the formula</p>
+<p><span class="math display">\[
+  E_i = \frac{\text{(row total)(column total)}}{\text{(total total)}}
+\]</span></p>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+<div id="code-repository-7" class="section level4">
+<h4>Code Repository</h4>
+<div style="padding-left:125px;color:dimgray;">
+<!-- Add your customizations in the area below: -->
+<p><a href="ChiSquaredTests.html">Chi Squared Test of Independence</a></p>
+To Perform the Test
+<div style="padding-left:30px;">
+<pre><code>YourNamedTestResults &lt;- chisq.test(x)
+pander(YourNamedTestResults)</code></pre>
+<p><strong>x must be a matrix or a table (of counts)</strong></p>
+</div>
+To Make a Matrix:
+<div style="padding-left:30px;">
+<pre><code>x &lt;- cbind(column1, column2, ... column n)
+OR
+x &lt;- rbind(row1, row2, ... row n)</code></pre>
+</div>
+To Make a Table from a Dataset:
+<div style="padding-left:30px;">
+<pre><code>x &lt;- table(Dataset$Column1, Dataset$Column2)</code></pre>
+</div>
+To Make a Table from Scratch:
+<div style="padding-left:30px;">
+<pre><code>SavedTable &lt;- rbind(`Row1NameYouChoose`=c(NameYouChoose1a=10, NameYouChoose2a=5, NameYouChoose3a=28, NameYouChoose4a=3), `Row2NameYouChoose`=c(NameYouChoose1b=8, NameYouChoose2b=11, NameYouChoose3b=2, NameYouChoose4b=24))</code></pre>
+<ul>
+<li>The numbers may be replaced with whatever your numbers are, of course</li>
+<li>You may also use cbind() in place of rbind(). Then the columns will be before the = and the rows created in the c() function.</li>
+</ul>
+</div>
+To Check Requirements:
+<div style="padding-left:30px;">
+<pre><code>pander(YourNamedTestResults$expected)</code></pre>
+<p>Check to see that all are <span class="math inline">\(\ge 5\)</span>. If not, they must be <span class="math inline">\(\ge 1\)</span> <em>and</em> their average must be <span class="math inline">\(\ge 5\)</span>.</p>
+</div>
+Interpretation Help:
+<div style="padding-left:30px;">
+<pre><code>pander(YourNamedTestResults$residuals)</code></pre>
+<p>This gives the differences between observed and expected results. Compare and contrast them.</p>
+</div>
+<a href="GraphicalSummaries.html#bar-charts">Graphics</a>
+<div style="padding-left:30px;">
+Bar Charts from Pre-made Tables:
+<div style="padding-left:15px;">
+<pre><code>barplot(SavedTableName, beside=TRUE, legent.text=TRUE)</code></pre>
+<ul>
+<li>Add colors with col=“Yourchoice” or col=c(“Choice1”, “Choice2”) to match the number of <em>rows</em> the table has</li>
+<li>Add xlab with xlab=“Name You Choose”</li>
+</ul>
+</div>
+Bar Charts on the Fly:
+<div style="padding-left:15px;">
+<p>For examples see <a href="Week12-Lesson.html">Week12 Class Activity</a></p>
+<p>Bar Chart with Column Names</p>
+<pre><code>barplot(c(NameYouChoose1=10, NameYouChoose2=5, NameYouChoose3=28, NameYouChoose4=3), col = &quot;green&quot;)</code></pre>
+<p>Bar Chart with 4 Columns (X-axis) and 2 Rows (Colors) and Legend</p>
+<pre><code>barplot(rbind(
+`Row1NameYouChoose`=c(NameYouChoose1a=10, NameYouChoose2a=5, NameYouChoose3a=28, NameYouChoose4a=3),
+`Row2NameYouChoose`=c(NameYouChoose1b=8, NameYouChoose2b=11, NameYouChoose3b=2, NameYouChoose4b=24)),
+col =c(&quot;colorRow1&quot;, &quot;colorRow2&quot;),
+beside=TRUE,
+legend.text=TRUE)</code></pre>
+</div>
+Bar Charts from Datasets (not tables!)
+<div style="padding-left:15px;">
+<pre><code>barplot(table(Dataset$column1, Dataset$column2),
+beside=TRUE,
+col=c(&quot;blue&quot;, &quot;green&quot;),
+legend.text=TRUE,
+xlab=&quot;Your Choice&quot;)</code></pre>
+<ul>
+<li>This creates a barchart showing <code>column1</code> by color with the X-axis divided by divisions in <code>column2</code>.</li>
+<li>Both columns should be grouped or have repeating values. If not, it might be easiest to create a table first and use barplot() for pre-made tables. For instance, you can use this with KidsFeet<span class="math inline">\(birthmonth and KidsFeet\)</span>sex, but not length or width, unless you first group_by().</li>
+</ul>
+</div>
+<!--- End of Add content area.  ------------------>
+</div>
+</div>
+</div>
+</div>
+<div id="section-9" class="section level2">
+<h2></h2>
+<div style="clear:both;">
+
+</div>
+<hr />
+<footer>
+</footer>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

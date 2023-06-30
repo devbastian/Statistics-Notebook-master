@@ -1,0 +1,162 @@
+---
+title: "Simple Linear Regression"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r Libraries and Data, message=FALSE, warning=FALSE}
+# Load your libraries
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+
+steps2.sleep <- read.csv("../../LinearRegression_files/MyFitbitData/Steps_Sleep.csv")
+steps2sleep <- steps2.sleep[-10,]
+steps2sleep$Steps <- as.numeric(steps2sleep$Steps)
+hours.asleep <- steps2sleep %>%
+  mutate(Sleep.Hours = Minutes.Asleep / 60)
+
+#view(hours.asleep)
+#view(steps2.sleep)
+#mean(hour.asleep$Steps)
+
+# Load your data after saving a csv file in your Data folder.
+# You can use either 
+#   someName <- read.csv("../Data/YourDataFileName.csv", header=TRUE)
+# or
+#   library(readr)
+#   someName <- read_csv("../Data/YourDataFileName.csv")
+
+# Don't forget to run "Session -> Set Working Directory -> To Source file location"
+
+```
+
+
+<!-- Directions
+
+Come up with a simple linear regression of your own creation. 
+
+* Write the Background and clearly state your question. Then collect data and perform the linear regression analysis in order to answer your question. Use the proper order of first, ask the question, then second, figure out the answer.
+
+* You should collect both the quantitative response variable and the quantitative explanatory variable yourself. This can be data you collect from 
+    - the internet (like weather data, Facebook data, or sports data) 
+    - your own experiment 
+    - your own observational study
+* However,     
+    - The data should not be a single pre-existing dataset. It must be something that you piece together yourself.
+
+* You need at least $n=3$ $(X,Y)$ pairs to perform the regression. However, your regression will only be useful if you can get around $n=10$ or more observations.
+
+-->
+
+
+## Lindsie's Steps Predict Her Sleep Pattern
+
+```{r Peer Reviewers Cheat Sheet,collapse=FALSE}
+# To the Peer Reviewer:
+
+# How do I center a graph on the page? I do not like it being left-centered.
+# How do I center the title on the graph?
+# Did I correctly use the right X and Y variable to run the lm?
+# If I would like THIS very and only piece of R chunk to show up and not have to be clicked on to show the content, how do you that?
+```
+
+For months, my wife has been using a Fitbit watch to track her steps and sleep patterns. This has become part of her daily life. If it's 10:30 p.m. and Lindsie has only 400 steps left to reach 10,000 steps then she will take the five minutes to jog in place and reach her 10,000 steps. After being married for a year, I would like to know if the number of steps Lindsie gets determines the amount of time she sleeps. My hypothesis is that the number of steps Lindsie takes will not impact her sleep pattern, but I would like to find out if that's true or not.
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+### What You Want {.tabset}
+
+#### Information from Linear Model
+
+<br>
+
+What I will model in the graph below is equationally represented in the following formula:
+
+$$
+  \underbrace{Y_i}_\text{Hours of Sleep} = \overbrace{\beta_0}^\text{y-int} + \overbrace{\beta_1}^\text{slope} \underbrace{X_i}_\text{Number of Steps} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)
+$$
+
+I am trying to measure here whether or not $\beta_1$ has any meaning. If $\beta_1$, or the slope, equates to $0$ then we cannot prove or even predict how many steps could be taken will show for the number of hours Lindsie may sleep. In other words: 
+
+$$
+  H_0: \beta_1 = 0
+$$
+$$ 
+  H_a: \beta_1 \neq 0
+$$
+$$
+  \sigma = 0.05
+$$
+
+As I thought too, we can observe without even seeing the numbers that our hypothesis may not be able to predict Lindsie's sleep patterns by her step amount. Observe:
+
+```{r Visuals}
+#?mPlot
+#mPlot(hours.asleep)
+ggplot(data = hours.asleep, aes(x = Steps, y = Sleep.Hours)) +
+  geom_point()  +
+  aes(colour = Sleep.Hours) +
+  stat_smooth(method = lm) +
+  theme(legend.position = "right") +
+  labs(title = "Do My Wife's Steps Predict Her Sleep Pattern?",
+       x = "Number of Steps",
+       y = "Hours Asleep")
+```
+
+The estimation of the regression above is given by 
+
+$$
+  \underbrace{\hat{Y_i}}_\text{Avg. Hours of Sleep} = 6.761 + 2.162e-05 \underbrace{X_i}_\text{Number of Steps}
+$$
+
+The estimated slope of this regression is 2.162e-05, which is not too different from zero, and gives us a fairly flat line. Additionally, when we look into the $p$-value of the the slope we see that it is `0.7122`. Thus we determine that $\beta_1$ is most likely zero because there is insignificant data to regret the null hypothesis. See the full entire regression summary below:
+
+```{r Summary of Linear Model, message=FALSE, warning=FALSE}
+hours.asleep.lm <- lm(Sleep.Hours ~ Steps, data = hours.asleep)
+pander(summary(hours.asleep.lm))
+```
+
+#### Checking Assumptions
+
+```{r Checking Assumptions, fig.height=3, message=FALSE, warning=FALSE}
+par(mfrow = c(1,3),
+    split.graph = Inf)
+plot(hours.asleep.lm,
+     which = 1:2)
+plot(hours.asleep.lm$residuals, 
+     main = "Residuals vs Order")
+```
+
+When checking the assumptions to determine whether the data can be trusted or not, all but one of the assumptions pass. When reviewing the Residuals vs. Order Plot, I believe that there is a potential general trend in the data. This means that the error terms are not independent of one another. So not only does the p-value of the steps, 0.7122, lead us to not believe that steps will determine Lindsie's sleep amount, but the data itself is questionable and should not be trusted.
+
+### Show Data {.tabset .tabset-pills .tabset-fade}
+
+The data comes from my wife's Fitbit data. 
+
+#### Datatable Used for Analysis{.tabset}
+
+I created and used the Sleep.Hours column by dividing the number of minutes Lindsie slept by 60 in order to get the number of hours. Observation # 10 was additionally removed from the dataset because it was triple the amount of average steps Lindsie had, 6354, when you exclude observation #10 from the average.
+
+```{r Datatable, include=TRUE}
+datatable(hours.asleep)
+```
+
+#### Original Data
+
+```{r Original Datatable}
+datatable(steps2sleep)
+```
+
+
+## Conclusion
+
+We are unable to show that Lindsie's sleep patterns can be determined by the number of steps she takes in a day. This is because the $p$-value, 0.7122, does not allow us to regret the null hypothesis that $\beta_1$ has any sort of value because it is zero. Additionally, the data failed to pass assumption number five meaning the error terms are not independent of one another. This shows the data is not to be trifled with to glean any information from.  
+When I think about why this test failed like I thought it would, I wonder and mildly attribute it to the fact that our Western society is dictated by a clock and not by events. If Lindsie were to not wake up to an alarm, but rather when her body tells her it's time to get up, I believe that this test could potentially be radically different. Yet, Lindsie, as do many other men and women who live in a Western clock-based lifestyle, sets an alarm before going to bed and abruptly wakes up each morning. So for future tests, I would suggest gathering data that is done with people who do not wake according to a clock, but rather their bodily dictations.

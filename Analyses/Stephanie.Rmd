@@ -1,0 +1,109 @@
+
+---
+title: "Stephanie's Housing Request"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    
+---
+
+**Week 2 Analysis**
+
+```{r, include=FALSE}
+library(mosaic)
+library(tidyverse)
+library(pander)
+library(DT) # If you get an error stating: 
+            # Error in library(DT): there is no package called 'DT'
+            # You will need to run: install.packages("DT") 
+            # in your Console, then try "Knit HTML" again.
+Rent <- read_csv("../Data/Rent.csv")
+```
+
+----
+
+<!--If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+
+**Comments to Critiquers:**  
+
+I have completed the following requests:
+
+1. Explained how to use the datatable
+2. Provided the names of the data points. I'm not sure how to get Allen's Sunrise Village to show up all the way though.
+3. I centered the graph and changed the colors to firebrick1.
+
+My Questions:
+
+1. How do you center a graph without using `<center>`?
+2. Can you change the color for each individual point?
+<!--End your comments to your critiquers before this line.-->
+
+----
+
+<br />
+
+## Background
+
+Stephanie's E-mail to Me:
+
+----
+
+"Hi. My name is Stephanie. I would like to learn about what housing options I have for living at BYU-Idaho next semester. It will be my first semester there, so I would like to find something that is close to campus and around $300 a month in rent. I'm not too picky on roomates, but I would like somewhere that has a lot of people around so I can get to know as many people as possible. Thanks in advance!"
+
+
+
+## Response
+
+Dear Stephanie,
+
+Listed below are three things that I would like for you to review. First, to understand some of the information, it will be good to understand that contracts at BYU-Idaho approved housing complexes run by the semester. To find an apartment that will be `$300` per month equates to a `$900` apartment for a semester.
+
+With the first table, I have created it so you may tinker around with it to pull up any additional apartment information you would like. For example, in the search bar type in `Normandy Apartments`. Now click on the green plus button to the left of the name. This will provide you a details of the complex you can look more into (i.g. Deposit, Website, Time to Campus). 
+
+```{r}
+# Code to get you started, be sure to use a subset of Rent instead of Rent in this code though.
+Rentf <- filter(Rent, Gender=="F")
+datatable(Rentf, options=list(lengthMenu = c(3,10,30)), extensions = "Responsive")
+
+```
+
+Second, the graph is showing you which complexes are `$`1000 or less, 10 minutes or less to walk to campus, and have 100 people or more in the complex. 
+
+<center>
+
+```{r}
+#Show a graph with the points that met the following critera:
+#1. 10 Minutes or less
+#2. $1000 or less
+#3. 100 people or more
+
+Rentf2 <- filter(Rentf, Price <= 1000 & WalkingMinutes <= 10 & Capacity >= 100)
+
+plot(WalkingMinutes ~ Price, data=Rentf2, xlab="Price Per Semester", ylab="Minutes to Campus", main="BYU-Idaho Female Approved Housing for less than $1000", col="firebrick1", pch=17)
+text(WalkingMinutes ~ Price, data=Rentf2, labels=Rentf2$Apartment, cex=0.5, pos=c(3,1,2,4,2))
+
+#Original numbers: 1,1,2,3,4
+#1 means below, 2 means "to the left," 3 means above, and 4 means "to the right." The cex value is a "character expansion value" and is making the text 60% of its original size. You can play with that number as well until you get the sizing you want.
+```
+
+</center>
+
+Last, I have shown you the five complexes which met these requirements. Please, review those complexes and see if they are what you are looking for. Otherwise, use the first table to locate other apartments.
+
+```{r}
+#Create a datatable that shows the top five to ten choices that Stephanie can choose from. List out the price, minutes to walk, apartment name, phone number, website, and parking stalls.
+
+pander(FinalData <- select(Rentf2, c(Apartment, Price, Capacity, WalkingMinutes)))
+
+#How do I add the website column as a hyperlink?
+```
+
+
+Personally, I would suggest that you look into Birch Plaza or Royal Crest. I would also consider what major you are looking at to have your apartment close to where your classes will be located.
+
+Let me know if you have any further questions!
+
+Regards,
+
+Brother Saunder's Student

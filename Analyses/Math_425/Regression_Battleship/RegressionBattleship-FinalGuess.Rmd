@@ -1,0 +1,196 @@
+---
+title: "Regression Battleship - Final Guess"
+author: "Devin Bastian"
+output: 
+  html_document:
+    theme: cerulean
+    toc: true
+    toc_float: true
+    code_folding: hide
+---
+
+```{r load_libraries}
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, mosaicData)
+```
+
+```{r load_data}
+# Read in the RBdata here:
+rbdata <- read.csv("saunders_Winter20_RBdata.csv", header=TRUE)
+```
+
+----
+
+## Battle Ship Regression - Saunders {.tabset .tabset-pills .tabset-fade}
+
+### The Model of your Guess {.tabset}
+
+<!-- Enter your guessed model in the math notation below. -->
+
+$$
+  Y_i = \beta_0 + \beta_1 X_5 + \beta_2 X_6 + \beta_3 X_3 + \beta_4 X_3 X_5 + \beta_5 X_3^2 X_5 + \epsilon_i
+$$
+
+### The lm(...) of your Guess
+
+<!-- Provide your estimates of each model coefficient along with the Adjusted R-squared of your model:-->
+
+```{r}
+## Input your lm(Y ~ ... ,data=rbdata)
+final.lm <- lm(Y ~ X3 + X5 + X3:X5 + I(X3^2):X5 + X5:X8 + X5:X8:X3, data = rbdata) #replace the "1" with your model
+```
+
+```{r}
+###################################################################
+#Don't edit this part:
+pander(summary(final.lm)$coefficients)
+```
+
+**Adjusted R-squared**: `r summary(final.lm)$adj.r.squared`
+
+
+### The Plot of your Guess
+
+Base R Version
+
+```{r}
+# Draw a picture of your guess at the model here:
+# Remember, your guess only counts for credit if you plot it.
+
+palette(c("blue","purple","green"))
+plot(Y ~ X3, data=rbdata, col=interaction(X5,X6))
+points(final.lm$fitted.values ~ X3, data = rbdata, col = droplevels(interaction(rbdata$X5, rbdata$X6)), pch = 16, cex = 0.5)
+#levels(droplevels(interaction(rbdata$X5, rbdata$X6)))
+bf <- coef(final.lm)
+
+X5 = 0; X6 = 0;
+curve(bf[1] + bf[2]*x + bf[3]*X5 + bf[4]*X6 + bf[5]*x*X5 + bf[6]*(x^2)*X5, add=TRUE, col=palette()[1])
+
+X5 = 1; X6 = 0;
+curve(bf[1] + bf[2]*x + bf[3]*X5 + bf[4]*X6 + bf[5]*x*X5 + bf[6]*(x^2)*X5, add=TRUE, col=palette()[2])
+
+X5 = 0; X6 = 1;
+curve(bf[1] + bf[2]*x + bf[3]*X5 + bf[4]*X6 + bf[5]*x*X5 + bf[6]*(x^2)*X5, add=TRUE, col=palette()[3])
+
+```
+
+ggPlot Version
+
+```{r}
+ggplot(rbdata, aes(x=X3, y=Y, col=interaction(X5,X6))) +
+  geom_point() +
+  stat_function(fun = function(x, X5 = 0, X6 = 0)bf[1] + bf[2]*X5 + bf[3]*X6 + bf[4]*x + bf[5]*x*X5 + bf[6]*(x^2)*X5, 
+                aes(color = "0.0")) +
+  stat_function(fun = function(x, X5 = 1, X6 = 0)bf[1] + bf[2]*X5 + bf[3]*X6 + bf[4]*x + bf[5]*x*X5 + bf[6]*(x^2)*X5,
+                aes(color = "1.0")) +
+  stat_function(fun = function(x, X5 = 0, X6 = 1)bf[1] + bf[2]*X5 + bf[3]*X6 + bf[4]*x + bf[5]*x*X5 + bf[6]*(x^2)*X5,
+                aes(color = "0.1")) +
+  labs(title = "My Attempt At Brother Saunders' Data",
+       x = "Quantitative X3 Column (X3)",
+       y = "Quantitative Y Column (Y)")
+```
+
+
+### My Analysis Work 
+
+#### Attempt 1
+
+```{r}
+#View(rbdata)
+
+pairs(rbdata, panel = panel.smooth, pch=16, cex=0.7, col=rgb(.2,.2,.2,.5))
+```
+
+X5, X6, and X8 may all have something to do with this.
+
+#### Start with X5
+
+```{r}
+S1.lm <- lm(Y ~ X5, data = rbdata)
+summary(S1.lm)
+
+pairs(cbind(R = S1.lm$res, Fit = S1.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col= interaction(rbdata$X5))
+```
+
+X4 and X10 match up with X7. Not sure how. X3 has a clear two line model.
+
+#### Add X3
+
+```{r}
+S2.lm <- lm(Y ~ X5 + X3 + X3:X5 + I(X3^2):X5, data = rbdata)
+summary(S2.lm)
+
+pairs(cbind(R = S2.lm$res, Fit = S2.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col= as.factor(rbdata$X5))
+```
+
+#### Try adding X6
+
+```{r}
+S3.lm <- lm(Y ~ X5 + X6 + X3 + X3:X5 + I(X3^2) + I(X3^2):X5 , data = rbdata)
+summary(S3.lm)
+
+pairs(cbind(R = S3.lm$res, Fit = S3.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col = interaction(rbdata$X5, rbdata$X6))
+
+```
+
+#### Drop X3 interaction with X5
+
+```{r}
+S3a.lm <- lm(Y ~ X5 + X6 + X3 + I(X3^2):X5 , data = rbdata)
+summary(S3a.lm)
+
+pairs(cbind(R = S3a.lm$res, Fit = S3a.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col = interaction(rbdata$X5, rbdata$X6))
+```
+
+#### Zoom in
+
+```{r}
+plot(Y ~ X3, data = rbdata, col=interaction(rbdata$X5, rbdata$X6))
+```
+
+It looks like there is a double parabola within X5?
+
+#### More Variety Needed
+
+```{r}
+S4.lm <- lm(Y ~ X5 + X6:X10 + X3 + X3:X5 + I(X3^2):X5 + I(X3^3):X6:X10, data = rbdata)
+summary(S4.lm)
+
+pairs(cbind(R = S4.lm$res, Fit = S4.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col = interaction(rbdata$X5, rbdata$X6))
+```
+
+```{r}
+S5.lm <- lm(Y ~ X5 + X3 + X3:X5 + I(X3^2):X5 + X6:X10 + X7:X4:X10, data = rbdata)
+summary(S5.lm)
+
+pairs(cbind(R = S5.lm$res, Fit = S5.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col = interaction(rbdata$X5, rbdata$X6, rbdata$X7))
+```
+
+Somethings got to give 
+
+#### Zoom In
+
+```{r}
+plot(Y ~ X3, data = rbdata, col=interaction(rbdata$X5, rbdata$X6, rbdata$X7))
+```
+
+
+#### X7 with X4 or X10 squared?
+
+```{r}
+S6.lm <- lm(Y ~ X5 + X3 + X3:X5 + X6:X10 + X3:X6:I(X10^2) + I(X3^2):X5:X7:I(X4^2):I(X10^2), data = rbdata)
+summary(S6.lm)
+
+pairs(cbind(R = S6.lm$res, Fit = S6.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col = interaction(rbdata$X5, rbdata$X6, rbdata$X7))
+```
+
+#### Attempt 2 Submission
+
+```{r}
+S7.lm <- lm(Y ~ X3 + X5 + X3:X5 + X5:X3:X9 + I(X3^2):X5 + I(X3^2):X5:X8:X9 + I(X3^2):X5:X8, data = rbdata)
+summary(S7.lm)
+
+pairs(cbind(R = S7.lm$res, Fit = S7.lm$fit, rbdata), panel = panel.smooth, pch=16, cex=0.7, col = interaction(rbdata$X5, rbdata$X8, rbdata$X3, rbdata$X9))
+
+plot(Y ~ X3, data=rbdata, col=interaction(X5,X8,X9,X6))
+```
+

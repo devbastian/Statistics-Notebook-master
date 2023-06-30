@@ -1,0 +1,728 @@
+---
+title: "Predicting Grades"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r load_library, include=FALSE}
+# Use this R-Chunk to load your libraries!
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, nycflights13, Lahman, blscrapeR, lubridate, riem, ggthemes, ggrepel, ResourceSelection)
+
+```
+
+```{r load_data, include=FALSE}
+# Use this R-Chunk to load your datasets!
+grade325 <- read.csv("../../Data/Math325Grades_Train.csv", header = TRUE)
+
+
+Grades <- grade325 %>% 
+  mutate(BinaryGrades = ifelse(FinalGrade == "A", 1, 0))
+
+
+set.seed(121)
+keep <- sample(1:nrow(Grades), 50)
+mytrain <- Grades[keep,]
+mytest <- Grades[-keep,]
+
+grade425 <- read.csv("../../Data/Math425HistoricGrades.csv", header = TRUE)
+# Make sure to have data for test, train, and filling in final grade.
+```
+
+----
+
+**Comments to Critquers**
+
+1. I do not understand how to interpret this. I'm off in my conclusion and I do not understand why.
+
+----
+
+## Background {.tabset .tabset-pills .tabset-fade}
+
+### Overview
+
+This analysis will be used to help you determine how to best succeed in Math 325: Intermediate Statistics. The main parts of this analysis that will be of interest to you are this section, `Summary`, and `Conclusion`. `Interpretation` goes into the technical details of how I came to my decision. I will be determining if a logistical test can indeed prove to be able to predict whether a student can receive an *A* or not.
+
+$$
+  H_0: \text{A logistical regression model will be a good fit or test to run for the data}
+$$
+$$ 
+  H_a: \text{A logistical regression model will not be a good fit}
+$$
+
+`Data` shows the dataset and how it was obtained. The `Instructions` and `Class Activities` sections are for my use in understanding how to complete this analysis.
+
+### Instructions
+
+Use the `Train` data to create and validate your model. Once you have a good model, use the `Test` data to fill in the `FinalGrade` column with your predicted grades for each student.
+
+Finally, state, graph, and interpret your logistic regression model as if you were speaking to a Math 325 student. Explain the effect on the odds of the student getting an A in Math 325 for each coefficient of your model. This explanation should help them realize which elements of the course are most important for increasing the probability that they get an A. Provide some sort of visualization of your model as well.
+
+1. The html version of your completed analysis.
+
+*Ensure this contains a statement of your final model, some sort of visualization of this model, and the interpretation of each coefficient's effect on the odds. The other technical details and scratch-work can be placed at the bottom of the file.*
+
+2. The Math325Grades_Test.csv data file with the "FinalGrade" column filled in with your predicted grade for each student in the form "A" or "Other".
+
+*A few hints on this... suppose you named the test data "Test" in R...*
+
+*Test$FinalGrade <- ifelse(predict(yourglm, Test, type="response") > somedecimalvalue, "A", "Other")*
+
+*write.csv(Test, "Test.csv", row.names=FALSE)*
+
+### Class Activities {.tabset .tabset-pills .tabset-fade}
+
+#### Monday
+
+```{r message=FALSE, warning=FALSE}
+pairs(grade325[,c("FinalGrade", "Project1", "Analysis5", "SkillsQuizzesTotal")], panel = panel.smooth)
+
+# What's the best column to use? Analysis5.
+```
+
+```{r message=FALSE, warning=FALSE}
+glm1 <- glm(FinalGrade == "A" ~ Analysis5, data = grade325, family = binomial)
+summary(glm1)
+
+b <- coef(glm1)
+plot(FinalGrade == "A" ~ Analysis5, data = grade325)
+curve(exp(b[1] + b[2]*x)/( 1 + exp(b[1] + b[2]*x) ), add = TRUE)
+lines(lowess(grade325$Analysis5, grade325$FinalGrade == "A"), col = "red")
+
+```
+
+```{r message=FALSE, warning=FALSE}
+util.lm <- lm(gasbill ~ month + I(month^2), data = Utilities)
+summary(util.lm)
+b.1 <- util.lm$coefficients
+
+Utilities %>% 
+  ggplot(aes(x = month, y = gasbill)) +
+  geom_point(alpha = .2, col = "steelblue2") +
+  stat_function(fun = function(x) b.1[1] + b.1[2]*x + b.1[3]*x^2)
+
+
+plot(gasbill > 80 ~ month, data = Utilities, pch = 21, bg = rgb(.53, .8, .91, .1), col="skyblue4") #.1 creates the shading. The first three create the skyblue.
+
+glm.gas <- glm(gasbill > 80 ~ month + I(month^2), data = Utilities, family = binomial)
+b.glm <- glm.gas$coeff
+
+curve(exp(b.glm[1] + b.glm[2]*x + b.glm[3]*x^2) / (1 + exp(b.glm[1] + b.glm[2]*x + b.glm[3]*x^2)), add=TRUE, col="green3")
+```
+
+#### Wednesday
+
+Log of the odds is linear. What is odds and probability?
+
+$Prob = \frac{Success}{Total}$ and $Odds = \frac{Success}{Failure}$
+
+Success is `s`, failure is `f`, and total is `n`. $n$ - failure = success. 
+
+$\pi_i = \frac{s}{n}$ or $1 - \pi_i = 1 - \frac{s}{n} = \frac{n}{n} - \frac{s}{n} = \frac{n-s}{n} = \frac{f}{n}$
+
+$\frac{\frac{s}{n}}{\frac{f}{n}} = \frac{s}{n} * \frac{n}{f} = \frac{s}{f} = \frac{\pi_i}{1 - \pi_i}$
+
+1. If $\frac{3}{4}$ is a probability, what is the odds? $\frac{3}{1}$.
+2. What is the smallest the odds could ever be? $\frac{0}{1}$ or zero because if the successes are zero then your odds have to be zero.
+3. What's the largest the odds can be? $\frac{2}{2}$ or one or infinity meaning that you never fail.
+4. If your odds are one, what's your probability? 50% because your it means that there is one success and one failure or $\frac{s}{n} = \frac{1}{2}$.
+
+The log of the odds is interpretable. To undo a log you have to expedienate or exp() or $e = 2.7828...$. $log(odds) = e^{\beta_0 + \beta_1 X_i}$ has exp() added and becomes $odds = e^{\beta_0} e^{\beta_1 X_i}$. $e^{\beta_0}$ is the baseline. If $X_i$ is zero then $e^{\beta_1 X_i}$ becomes zero due to raising anything to the zero power is one and we are left with the baseline. If $X_i$ is 1, then we are able to see the change in the odds or $e^{\beta_0}$ or the baseline because we are left with $e^{\beta_1}$ when multiplying by one on the $X_i$.
+
+We plot the probability, but we interpret the odds.
+
+##### Predicting A in 425
+
+```{r message=FALSE, warning=FALSE}
+#names(grade425)
+
+grades425 <- grade425 %>% 
+  mutate(FinalGrade = ifelse(Final.Letter.Grade %in% c("A", "A-"), 1, 0))
+
+pairs(grades425[, c(29,24, 11:17)], panel = panel.smooth)
+```
+
+##### Hard Work 2 Looks Promising
+
+```{r message=FALSE, warning=FALSE}
+#Use a logic statement to help you remember what is a success.
+glm1 <- glm(FinalGrade == 1 ~ Hard.Work.2, data = grades425, family = binomial)
+summary(glm1) # AIC: 81.082; p-val is sig
+
+## Try a worse model to see what happens to AIC
+glm2 <- glm(FinalGrade == 1 ~ Hard.Work.7, data = grades425, family = binomial)
+summary(glm2) # AIC: 26.343; AIC is better, but the p-val is not sig and 44 missing values.
+
+```
+
+We use the AIC in logistic regression to select the "best" model. AIC stands for Akaike Information Criterion. Akaike was some guy that came up with this thing. We care about three parts to a glm(). The coefficients, missing observations, and AIC.
+
+Lower is better (-infity is best, positive infinity is worst)
+
+Question: "Is the AIC still interpreted as the porportion of variation?"
+Answer: No. It has absolutely NO interpretation.
+
+Question: " Is this important: Number of Fisher Scoring iterations: 7?"
+Answer: No.
+
+Question: What does (44 observations deleted due to missingness) mean? 
+Answer: It was deleting half of the data because some semesters did not have to do certain assignments.
+
+Question: Is this important: "Warning message: glm.fit: fitted probabilities numberically 0 or 1 occurred."
+Answer: Yes, it tells you your model has a really sharp "s" curve, which is good.
+
+Question: Is this important: "glm.fit: algorithm did not converge?"
+Answer: Yes, it tells you that you have a "perfect split". See graph below.
+
+##### Try stuff
+
+```{r message=FALSE, warning=FALSE}
+summary(glm(FinalGrade == 1 ~ Hard.Work.2 + Hard.Work.1, data = grades425, family = binomial)) #AIC dropped to 79.243, but Hard.Work.1 is not sig.
+
+summary(glm(FinalGrade == 1 ~ Hard.Work.2 + Hard.Work.Subtotal.Numerator, data = grades425, family = binomial)) #AIC dropped to 58.295, but now Hard.Work.2 not sig
+
+summary(glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data = grades425, family = binomial)) # AIC dropped to 56.557 and p-values all sig.
+
+summary(glm(FinalGrade == 1 ~ Hard.Work.2 + Hard.Work.Subtotal.Numerator + Hard.Work.2:Hard.Work.Subtotal.Numerator, data = grades425, family = binomial)) # AIC goes up to 60.285, which tells us this model is worse. And nothing sig anymore, so really worse.
+
+summary(glm(FinalGrade == 1 ~ Calculated.Final.Grade.Numerator, data = grades425, family = binomial)) #AIC: 4 amazing, so amazing, it's silly.
+
+# Draw the "perfect split"
+perfect.glm <- glm(FinalGrade == 1 ~ Calculated.Final.Grade.Numerator, data = grades425, family = binomial)
+plot(FinalGrade == 1 ~ Calculated.Final.Grade.Numerator, data = grades425)
+b <- perfect.glm$coefficients
+curve(exp(b[1] + b[2]*x)/(1 + exp(b[1] + b[2]*x)), add = TRUE)
+abline(v = 90, col = "red")
+
+
+```
+
+Pair plots help in the beginning, but you are really just trying things.
+
+##### Making Predictions
+
+```{r message=FALSE, warning=FALSE}
+#Best Simple Logistic Regression
+best.glm <- glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data = grades425, family = binomial)
+summary(best.glm)
+
+plot(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data = grades425)
+b2 <- best.glm$coefficients
+curve(1/(exp(-b2[1] - b2[2] * x) + 1), add = TRUE)
+
+#80% of Skills Quizzes is equal to 30*0.8 = 24 points....
+predict(best.glm, data.frame(Hard.Work.Subtotal.Numerator = 24), type = "response")
+abline(v = 24, h = 0.03252479, lty = 2, col = "red")
+
+#100% of Skills Quizzes is equal to 30*0.8 = 24 points....
+predict(best.glm, data.frame(Hard.Work.Subtotal.Numerator = 30), type = "response")
+abline(v = 30, h = 0.8783876, lty = 2, col = "blue")
+```
+
+#### Friday
+
+```{r message=FALSE, warning=FALSE}
+# Best Multiple Logistic Regression
+best.mult.glm <- glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator + Attendance.Weighted.Grade, data=grades425, family=binomial)
+summary(best.mult.glm)
+
+# Drawing our Logistic Regression
+par(mfrow=c(2,1))
+plot(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data=grades425, xaxt='n', xlab="Hard Work (Skills Quizzes) Score") #xaxt are turned off because the numbers given don't mean anything. Instead we
+axis(1, at=seq(5,30,5), labels=c("17%","33.3%","50%","67%","83%","100%")) #Change the first side of the graph or x-axis with 1. Count by 5 up to 30 in steps of 5.
+b3 <- coef(best.mult.glm)
+summary(grades425$Attendance.Weighted.Grade)
+Att=23.75;
+curve(exp(b3[1] + b3[2]*HW + b3[3]*Att)/(1+ exp(b3[1] + b3[2]*HW + b3[3]*Att)), xname="HW", add=TRUE, lwd=1)
+Att=23.99;
+curve(exp(b3[1] + b3[2]*HW + b3[3]*Att)/(1+ exp(b3[1] + b3[2]*HW + b3[3]*Att)), xname="HW", add=TRUE, lwd=2)
+Att=25;
+curve(exp(b3[1] + b3[2]*HW + b3[3]*Att)/(1+ exp(b3[1] + b3[2]*HW + b3[3]*Att)), xname="HW", add=TRUE, lwd=2.2)
+legend("topleft", legend=c("95%", "95.96%", "100%"), title="Attendance Grade", lwd=c(1,2,2.2))
+
+predict(best.mult.glm, data.frame(Hard.Work.Subtotal.Numerator=30, Attendance.Weighted.Grade=23.75), type="response")
+
+predict(best.mult.glm, data.frame(Hard.Work.Subtotal.Numerator=30, Attendance.Weighted.Grade=25), type="response")
+
+
+plot(FinalGrade == 1 ~ Attendance.Weighted.Grade, data=grades425)
+HW=5;
+curve(exp(b3[1] + b3[2]*HW + b3[3]*Att)/(1+ exp(b3[1] + b3[2]*HW + b3[3]*Att)), xname="Att", add=TRUE, lwd=1)
+
+HW=28;
+curve(exp(b3[1] + b3[2]*HW + b3[3]*Att)/(1+ exp(b3[1] + b3[2]*HW + b3[3]*Att)), xname="Att", add=TRUE, lwd=2)
+
+HW=30;
+curve(exp(b3[1] + b3[2]*HW + b3[3]*Att)/(1+ exp(b3[1] + b3[2]*HW + b3[3]*Att)), xname="Att", add=TRUE, lwd=3)
+legend("topleft", legend=c("17%", "93%", "100%"), title="Hard Work Grade", lwd=c(1,2,3))
+
+```
+
+##### Goodness of Fit
+
+```{r message=FALSE, warning=FALSE}
+#library(ResourceSelection)
+hoslem.test(best.glm$y, best.glm$fitted.values, g=10)
+# p-value of test: p-value = 0.6575
+# GOOD! This null shouldn't be rejected... the null
+# of the goodness-of-fit test is that your "logistic regression"
+# was a "good idea" or "good fit." If that is "rejected" then 
+# everything you did was essentially garbage.
+# g = 10 is how many groups you split your data to look into
+```
+
+
+##### Validation
+
+```{r message=FALSE, warning=FALSE}
+set.seed(121)
+keep <- sample(1:nrow(grades425), 50)
+mytrain2 <- grades425[keep,]
+mytest2 <- grades425[-keep,]
+
+train_best.glm <-  glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator + Attendance.Weighted.Grade, data=mytrain2, family=binomial)
+
+#Predict gives probabilities of being a 1
+predict(train_best.glm, newdata=mytest2, type="response")
+  #Turn probabilities into predictions:
+  preds <- ifelse(predict(train_best.glm, newdata=mytest2, type="response") > 0.7, 1, 0)
+
+#The y-variabe is either a 1 or a 0
+mytest2$FinalGrade == 1
+
+
+#Compare our Predictions (preds) to the Actual results
+# This is similar to Type I and Type II errors.
+table(preds, mytest2$FinalGrade)
+
+
+# Accuracy Rating:
+#0.7826 #Called: PCC or Percent Correctly Classified.
+(9+9) / (9+2+3+9)
+  
+
+```
+
+Hoslem Tests are similar to checking your residual plots. Validation is validation.
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+### Summary {.tabset .tabset-fade}
+
+The results of our logistical regression model and Hosmer and Lemeshow goodness of fit test determined two things:
+
+1. A logistical model is a valid option to use as the $p$-value equaled `0.7098`.
+2. Our logistical model found the variables `AnalysisTotal`, `SkillsQuizzesTotal`, `FinalExam`, and `Math325NotebookOrganization` to hold significant value in predicting whether you will receive an *A* or not. Additionally, the lower the AIC value the better.
+
+| Predictor Variable | AIC |  Null Deviance | Residual Deviance| 1st $p$-val | 2nd $p$-val | 3rd $p$-val | 4th $p$-val |
+|---------------------|------------|---------------|-----------------|------------|--------------------|--------------------|--------------------|
+| AnalysisTotal + SkillsQuizzesTotal + FinalExam + Math325NotebookOrganization | 30.552 | 166.055 | 20.552 | 0.00587 | 0.00414 | 0.00231 | 0.01911 |
+
+#### Analysis Graph
+
+```{r eval=FALSE}
+summary(Grades$AnalysisTotal)
+summary(Grades$SkillsQuizzesTotal)
+summary(Grades$FinalExam)
+summary(Grades$Math325NotebookOrganization)
+```
+
+```{r message=FALSE, warning=FALSE}
+WithFinal.glm <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + Math325NotebookOrganization, data = Grades, family = binomial)
+
+bf <- WithFinal.glm$coefficients
+
+plot(BinaryGrades == 1 ~ AnalysisTotal, data=Grades, xaxt='n', xlab="Analysis Total Score") #xaxt are turned off because the numbers given don't mean anything. Instead we
+axis(1, at=seq(5,30,5), labels=c("17%","33%","50%","67%","83%","100%"))
+
+SQ = 9.843; FE = 8.70; NB = 4.394;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="AT", add=TRUE, lwd=1, col = "violet")
+SQ = 11.492; FE = 13.28; NB = 4.500;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="AT", add=TRUE, lwd=2, col = "skyblue")
+SQ = 15.000; FE = 20; NB = 5.000;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="AT", add=TRUE, lwd=3, col = "firebrick")
+legend("topleft", legend=c("65%, 44%, 88%", "77%, 66%, 90%", "100%"), title="Skill Quiz/Final Exam/Notebook", lwd=c(1,2,3), col=c("violet", "skyblue", "firebrick"))
+```
+
+#### Skills Quiz Graph
+
+```{r}
+plot(BinaryGrades == 1 ~ SkillsQuizzesTotal, data=Grades, xaxt='n', xlab="Skills Quiz Total Score") #xaxt are turned off because the numbers given don't mean anything. Instead we
+axis(1, at=seq(3, 15, 3), labels=c("20%","40%","60%","80%", "100%"))
+
+AT = 22.948; FE = 8.70; NB = 4.394;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="SQ", add=TRUE, lwd=1, col = "violet")
+AT = 24.884; FE = 13.28; NB = 4.500;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="SQ", add=TRUE, lwd=2, col = "skyblue")
+AT = 30.000; FE = 20; NB = 5.000;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="SQ", add=TRUE, lwd=3, col = "firebrick")
+legend("left", legend=c("76%, 44%, 88%", "83%, 66%, 90%", "100%"), title="Analysis/Final Exam/Notebook", lwd=c(1,2,3), col=c("violet", "skyblue", "firebrick"))
+```
+
+#### Final Exam Graph
+
+```{r}
+plot(BinaryGrades == 1 ~ FinalExam, data=Grades, xaxt='n', xlab="Final Exam Score") #xaxt are turned off because the numbers given don't mean anything. Instead we
+axis(1, at=seq(5, 20, 5), labels=c("25%","50%","75%", "100%"))
+
+AT = 22.948; SQ = 9.843; NB = 4.394;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="FE", add=TRUE, lwd=1, col = "violet")
+AT = 24.884; SQ = 11.492; NB = 4.500;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="FE", add=TRUE, lwd=2, col = "skyblue")
+AT = 30.000; SQ = 15.000; NB = 5.000;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="FE", add=TRUE, lwd=3, col = "firebrick")
+legend("left", legend=c("76%, 65%, 88%", "83%, 77%, 90%", "100%"), title="Analysis/Skills Quiz/Notebook", lwd=c(1,2,3), col=c("violet", "skyblue", "firebrick"))
+```
+
+#### Notebook Graph
+
+```{r}
+plot(BinaryGrades == 1 ~ Math325NotebookOrganization, xaxt='n', data=Grades, xlab="Notebook Organization Score") #xaxt are turned off because the numbers given don't mean anything. Instead we
+axis(1, at=seq(1, 5, 1), labels=c("20%","40%","60%","80%", "100%"))
+
+AT = 22.948; SQ = 9.843; FE = 8.70;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="NB", add=TRUE, lwd=1, col = "violet")
+AT = 24.884; SQ = 11.492; FE = 13.28;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="NB", add=TRUE, lwd=2, col = "skyblue")
+AT = 30.000; SQ = 15.000; FE = 20;
+curve(exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)/(1+ exp(bf[1] + bf[2]*AT + bf[3]*SQ + bf[4]*FE + bf[5]*NB)), xname="NB", add=TRUE, lwd=3, col = "firebrick")
+legend("left", legend=c("76%, 65%, 44%", "83%, 77%, 66%", "100%"), title="Analysis/Skills Quiz/Final Exam", lwd=c(1,2,3), col=c("violet", "skyblue", "firebrick"))
+```
+
+### Interpretation {.tabset .tabset-fade}
+
+#### Don't Show
+
+In order to determine and predict how a student can best obtain an **A** in Math 325, we need to understand how I am building the logistical regression model. While it is easy enough to graph the results of the logistical model, it's harder to interpret the graph because it is plotted using probability. So to interpret the results, we look to the log of the odds.
+
+$$
+  \underbrace{log(\frac{\pi_i}{1 - \pi_i})}_\text{Odds for Y_i = 1} = \underbrace{\beta_0 + \beta_1 x_i \ + \ ... \ + \beta_p x_{ip}}_\text{linear regression}
+$$
+
+Or in other words by exponentiating the log of the odds we get:
+
+$$
+  \underbrace{\frac{\pi_i}{1 - \pi_i}}_\text{Odds for Y_i = 1} = e^{\overbrace{\beta_0 + \beta_1 x_i \ + \ ... \ + \beta_p x_{ip}}^\text{linear regression}} = e^{\beta_0} e^{\beta_1 x_{i1}}...e^{\beta_p x_{ip}}
+$$
+
+By so doing, we are now able to see that as $X_i$ equals 1 or anything greater than 0, then we are able determine the change in our baseline, $e^{\beta_0}$, because we are left with the coefficient. Here is the mathmatical formula that I will be using to determine the results:
+
+$$
+  P(Y_i = 1 | x_{i1}, x_{i12}, x_{i3}, x_{i4}) = \frac{e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4}}}{1 + e^{\beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \beta_3 x_{i3} + \beta_4 x_{i4}}} = \pi_i
+$$
+
+where you see an observation $i$, it will mean:
+
+```{r eval=FALSE}
+summary(Grades$AnalysisTotal)
+summary(Grades$SkillsQuizzesTotal)
+summary(Grades$FinalExam)
+summary(Grades$Math325NotebookOrganization)
+```
+
+| Variable | Value | Explanation |
+|----------|-------|-------------|
+| $Y_{i}$ | `1 == A` | A number 1 equals a successful obtainment of the grade letter *A* |
+| $Y_{i}$ | `0 == Other` | A number 0 equals any grade letter other than an *A* |
+| $x_{i1}$ | 2.136 to 30 points | Students range of points within the variable `AnalysisTotal` |
+| $x_{i2}$ | 1.136 to 15 points | Students range of points within the variable `SkillsQuizzesTotal` |
+| $x_{i3}$ | 0 to 19.20 points | Students range of points within the variable `FinalExam` |
+| $x_{i4}$ | 0 to 5 points | Students range of points within the variable `Math325NotebookOrganization` |
+
+Note that if all $\beta's$ besides $\beta_0$ in the above mathmatical model equaled zero, then my $x$ variables provide no insight whether a student will be able to obtain an *A*. Thus we can say our hypotheses for this analysis is:
+
+$$
+  H_0: \beta_0 = 0 \\
+  H_a: \beta_0 \neq 0
+$$
+$$
+  H_0: \beta_1 = 0 \\
+  H_a: \beta_1 \neq 0
+$$
+$$
+  H_0: \beta_2 = 0 \\
+  H_a: \beta_2 \neq 0
+$$
+$$
+  H_0: \beta_3 = 0 \\
+  H_a: \beta_3 \neq 0
+$$
+$$
+  H_0: \beta_4 = 0 \\
+  H_a: \beta_4 \neq 0
+$$
+
+##### Is this test worth pursuing?
+
+```{r message=FALSE, warning=FALSE}
+NoFinal.glm <- glm(BinaryGrades == 1 ~ AnalysisTotal + Math325NotebookOrganization + SkillsQuizzesTotal, data = Grades, family = binomial)
+#summary(NoFinal.glm)
+
+WithFinal.glm <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + Math325NotebookOrganization, data = Grades, family = binomial)
+#summary(WithFinal.glm)
+
+pander(hoslem.test(NoFinal.glm$y, NoFinal.glm$fitted))
+pander(hoslem.test(WithFinal.glm$y, WithFinal.glm$fitted))
+```
+
+Usually a Hosmer-Lemeshow Goodness of Fit Test is ran after conducting a logistical regression test first because the required numbers needed to complete the formula for a Goodness of Fit test come from the logistical test. We will analyze that logistical test later, yet I would like to first answer the first hypothesis that running a logistical regression test on the obtainment of an *A* is a good fit and to thus continue forward. The Goodness of Fit’s p-values are `0.9203` and `0.7098 ` meaning that we fail to reject the null hypothesis because our $\sigma$ = .05.
+
+##### General Information
+
+Two tests were run for a particular reason. If you as a student would like to see how your work throughout the semester can determine your grade then you will use this information:
+
+```{r}
+summary(NoFinal.glm)
+```
+
+But if you would like to see how your work throughout the semester along with your Final Exam score impacts your grade letter then you would use this:
+
+```{r}
+summary(WithFinal.glm)
+```
+
+For my purposes, I will stick with the second model, but with this word of advice. Your work throughout the semester will most definitely impact your performance on your Final Exam grade. If you do not perform well on the work through the semester, then you can bet your Final Exam score will not be a great. Thus impacting your likelihood of obtaining an *A*.
+
+Here we see that the estimate of probability or $\pi_i$ is 
+
+$$
+  P(Y_i = 1 | x_{i1}, x_{i12}, x_{i3}, x_{i4}) = \frac{e^{-112.9468 + 2.1920 x_{i1} + 1.2711 x_{i2} + 1.1243 x_{i3} + 5.2156 x_{i4}}}{1 + e^{-112.9468 + 2.1920 x_{i1} + 1.2711 x_{i2} + 1.1243 x_{i3} + 5.2156 x_{i4}}} = \pi_i
+$$
+
+What this shows are our estimates of our $\beta's$ and how we will calculate this equation. All $p$-values in this regression model are below our level level of signifiance 0.05; meaning that there is significant evidence to determine that each $\beta \neq 0$. This states that each variable significantly contributes in the ability to predict whether a student will obtain an *A* or not.
+
+##### Checking Assumptions
+
+```{r}
+# Check Assumptions
+par(mfrow=c(2,3))
+plot(WithFinal.glm, which=1:2)
+plot(WithFinal.glm$residuals, main = "Residuals vs Order")
+plot(WithFinal.glm, which=c(4,5))
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+I don't not believe these are needed, but it good to review these assumptions since I have been doing this throughout the semester.
+
+#### Show Dirty Work
+
+##### Starting Off
+
+```{r}
+Grades <- grade325 %>% 
+  mutate(BinaryGrades = ifelse(FinalGrade == "A", 1, 0))
+
+pairs(Grades[,c("BinaryGrades", "ProjectTotal", "AnalysisTotal", "CritiqueTotal", "SkillsQuizzesTotal", "ClassActivitiesTotal", "Math325NotebookOrganization", "AssessmentQuizCompletionTotal", "FinalExam")], panel = panel.smooth)
+
+```
+
+What's the best column to start with? It looks like `ProjectTotal`, `AnalysisTotal`, `Math325NotebookOrganization`, and `FinalExam`. Let's start with `ProjectTotal` and work our way through each individual column.
+
+##### Two Dimensional
+
+```{r message=FALSE, warning=FALSE}
+Grades.glm1 <- glm(BinaryGrades == 1 ~ ProjectTotal, data = Grades, family = binomial)
+summary(Grades.glm1)
+
+Grades.glm2 <- glm(BinaryGrades == 1 ~ AnalysisTotal, data = Grades, family = binomial)
+summary(Grades.glm2)
+
+Grades.glm3 <- glm(BinaryGrades == 1 ~ CritiqueTotal, data = Grades, family = binomial)
+summary(Grades.glm3)
+
+Grades.glm4 <- glm(BinaryGrades == 1 ~ SkillsQuizzesTotal, data = Grades, family = binomial)
+summary(Grades.glm4)
+
+Grades.glm5 <- glm(BinaryGrades == 1 ~ ClassActivitiesTotal, data = Grades, family = binomial)
+summary(Grades.glm5)
+
+Grades.glm6 <- glm(BinaryGrades == 1 ~ Math325NotebookOrganization, data = Grades, family = binomial)
+summary(Grades.glm6)
+
+Grades.glm7 <- glm(BinaryGrades == 1 ~ AssessmentQuizCompletionTotal, data = Grades, family = binomial)
+summary(Grades.glm7)
+
+Grades.glm8 <- glm(BinaryGrades == 1 ~ FinalExam, data = Grades, family = binomial)
+summary(Grades.glm8)
+
+# b.grades1 <- coef(Grades.glm1)
+# plot(BinaryGrades == 1 ~ Analysis5, data = Grades)
+# curve(exp(b.grades1[1] + b.grades1[2]*x)/( 1 + exp(b.grades1[1] + b.grades1[2]*x) ), add = TRUE)
+# lines(lowess(Grades$Analysis5, Grades$FinalGrade == "A"), col = "red")
+```
+
+| Predictor Variable | AIC |  Null Deviance | Residual Deviance| $p$-value |
+|------------|------------|------------|------------|------------|
+| ProjectTotal | 127.87 | 166.06 | 123.87 | 0.00164 |
+| AnalysisTotal | 66.879 | 166.055 | 62.879 | 3.95e-07 |
+| CritiqueTotal | 117.16 | 166.06 | 113.16 | 0.00163 |
+| SkillsQuizzesTotal | 151.74 | 166.06 | 147.74 | 0.000144 |
+| ClassActivitiesTotal | 150.4 | 166.06 | 146.40 | 0.0102 |
+| Math325NotebookOrganization | 136.8 | 166.06 | 132.80 | 8.14e-05 |
+| AssessmentQuizCompletionTotal | 150.34 | 164.76 | 146.34 | 0.99 |
+| FinalExam | 130.02 | 166.06 | 126.02 | 2.16e-06 |
+
+In ranking order it goes `AnalysisTotal`, `CritiqueTotal`, `ProjectTotal`, `FinalExam`, `Math325NotebookOrganization`, `AssessmentQuizCompletionTotal`, `ClassActivitiesTotal`, and  `SkillsQuizzesTotal`. Since I do not know what `ProjectTotal` is, I will not continue using it. Additionally, since `FinalExam` comes towards the very end of the semester and is not a factor you can really control throughout the semester, I will forgo using it.
+
+##### Three Dimensional
+
+```{r message=FALSE, warning=FALSE}
+Grades.glm9 <- glm(BinaryGrades == 1 ~ AnalysisTotal + CritiqueTotal, data = Grades, family = binomial)
+summary(Grades.glm9)
+
+Grades.glm10 <- glm(BinaryGrades == 1 ~ AnalysisTotal + Math325NotebookOrganization, data = Grades, family = binomial)
+summary(Grades.glm10)
+
+Grades.glm11 <- glm(BinaryGrades == 1 ~ AnalysisTotal + AssessmentQuizCompletionTotal, data = Grades, family = binomial)
+summary(Grades.glm11)
+
+Grades.glm12 <- glm(BinaryGrades == 1 ~ AnalysisTotal + ClassActivitiesTotal, data = Grades, family = binomial)
+summary(Grades.glm12)
+
+Grades.glm13 <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal, data = Grades, family = binomial)
+summary(Grades.glm13)
+```
+
+| Predictor Variable | AIC |  Null Deviance | Residual Deviance| First $p$-value | 2nd variable's $p$-value |
+|---------------------|------------|---------------|-----------------|------------|--------------------|
+| AnalysisTotal | 66.879 | 166.055 | 62.879 | 3.95e-07 | N/A |
+| AnalysisTotal + CritiqueTotal | 66.473 | 166.055 | 60.473 | 2.35e-06 | 0.194869 |
+| AnalysisTotal + Math325NotebookOrganization | 60.867 | 166.055 | 54.867 | 3.72e-06 | 0.00812 |
+| AnalysisTotal + AssessmentQuizCompletionTotal | 62.528 | 164.759 | 56.528 | 6.08e-07 | 0.992 |
+| AnalysisTotal + ClassActivitiesTotal | 60.845 | 166.055 | 54.845 | 2.13e-06 | 0.0213 |
+| AnalysisTotal + SkillsQuizzesTotal | 66.106 | 166.055 | 60.106 | 9.17e-07 | 0.0982 |
+
+For those with their second variable showing significance and doing better than the one variable model, the order of ranking is `AnalysisTotal + Math325NotebookOrganization` and `AnalysisTotal + ClassActivitiesTotal`. 
+
+```{r message=FALSE, warning=FALSE}
+Grades.glm14 <- glm(BinaryGrades == 1 ~ AnalysisTotal + Math325NotebookOrganization + ClassActivitiesTotal, data = Grades, family = binomial)
+summary(Grades.glm14)
+```
+
+Surprisingly, a combination of Analysis, Math Notebook, and Class Activites does not determine the grade better due to higher p-values. I also did a quick look into how an interaction of Analysis with Notebook and Analysis with Class Activities would fair and all variables became insignificant. Let's try something else then. Let's go back to the original good variables and plug them in.
+
+##### Four Dimensional
+
+```{r message=FALSE, warning=FALSE}
+Grades.glm15 <- glm(BinaryGrades == 1 ~ AnalysisTotal + Math325NotebookOrganization + CritiqueTotal, data = Grades, family = binomial)
+summary(Grades.glm15)
+
+Grades.glm16 <- glm(BinaryGrades == 1 ~ AnalysisTotal + Math325NotebookOrganization + AssessmentQuizCompletionTotal, data = Grades, family = binomial)
+summary(Grades.glm16)
+
+Grades.glm17 <- glm(BinaryGrades == 1 ~ AnalysisTotal + Math325NotebookOrganization + SkillsQuizzesTotal, data = Grades, family = binomial)
+summary(Grades.glm17)
+
+Grades.glm18 <- glm(BinaryGrades == 1 ~ AnalysisTotal + ClassActivitiesTotal + CritiqueTotal, data = Grades, family = binomial)
+summary(Grades.glm18)
+
+Grades.glm19 <- glm(BinaryGrades == 1 ~ AnalysisTotal + ClassActivitiesTotal + AssessmentQuizCompletionTotal, data = Grades, family = binomial)
+summary(Grades.glm19)
+
+Grades.glm20 <- glm(BinaryGrades == 1 ~ AnalysisTotal + ClassActivitiesTotal + SkillsQuizzesTotal, data = Grades, family = binomial)
+summary(Grades.glm20)
+```
+
+| Predictor Variable | AIC |  Null Deviance | Residual Deviance| 1st $p$-val | 2nd $p$-val | 3rd $p$-val | 
+|---------------------|------------|---------------|-----------------|------------|--------------------|--------------------|
+| AnalysisTotal | 66.879 | 166.055 | 62.879 | 3.95e-07 | N/A | N/A |
+| AnalysisTotal + Math325NotebookOrganization | 60.867 | 166.055 | 54.867 | 3.72e-06 | 0.00812 | N/A |
+| AnalysisTotal + Math325NotebookOrganization + SkillsQuizzesTotal | 57.404 | 166.055 | 49.404 | 1.20e-05 | 0.00368 | 0.02466 |
+
+There was only one combination that was useful as all other combinations had insignificant p-values. I am going to try and add FinalExam and see what happens.
+
+##### Five Dimensional with Final Exam
+
+```{r message=FALSE, warning=FALSE}
+Grades.glm21 <- glm(BinaryGrades == 1 ~ AnalysisTotal + ClassActivitiesTotal + SkillsQuizzesTotal + FinalExam, data = Grades, family = binomial)
+summary(Grades.glm21)
+
+Grades.glm22 <- glm(BinaryGrades == 1 ~ AnalysisTotal + CritiqueTotal + SkillsQuizzesTotal + FinalExam, data = Grades, family = binomial)
+summary(Grades.glm22)
+
+Grades.glm23 <- glm(BinaryGrades == 1 ~ AnalysisTotal + AssessmentQuizCompletionTotal + SkillsQuizzesTotal + FinalExam, data = Grades, family = binomial)
+summary(Grades.glm23)
+
+Grades.glm24 <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam, data = Grades, family = binomial)
+summary(Grades.glm24)
+```
+
+Only one model has significance: `AnalysisTotal + SkillsQuizzesTotal + FinalExam` and AIC: 37.465. Just for kicks, can we make this model any better?
+
+```{r message=FALSE, warning=FALSE}
+Grades.glm25 <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + CritiqueTotal, data = Grades, family = binomial)
+summary(Grades.glm25)
+
+Grades.glm26 <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + Math325NotebookOrganization, data = Grades, family = binomial)
+summary(Grades.glm26)
+
+Grades.glm27 <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + AssessmentQuizCompletionTotal, data = Grades, family = binomial)
+summary(Grades.glm27)
+
+Grades.glm28 <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + ClassActivitiesTotal, data = Grades, family = binomial)
+summary(Grades.glm28)
+```
+
+Only one model came out the best from this: `AnalysisTotal + SkillsQuizzesTotal + FinalExam + Math325NotebookOrganization`. AIC: 32.473. So this is where I will call quits. This is going to be the best model I have created, but it includes the FinalExam score. This means that you can only control this prediction to a point. The prediction is going to lean upon a one time grade unlike the other variables which require your constant effort throughout the semester.
+
+### Data
+
+This data was provided by Brother Saunders and by downloading the data I have agreed to:
+
+1. Keep the raw data confidential (though you can share your analysis of the data with others) 
+2. Not try to retrace any of the data to the original individuals in order to protect their rights and privacy.
+  
+```{r message=FALSE, warning=FALSE}
+datatable(grade325)
+```
+
+## Conclusion
+
+```{r message=FALSE, warning=FALSE}
+exp(2.1920)
+exp(1.2711)
+exp(1.1243)
+exp(5.2156)
+
+# > 895 - 100
+# [1] 795
+# > 356 -100
+# [1] 256
+# > 307 -100
+# [1] 207
+# > 18412 - 100
+# [1] 18312
+```
+
+The odds of you receiving an *A* in Math 325 increases by 795% for every point gained in the Analysis Total, 256% for every point in Skill Quizzes, 207% Final Exam, and 18,312% Notebook Organization.
+
+## Validation
+
+```{r message=FALSE, warning=FALSE}
+set.seed(121)
+keep <- sample(1:nrow(Grades), 50)
+mytrain <- Grades[keep,]
+mytest2 <- Grades[-keep,]
+
+train_best.glm <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + Math325NotebookOrganization, data = Grades, family = binomial)
+predict(train_best.glm, newdata=mytest2, type="response")
+preds <- ifelse(predict(train_best.glm, newdata=mytest2, type="response") > .7, 1, 0)
+mytest2$FinalGrade == 1
+table(preds, mytest2$FinalGrade)
+```
+
+## Write csv
+```{r message=FALSE, warning=FALSE}
+Test <- read.csv("../../Data/Math325Grades_Test.csv", header = TRUE)
+
+Grades2 <- Test %>% 
+  mutate(BinaryGrades = ifelse(FinalGrade == "A", 1, 0))
+
+# test_best.glm <- glm(BinaryGrades == 1 ~ AnalysisTotal + SkillsQuizzesTotal + FinalExam + Math325NotebookOrganization, data = Grades2, family = binomial)
+
+Test$FinalGrade <- ifelse(predict(train_best.glm, Grades2, type="response") > .75, "A", "Other")
+
+write.csv(Test, "Test.csv", row.names=FALSE)
+```

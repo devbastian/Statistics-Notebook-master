@@ -1,0 +1,11 @@
+library(mosaic)
+library(tidyverse)
+library(DT)
+?KidsFeet
+view(KidsFeet)
+Kids.Feet.glm <- glm(sex == "B" ~ length, data = KidsFeet, family = binomial)
+summary(Kids.Feet.glm)
+plot(sex == "B" ~ length, data = KidsFeet)
+curve(exp(-12.4860 + 0.5074 * x) / (1 + exp(-12.4860 + 0.5074 * x)), add = TRUE)
+predict(Kids.Feet.glm, data.frame(length=25), type='response')
+exp(0.5074)

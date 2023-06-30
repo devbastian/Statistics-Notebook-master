@@ -1,0 +1,47 @@
+---
+title: "R Cheat Sheets & Notes"
+output: 
+  html_document: 
+    theme: cerulean
+    highlight: tango
+    css: styles.css
+---
+
+## Cheat Sheets
+
+* [R Colors](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf)
+
+* [R Base Graphics Cheat Sheet](http://www.joyce-robbins.com/wp-content/uploads/2016/04/BaseGraphicsCheatsheet.pdf)
+
+* [R Base Commands Cheat Sheet](https://www.rstudio.com/wp-content/uploads/2016/10/r-cheat-sheet-3.pdf)
+
+* [R Markdown Cheat Sheet](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf)
+
+* [Keyboard Shortcuts](https://support.rstudio.com/hc/en-us/articles/200711853-Keyboard-Shortcuts)
+
+## Notes
+
+Add your own notes here...
+
+```{r}
+# Add R commands you want to remember here...
+
+# mPlot - use this code to create graphs with a setting feature
+# cut - create a new column from an orginal factor/column. You can split the data on specfic levels because of the cut function. Example: Blackmore ANOVA
+# datatable - good for knitting things and creating a document or presentation
+# table - nice for quick a quick overview on the dataset
+# kable - chickwits
+# as.factor - 
+# rbind - 
+# predict - predict(object, data.frame(column = some_number))
+```
+
+```{r}
+# Or create other R chunks to put them in like this...
+
+```
+
+```{r, eval=FALSE}
+# Using ```{r, eval=FALSE} turns off the chunk, but still shows it.
+# Useful when you want to remember code, but not run it in this file.
+```

@@ -1,0 +1,498 @@
+---
+title: "Day Care Fines"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+<script type="text/javascript">
+ function showhide(id) {
+    var e = document.getElementById(id);
+    e.style.display = (e.style.display == 'block') ? 'none' : 'block';
+ }
+</script>
+
+```{r Library and Data, message=FALSE, warning=FALSE, include=FALSE}
+library(mosaic)
+library(tidyverse)
+library(pander)
+library(ggplot2)
+library(car)
+library(DT)
+library(readr)
+library(readxl)
+library(stringr)
+library(dplyr)
+library(expss)
+
+# To get the "late" dataset into your R Console, 
+# you need to go to your file menu of R-Studio and select
+# "Session, Set working directory, To source file location"
+# Then click the green "play" arrow in 
+# the top right corner of this gray R-Chunk. 
+late <- read.csv("../../Data/late.csv", header=TRUE)
+# Then type:
+#View(late)
+# in your R Console
+```
+
+
+
+----
+
+<!--If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+
+<!-- **Comments to Critiquers:**   -->
+
+<!-- 1. How do you change the colors of the data points in my graphs? -->
+<!-- 2. Am I able to put all three xyplots onto the same html line like I do for my assumption graphs? Please see my `code` box in the `Hide Graphs` section nestled within my `Interpretation` section. -->
+<!-- 3. Am I suppose to show only two degrees of freedom for my `Interaction` results? Why or why not? -->
+<!-- 4. How do I get this code to work?  -->
+
+<!-- ```{r Not Working, eval=FALSE, message=FALSE, warning=FALSE} -->
+<!-- Late %>% -->
+<!--   group_by(No.ofLateChildren ~ Period) %>% -->
+<!--   summarise(Min = min(No.ofLateChildren),  -->
+<!--             Median = median(No.ofLateChildren),  -->
+<!--             Mean = mean(No.ofLateChildren),  -->
+<!--             Max = max(No.ofLateChildren),  -->
+<!--             SD = sd(No.ofLateChildren),  -->
+<!--             ) %>% -->
+<!-- pander(caption="Summary of Experiment Results") -->
+<!-- ``` -->
+
+
+<!--End your comments to your critiquers before this line.-->
+
+----
+
+<center>
+![](../../Images/smallDayCareAnalysis.png)  
+</center>
+
+<P align=right>
+[U.S. Air Force photo](https://www.hanscom.af.mil/News/Article-Display/Article/1335567/child-care-professionals-needed-to-grow-fcc-program/) / by Linda LaBonte Britt
+</P>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Background {.tabset .tabset-fade}
+
+### Overview
+<!-- Be sure to add your own background here before beginning the Analysis. -->
+
+A study was conducted in Israel to determine whether fines will stop parents from arriving late at the day-care centers or not. This was conducted over a twenty week period with ten centers. Weeks 1-4, a one month period, remained fine free. Weeks 5-16, a three month period, saw the fines handed out to late arrivers. 17-20 weeks, another one month period, returned to fine free. The results have been returned to us to determine:
+
+1. Does the `Time Period` during the survey affect the average number of late children observed?
+
+
+2. Does the `Treatment`, having or not having fines tacked onto your certain day-care, affect the average number of late children?
+
+
+3. Will the effect of the study's `Time Period` change for whether the day-care participated in issuing fines? Another way to say this is, will the effect of a day-care centers' `Treatment` change during each `Time Period` of the study? Or simply put, is there an interaction between `Time Period` and `Treatment`?
+
+
+
+
+
+<!--End your background before here.-->
+<!--Click the little black arrow to 
+the left to expand/hide these next sections.-->
+### Study Details
+
+<div style="color:#a8a8a8;">
+This background is quoted directly from the article ["A Fine is a Price"](http://rady.ucsd.edu/faculty/directory/gneezy/pub/docs/fine.pdf). 
+</div>
+
+<div style="padding-left:30px; padding-right:30px;">
+
+There are two types of day-care centers in Israel: private and public. A study was conducted in 10 private day-care centers in the city of Haifa from January to June 1998. All of these centers are located in the same part of town, and there is no important difference among them. During the day children are organized into groups according to age, from 1 to 4 years old. Each day-care center is allowed to hold a maximum of 35 children. In some exceptional cases a few additional children are allowed. The fee for each child is NIS 1,400 per month. (The NIS is the New Israeli Shekel.) At the time of the study, a U.S. dollar was worth approximately NIS 3.68, so the fee was about $380 at that time.
+
+The contract signed at the beginning of the year states that the day-care
+center operates between 0730 and 1600. There is no mention of what happens if parents come late to pick up their children. In particular, before the beginning of the study, there was no fine for coming late. When parents did not come on time, one of the teachers had to wait with the children concerned. Teachers would rotate in this task, which is considered part of the job of a teacher, a fact that is clearly explained when a teacher is hired. Parents rarely came after 1630.
+
+A natural option [to fix the problem of parents showing up late] is to introduce a fine: every time a parent comes late, [they] will have to pay a fine. Will that reduce the number of parents who come late? If the fine is removed, will things revert back to the way they were originally?
+
+The overall period of the study was 20 weeks. In the first 4 weeks we
+simply recorded the number of parents who arrived late each week. At the
+beginning of the fifth week, we introduced a fine in six of the 10 day-care centers, which had been selected randomly. The announcement of the fine was made with a note posted on the bulletin board of the day-care center. Parents tend to look at this board every day, since important announcements are posted there. The announcement specified that the fine would be NIS 10 for a delay of 10 minutes or more. The fine was per child; thus, if parents had two children in the center and they came late, they had to pay NIS 20. Payment was made to the principal of the day-care center at the end of the month. Since monthly payments are made to the owner during the year, the fines were added to those amounts. The money was paid to the owner, rather then to the teacher who was staying late (and did not get any additional money). The teachers were informed of the fine but not of the study. Registering the names of parents who came late was a common practice in any case.
+
+At the beginning of the seventeenth week, the fine was removed with no explanation. Notice of the cancellation was posted on the board. If parents asked why the fines were removed, the principals were instructed to reply that the fine had been a trial for a limited time and that the results of this trial were now being evaluated.
+
+A comparison with other fines in Israel may give an idea of the size of
+the penalty that was introduced. A fine of NIS 10 is relatively small but not insignificant. In comparison, the fine for illegal parking is NIS 75; the fine for driving through a red light is NIS 1,000 plus penalties; the fine for not collecting the droppings of a dog is NIS 360. For many of these violations, however, detection and enforcement are low or, as in the case of dog dirt, nonexistent in practice. A baby-sitter earns between NIS 15 and NIS 20 per hour. The average gross salary per month in Israel at the time of the study was NIS 5,595.
+
+</div>
+
+
+
+##  
+<!-- You can begin writing again after here.-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+```{r Period Column, message=FALSE, warning=FALSE}
+#View(Late)
+Late <- reshape(late,
+                varying = paste("Week",1:20, sep=""), 
+                v.names = "No.ofLateChildren",
+                timevar = "Week", 
+                times = 1:20, 
+                idvar = "Center",
+                new.row.names = 1:200,
+                direction = "long")
+
+Late$Period <- cut(Late$Week, c(0,4,16,20), labels=c("Pre-Fine", "Fine", "Post-Fine"), ordered_result = TRUE)
+
+```
+
+### Summary {.tabset}
+
+The results of our ANOVA test determined fines do have an impact on the number of late children and that the average number fluctuated at some point during the study. All null hypotheses, that the levels within a factor were the same, were rejected. This can be seen as follows:
+
+1. `Treatment` : $p$-value = 4.925e-12; either the Control or Fine group had a different average of late children.
+
+
+2. `Periods` : $p$-value = 5.456e-06; either Pre-Fine, During, or Post-Fine, had a differing average number of late children.
+
+
+3. `Interaction of Treatment and Periods` : $p$-value = 4.162e-06; one of the six levels had a different average number of late children.
+
+
+We will be able to visually note these significant differences below. Please click on each tab for the graphs.
+
+#### Fine or No Fine
+
+<center>
+
+```{r Fines or Not Graph, message=FALSE, warning=FALSE}
+xyplot(No.ofLateChildren ~ Treatment, data=Late, type=c("p","a"), main="Do Fines Help With The Number of Late Children?", xlab="Type of Treatment", ylab="Number of Late Children", col='black') 
+
+Late %>%
+  group_by(Treatment) %>%
+  summarise(Min = min(No.ofLateChildren), 
+            Median = median(No.ofLateChildren), 
+            Mean = mean(No.ofLateChildren), 
+            Max = max(No.ofLateChildren), 
+            SD = sd(No.ofLateChildren), 
+            ) %>%
+pander(caption="Summary of Experiment Results")
+```  
+
+</center>
+
+Here we see that fines actually increased the number of late children. Through my studies of International Studies, I will make an assumption that this is because we have brought **being late** to the attention of our parents. It's like quantum mechanics. Where when you try to observe an electron, you do not get the same results as when you do not observe it. Here is a [video](https://www.youtube.com/watch?v=U7Z_TIw9InA) and an [article](https://www.sciencedaily.com/releases/1998/02/980227055013.htm) for you to peruse if you would like to understand what I mean. Had we left this "issue" alone, things would have remained okay. Potentially, the day-care centers may have inadvertently broken the trust of the children's parents by fining them for being late. Whereas before, the centers allowed parents' consciences to dictate arriving on time.
+
+#### Pre, During, Post
+
+<center>
+
+```{r Time Period Graph, message=FALSE, warning=FALSE}
+xyplot(No.ofLateChildren ~ Period, data=Late, type=c("p","a"), main="Number of Late Children For Pre, During, & Post Trial", xlab="Time Period In Study", ylab="Number of Late Children") 
+
+Late %>%
+  group_by(Period) %>%
+  summarise(Min = min(No.ofLateChildren), 
+            Median = median(No.ofLateChildren), 
+            Mean = mean(No.ofLateChildren), 
+            Max = max(No.ofLateChildren), 
+            SD = sd(No.ofLateChildren), 
+            ) %>%
+pander(caption="Summary of Experiment Results")
+```  
+
+</center>
+
+As noted in my previous graph analysis, the number of late children did increase due to fines. The question was asked if levels would return to normal after the fining period. They actually did not. And in this case, it was a negative thing as pre-fine numbers were at a low number.
+
+#### Interaction of Fines and Timing
+
+<center>
+
+```{r Interaction Graph, message=FALSE, warning=FALSE}
+xyplot(No.ofLateChildren ~ Period, data=Late, groups=Treatment, type=c("p","a"), main="Patterns of Late Children During The Entire Study", xlab="Type of Treatment", ylab="Number of Late Children", auto.key=list(corner=c(0,1)))
+
+Late %>% 
+  group_by(Treatment, Period) %>% 
+summarise(mean = mean(No.ofLateChildren)) %>% 
+pander()
+
+#Late %>%
+#  group_by(No.ofLateChildren ~ Period) %>%
+#  summarise(Min = min(No.ofLateChildren), 
+#            Median = median(No.ofLateChildren), 
+#            Mean = mean(No.ofLateChildren), 
+#            Max = max(No.ofLateChildren), 
+#            SD = sd(No.ofLateChildren), 
+#            ) %>%
+#pander(caption="Summary of Experiment Results")
+```
+
+</center>
+
+Again, fines were a detrimental variable to introduce and study. It actually has me wondering if the costs of the day-care centers who participated in the experiment increased. It's extremely clear from the control group that parents are responsible to arrive on time and help the day-care center wrap the day up. Another assumption I would like to pose is if the love and concern for a child out weighs the need to fine a parent for their tardiness. Also, were the fine amounts too low to have an impact? If they were, did this then subconsciously give permission to the parents to be late as they knew someone would absolutely be there with their children? I don't have an answer, but this is food for thought.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Interpretation {.tabset .tabset-pills .tabset-fade}
+
+In order to determine the effectiveness of the fines and if, the number of late children returned to normal after the study, we will need to run a two way ANOVA test. Here is the mathmatical formuala that I will be using to determine the results:
+
+$$
+  {Y_{ijk}} = \underbrace{\mu}_\text{Mean of Late Kids} + \overbrace{\alpha_i}^\text{Time Period} + \underbrace{\beta_j}_\text{Treatment} + \overbrace{\alpha\beta_{ij}}^\text{Interaction of Period and Treatment} + \underbrace{\epsilon_{ijk}}_\text{Error Term}
+$$
+
+Please note where you see observation $i$, $j$, $ij$, or $k$:
+
+* $\alpha_i$ = Factor `Time Period` has three levels Period $A$ = Pre-Fine, $B$ = Fine, and $C$ = Post-Fine.
+* $\beta_j$ = Factor `Treatment` has two levels $C$ = Control and $F$ = Fined.
+* $\alpha\beta_{ij}$ = The interaction of the two factors which has $3\times2 = 6$ levels.
+* $\epsilon_{ijk}\sim N(0,\sigma)$ = The error term
+
+Understanding the model will help us to see how we are able to ask of our survey results the following:
+
+1. Does the `Time Period` during the survey affect the average number of late children observed?
+
+
+$$
+  H_0 : \mu_{A} = \mu_{B} = \mu_{C} = 0
+$$
+$$
+  H_a : \mu_i \neq \mu \ \text{for at least one}\ i\in\{1=A,2=B,3=C\}
+$$
+
+2. Does the `Treatment`, having or not having fines tacked onto your certain day-care, affect the average number of late children?
+
+
+$$
+  H_0 : \mu_{C} = \mu_{F} = 0
+$$
+
+$$
+  H_a : \mu_i \neq \mu \ \text{for at least one}\ i\in\{1=C,2=F\}
+$$
+
+3. Will the effect of the study's `Time Period` change for whether the day-care participated in issuing fines? Another way to say this is, will the effect of a day-care centers' `Treatment` change during each `Time Period` of the study? Or simply put, is there an interaction between `Time Period` and `Treatment`?
+
+$$
+  H_0 : \text{The effect of Time Period is the same for all Treatments.}
+$$
+
+$$
+  H_a : \text{The effect of Time Period is not the same for all Treatments.}
+$$  
+
+Now that we have noted how and what we are able to answer, the results of our ANOVA test can be found below. We will measure their effectiveness with the significance level, $\alpha$, set at $0.05$.
+
+
+```{r ANOVA Test, message=FALSE, warning=FALSE}
+# Perform the ANOVA
+late.myaov <- aov(No.ofLateChildren ~ Treatment+Period+Treatment:Period, data=Late) 
+
+# View the ANOVA Results
+pander(summary(late.myaov), caption = "Two-Way ANOVA Test Results")  
+
+```  
+
+
+#### Hide Graphs
+
+```{r Unused Graphs, eval=FALSE, message=FALSE, warning=FALSE}
+# Am I able to put all three xyplots onto the same html line like I do for my assumption graphs? 
+
+par(mfrow = c(1,3),
+    split.graph = Inf)
+xyplot(No.ofLateChildren ~ Period, data=Late, type=c("p","a"), main="Number of Late Children For Pre, During, & Post Trial", xlab="Time Period In Study", ylab="Number of Late Children") 
+xyplot(No.ofLateChildren ~ Treatment, data=Late, type=c("p","a"), main="Do Fines Help With The Number of Late Children?", xlab="Type of Treatment", ylab="Number of Late Children", col='black') 
+xyplot(No.ofLateChildren ~ Period, data=Late, groups=Treatment, type=c("p","a"), main="Patterns of Late Children During The Entire Study", xlab="Type of Treatment", ylab="Number of Late Children", auto.key=list(corner=c(0,1)))
+```
+
+
+Upon immediate inspection, we are able to see numerically that fines did impact the results of this study and every null hypothesis may be rejected. We'll need to look at our graphs to note which one group was different within each factor. An explanation of the graphs can be found in the *Summary* section. The graphs though have been posted above for your immediate viewing and individual analysis. Different tests will also need to be ran to statistically confirm which group held the different average.
+
+
+With `Treatment` having a $p$-value of 4.925e-12 either the Control or Fine group had a different average. The time `Periods`, Pre-Fine, During, or Post-Fine, had a $p$-value = 5.456e-06. This shows that the average number of late children did differ from the start of the study to the end. And the `Interaction` between the two factors sits at a $p$-value = 4.162e-06, allowing us to determine there is a notable difference within the way `Treatment` interacts (or effects) `Periods` and vice versa.
+
+
+Although these results can reject our null hypotheses, we need to verify if this test was the correct one to run as two requirements must be met; Are the error terms are normal and is the variance of the error terms constant?
+
+
+<center>
+
+```{r ANOVA Assumptions, message=FALSE, warning=FALSE}
+# Check ANOVA Assumptions
+par(mfrow = c(1,2))
+plot(late.myaov, which=1:2)
+```
+
+</center>
+
+Although there is some concern about the increased variance in the "fitted value = 16ish" group, things look alright for an ANOVA. For a solid clarification of this variance, a Kruskal-Wallis test could be ran on each factor, `Treatment` and `Period`, against the number of late children. At present though, we are able to trust our test results. 
+
+
+#### Fine or No Fine
+
+```{r Lazy Fine Graph, message=FALSE, warning=FALSE}
+xyplot(No.ofLateChildren ~ Treatment, data=Late, type=c("p","a"), main="Do Fines Help With The Number of Late Children?", xlab="Type of Treatment", ylab="Number of Late Children", col='black')
+```
+
+#### Pre, During, Post
+
+```{r Lazy Period Graph, message=FALSE, warning=FALSE}
+xyplot(No.ofLateChildren ~ Period, data=Late, type=c("p","a"), main="Number of Late Children For Pre, During, & Post Trial", xlab="Time Period In Study", ylab="Number of Late Children") 
+```
+
+#### Interaction of Fines and Timing
+
+```{r Lazy Interaction Graph, message=FALSE, warning=FALSE}
+xyplot(No.ofLateChildren ~ Period, data=Late, groups=Treatment, type=c("p","a"), main="Patterns of Late Children During The Entire Study", xlab="Type of Treatment", ylab="Number of Late Children", auto.key=list(corner=c(0,1)))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Show Data {.tabset }
+#### The Data (Wide)
+
+
+The `late` Day Care Center data is shown here in the "wide data format".
+
+```{r Wide Data Format, message=FALSE, warning=FALSE, out.width=300}
+#Show the full width of the "Wide" version of the late data:
+pander(late, split.tables = Inf)
+```
+
+
+#### The Data (Long)
+
+
+The `Late` Day Care Center data is shown here in the "long data format".
+
+
+```{r Long Data Format, message=FALSE, warning=FALSE}
+# This code reshapes the data into "long" format called Late.
+# To get the "Late" dataset into your R Console, 
+# you need to click the green "play" arrow in 
+# the top right corner of this gray R-Chunk. 
+# Then type:
+#   > View(Late)
+# in your R Console
+Late2 <- reshape(late,
+                varying = paste("Week",1:20, sep=""), 
+                v.names = "No.ofLateChildren",
+                timevar = "Week", 
+                times = 1:20, 
+                idvar = "Center",
+                new.row.names = 1:200,
+                direction = "long")
+pander(Late2)
+```
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+## Conclusion
+
+From our analysis and graphics we were able to determine:
+
+* Day-care centers who fined parents for picking their children up late actually increased the number of late children.
+* More parents arrived late after fines were issued for tardiness.
+* Those who were fined started off better than their control group counterpart, but ultimately ended worse at picking their children up on time. The control group actually improve as the study progressed.
+
+<!-- Although our test results show that there was a significant difference among each factor with the factor of late children, the test cannot be trusted as the requirements for an ANOVA test were not met. A Kruskal-Wallis test will need to be run on each factor with the factor of late children. This stated,  --> <!--Commenting out for email-->
+
+It could potentially be said that the love of a parent for a child heavily outweighs a variable used to remind a parent of their obligation and duty to rear and love their offspring. Or in this case, to be on time to pick up their child. Addititionally, we hope that the cost of the day-care centers did not rise due to the average of late children increasing after this study. Experimenters may want to seek ways to restitute the damage done if this is the case.

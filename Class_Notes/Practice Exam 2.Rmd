@@ -1,0 +1,195 @@
+---
+title: "Practice Exam 1"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r Libraries, message=FALSE, warning=FALSE}
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(pander)
+library(gridExtra)
+```
+
+#### Question 1
+
+
+
+#### Question 2
+
+What is the p-value of this permutation test? Based off graph?
+
+```{r}
+((274+585+490+295+189)-(274+585+490+295+189+84+49+18+5+7+2+2))/(274+585+490+295+189+84+49+18+5+7+2+2)
+
+```
+
+
+#### Question 3
+
+```{r}
+ Util <- Utilities
+
+  Util$Season <- cut(Util$month%%12, c(0,2,5,8,11), c("Winter","Spring","Summer","Fall"))
+
+  boxplot(elecbill ~ Season, data=Util, main="A Residence in Minnesota", ylab="Monthly Electricity Bill (US Dollars)", xlab="Season of the Year", col=c("skyblue","darkseagreen3","coral","goldenrod"))
+  
+  kruskal.test(elecbill ~ Season, data=Util)
+```
+
+
+#### Quesiton 4
+
+What does each row of the Utilities dataset represent?
+
+A house
+
+```{r}
+View(Utilities)
+?Utilities
+```
+
+
+#### Q5
+
+```{r}
+util.lm <- lm(gasbill ~ temp + I(temp^2), data=Utilities)
+  plot(gasbill ~ temp, data=Utilities)
+  b <- util.lm$coefficients
+  curve(b[1] + b[2]*x + b[3]*x^2, add=TRUE)
+  summary(util.lm)
+```
+
+
+#### Q6
+
+```{r}
+ U2 <- subset(Utilities, month %in% c(3,6))
+  plot(gasbill ~ elecbill, data=U2, col=month)
+```
+
+#### Q7
+
+
+#### Q8
+What is the correct conclusion to make in a logistic regression when the goodness of fit test (either one) gives a p-value of 0.352?
+
+```{r}
+
+```
+
+
+#### Q9
+
+```{r}
+U2 <- subset(Utilities, month ==7)
+  plot(gasbill ~ elecbill, data=U2, col=month)
+
+mylm <- lm(elecbill ~ month, data = Utilities)
+summary(mylm)
+predict(mylm, data.frame(month=7))
+plot(elecbill ~ month, data=Utilities, col=month)
+```
+
+
+
+
+#### Q10
+
+```{r}
+ barplot(KidsFeet$length)
+hist(KidsFeet$length)
+
+  View(KidsFeet)
+```
+
+
+#### Q12
+
+```{r}
+View(Utilities)
+mylm <- lm(elecbill ~ kwh, data = Utilities)
+summary(mylm)
+plot(elecbill ~ kwh, data = Utilities)
+abline(mylm)
+.1087*800
+```
+
+
+
+#### Q 14
+
+```{r}
+View(KidsFeet)
+Feet.glm <- glm(birthyear==88 ~ length, data = KidsFeet,
+ family=binomial)
+summary(Feet.glm)
+predict(Feet.glm, data.frame(length=26), type = "response")
+```
+
+#### Q15
+
+```{r}
+Feet2.lm <- lm(width ~ birthmonth, data = KidsFeet,
+ family=binomial)
+summary(Feet2.lm)
+```
+
+#### Q16
+
+```{r}
+exp(-0.014717)
+```
+
+#### Q17
+
+```{r}
+?mtcars
+View(mtcars)
+```
+
+
+#### Q18
+
+```{r}
+ t.test(mpg ~ as.factor(cyl), data=mtcars)
+```
+
+#### Q19
+
+```{r}
+
+```
+
+
+#### Q20
+
+
+```{r}
+?KidsFeet
+
+mPlot(KidsFeet)
+
+KidsFeet2 <- filter(KidsFeet, birthmonth ==1)
+
+KidsFeet2 %>%
+  group_by(sex) %>% 
+   summarise(`Accident Count` = mean(length))
+```
+
+#### Q22
+
+```{r}
+wilcox.test(width ~ sex, data = KidsFeet, mu = 0, alternative = "two.sided", conf.level = 0.95)
+```
+

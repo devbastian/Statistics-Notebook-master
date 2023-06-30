@@ -1,0 +1,120 @@
+name: "statistics-notebook"
+navbar:
+  title: "Statistics Notebook"
+  left:
+    - text: "R Help"
+      menu:
+        - text: "R Commands"
+          href: RCommands.html
+        - text: "R Markdown Hints"
+          href: RMarkdownHints.html
+        - text: "R Cheatsheets & Notes"
+          href: RCheatSheetsAndNotes.html
+        - text: "Data Sources"
+          href: DataSources.html
+    - text: "Describing Data"
+      menu:
+        - text: "Graphical Summaries"
+          href: GraphicalSummaries.html
+        - text: "Numerical Summaries"
+          href: NumericalSummaries.html
+    - text: "Making Inference"
+      menu:
+        - text: "Making Inference"
+          href: MakingInference.html
+        - text: "t Tests"
+          href: tTests.html
+        - text: "Wilcoxon Tests"
+          href: WilcoxonTests.html
+        - text: "ANOVA"
+          href: ANOVA.html
+        - text: "Kruskal-Wallis"
+          href: Kruskal.html
+        - text: "Linear Regression"
+          href: LinearRegression.html
+        - text: "Logistic Regression"
+          href: LogisticRegression.html
+        - text: "Chi Squared Tests"
+          href: ChiSquaredTests.html
+        - text: "Randomization Testing"
+          href: PermutationTests.html
+    - text: "Analyses"
+      menu:
+        - text: "Analysis Rubric"
+          href: ./Analyses/AnalysisRubric.html
+        - text: "Good Example Analysis"
+          href: ./Analyses/StudentHousing.html
+        - text: "Poor Example Analysis"
+          href: ./Analyses/StudentHousingPOOR.html
+        - text: "Rent Analysis"
+          href: ./Analyses/Rent.html
+        - text: "Stephanie Analysis"
+          href: ./Analyses/Stephanie.html
+        - text: "T-Test: High School Seniors"
+          href: ./Analyses/t Tests/HighSchoolSeniors.html
+        - text: "Wilcoxon: Recalling Words"
+          href: ./Analyses/Wilcoxon Tests/RecallingWords.html
+        - text: "ANOVA: Day Care"
+          href: ./Analyses/ANOVA/DayCare.html
+        - text: "Kruskal-Wallis: Chocolate"
+          href: ./Analyses/Kruskal-Wallis Test/Chocolate.html
+        - text: "Simple Linear: My Simple Linear"
+          href: ./Analyses/Linear Regression/MySimpleLinearRegression.html
+        - text: "Multiple Linear: Car Prices"
+          href: ./Analyses/Linear Regression/Examples/CarPrices.html
+        - text: "Consulting Project"
+          href: ./Analyses/Consulting_Project.html
+        - text: "Logistic Regression: My Logistic"
+          href: ./Analyses/Logistic Regression/MyLogisticRegression.html
+        - text: "Chi-Squared: My Chi-Squared"
+          href: ./Analyses/Chi Squared Tests/MyChiSquaredTest.html
+    - text: "425 Analyses"
+      menu:
+        - text: "Theory - Residuals"
+          href: ./Analyses/Math_425/Theory/ResidualsTheory.html
+        - text: "Theory - Sampling Distributions"
+          href: ./Analyses/Math_425/Theory/Sampling-Distributions-Unveiled.html
+        - text: "Weather Prediction"
+          href: ./Analyses/Math_425/Weather_Prediction.html
+        - text: "Sell My Car"
+          href: ./Analyses/Math_425/CarSellingPrice.html
+        - text: "Mid-term Decision"
+          href: ./Analyses/Math_425/Midterm_Decision.html
+        - text: "Regression Battleship"
+          href: ./Analyses/Math_425/Regression_Battleship/RegressionBattleshipCreatingYourData.html
+        - text: "Regression Battleship - Saunders' Model"
+          href: ./Analyses/Math_425/Regression_Battleship/RegressionBattleship-FinalGuess.html
+        - text: "Regression Battleship - Saunders' Attempt"
+          href: ./Analyses/Math_425/Regression_Battleship/SaundersAttemptatYourModel.html
+        - text: "House Selling"
+          href: ./Analyses/Math_425/house-prices-advanced-regression-techniques/HouseSellingPrices.html
+        - text: "Predicting Grades"
+          href: ./Analyses/Math_425/PredictingGrades.html
+    - text: "Skill Quizzes"
+      menu:
+        - text: "Class Activities"
+          href: ./Math_425/Class_Activities/ClassActivities.html
+        - text: "Simple Linear Regression"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-SimpleLinearRegression.html
+        - text: "Residuals"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-Residuals.html
+        - text: "Transformations"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-DiagnosticsTransformations.html
+        - text: "Hypothesis Tests"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-HypothesisTests.html
+        - text: "Confidence and Prediction Intervals"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-ConfidenceAndPredictionIntervals.html
+        - text: "Different Models"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-DifferentModels.html
+        - text: "Model Selection - Pair Plots"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-ModelSelection.html
+        - text: "Logistic Regression"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-LogisticRegression.html
+        - text: "Outlier and Robust Regression"
+          href: ./Math_425/Skill Quizzes/SkillsQuiz-OutlierAnalysisRobustRegression.html
+          
+
+          
+output_dir: '.'
+
+  

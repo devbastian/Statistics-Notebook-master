@@ -1,0 +1,388 @@
+---
+title: "Practice Exam 1"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r Libraries, message=FALSE, warning=FALSE}
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(pander)
+library(gridExtra)
+```
+
+#### Question 1
+
+```{r}
+#Average of Wookiees, Gungans, or Kaminoans are taller.
+
+#View(starwars)
+starwars2 <- filter(starwars, species %in% c("Wookiee", "Gungan", "Kaminoan"))
+View(starwars2)
+starwars2 %>%
+  group_by(species) %>% 
+   summarise(avgheight= mean(height))
+
+```
+
+```{r}
+# Correcting from Attempt 1
+starwars2 <- filter(starwars, species %in% c("Wookiee", "Gungan", "Kaminoan"))
+xyplot(height ~ species, data=starwars2, main="", type=c("p","a")) 
+star.wars.aov <- aov(height ~ species, data=starwars2)
+summary(star.wars.aov)
+```
+
+
+
+#### Question 2
+
+<!--  H0:μ2 Lanes=μ4 Lanes
+
+      Ha:μ2 Lanes≠μ4 Lanes -->
+
+
+```{r}
+#View(Highway1)
+#?Highway1
+
+#t.test(Y (numberic) ~ X (qualitative), data = YourData, mu = YourNull, alternative = YourAlternative, conf.level = 0.95)
+
+Highway2 <- Highway1 %>% 
+  mutate(lanes = as.factor(lane))
+
+#View(Highway2)
+
+Highway2 %>%
+  group_by(lanes) %>% 
+   summarise(`Accident Count` = n())
+
+t.test(Highway2$rate[Highway2$lanes == 2], Highway2$rate[Highway2$lanes == 4], mu = 0, alternative = "two.sided", conf.level = 0.95)
+
+par(mfrow=c(1,2))
+
+qqPlot(Highway2$rate[Highway2$lanes == 4])
+
+qqPlot(Highway2$rate[Highway2$lanes == 2])
+
+#t.test(Highway1$rate(Highway1$as.factor(lane == 2)) ~ Highway1$rate(Highway1$as.factor(lane == 4)), mu = 0, alternative = "two.sided", conf.level = 0.95)
+
+
+```
+
+
+
+
+#### Question 3
+
+```{r}
+
+plot(height ~ age, data=Loblolly)
+
+lolly.lm <- lm(height ~ age, data = Loblolly)
+pander(summary(lolly.lm))
+
+
+par(mfrow = c(1,3),
+    split.graph = Inf)
+plot(lolly.lm,
+     which = 1:2)
+plot(lolly.lm$residuals, 
+     main = "Residuals vs Order")
+```
+
+
+#### Question 4
+
+Which analysis would allow you to predict whether or not it will rain on a given day based on the low temperature of that day?  
+Logistic Regression
+
+#### Question 5
+
+Why might a Wilcoxon Rank Sum Test not be appropriate for testing to see if the median width of a child's foot differs for boys and girls?
+
+```{r}
+#View(KidsFeet)
+pander(table(KidsFeet$sex, KidsFeet$width))
+```
+
+
+#### Question 6
+
+```{r}
+#View(Highway1)
+
+Highway1 %>% 
+   group_by(htype) %>% 
+   summarise(`Avg. Accident` = mean(rate))
+```
+
+
+
+#### Question 7
+
+What's the appropiate p-value based upon on the graph?
+
+#### Question 8
+
+```{r}
+View(KidsFeet)
+
+KidsFeet %>% 
+   group_by(name) %>% 
+   summarise(`Avg. Width` = mean(width),
+             `Count of Names` = n()) %>%
+  pander()
+```
+
+
+
+#### Question 9 
+
+```{r}
+View(iris)
+
+
+Sepal.lm <- lm(Sepal.Length ~ Sepal.Width + Species + Sepal.Width:Species, data=iris)
+pander(summary(Sepal.lm))
+mPlot(iris)
+plot(Sepal.Length ~ Sepal.Width, data=iris)
+abline(Sepal.lm,lty=1,lwd=1,col="firebrick")
+
+ggplot(data = iris, aes(x = Sepal.Width, y = Sepal.Length)) + geom_point()  + aes(size = Species)  + stat_smooth(method = lm) + theme(legend.position = "right") + labs(title = "")
+
+
+(2.639+0.9007)
+(0.6905+0.1746)
+
+```
+
+#### Question 10
+
+Business majors more likely to marry than three other majors?
+
+```{r}
+
+```
+
+#### Question 11
+
+```{r}
+View(cars)
+?cars
+
+cars.lm <- lm(speed ~ dist, data=cars)
+pander(summary(cars.lm))
+predict(cars.lm, data.frame(dist = 130))
+−17.58+3.93*30
+−17.58+3.93*35
+−17.58+3.93*25
+−17.58+3.93*40
+
+```
+
+
+<!-- ##############################################################################################################################
+                        Try Number 1: One and half hours and 32%
+################################################################################################################################################-->
+
+
+#### Question 12
+
+HELP
+
+Is the average height of Males different than that of the average height of Females?
+
+```{r}
+View(Galton)
+
+# First run the initial test and gain the test statistic:
+myTest <- t.test(height ~ sex, data = Galton, mu = 0)
+observedTestStat <- myTest$statistic
+observedTestStat
+
+# Now we run the permutation for a distribution of test statistics
+N <- 2000
+permutedTestStats <- rep(NA, N)
+for (i in 1:N){
+  permutedData <- sample(Galton$sex)
+  permutedTest <- t.test(height ~ permutedData, data = Galton, mu = 0)
+  permutedTestStats[i] <- permutedTest$statistic
+}
+permutedTestStats
+
+
+# Now we create a histogram of that distribution
+hist(permutedTestStats, col = "skyblue")
+abline(v = observedTestStat, col = "red", lwd = 3)
+
+#Greater-Than p-value: Not the correct one in this case
+sum(permutedTestStats >= observedTestStat)/N
+
+# Less-Than p-value: This is the corret one
+sum(permutedTestStats <= observedTestStat)/N
+
+# Two-Sided p-value
+2*sum(permutedTestStats <= observedTestStat)/N
+```
+
+#### Question 13
+
+```{r}
+View(Highway2)
+wilcox.test(Highway2$rate[Highway2$lanes == 2], Highway2$rate[Highway2$lanes == 4], mu = 0, alternative = "two.sided", conf.level = 0.95)
+```
+
+
+
+#### Question 14
+
+```{r}
+View(Highway1)
+?Highway1
+plot(rate ~ slim, data=Highway1, pch=16, xlab="", ylab="", main="")
+```
+
+
+#### Question 15
+
+```{r}
+View(singer)
+?singer
+
+
+kruskal.test(height ~ voice.part, data=singer)
+
+singer %>% 
+   group_by(voice.part) %>% 
+   summarise(Middle = median(height),
+             Avg = mean(height),
+             `Count of Names` = n()) %>%
+  pander()
+pander(summary(singer))
+  
+```
+
+
+
+#### Question 16
+
+```{r}
+View(cars)
+
+plot(speed > 15 ~ dist, data=cars, ylab="Probability Speed > 15 mph", xlab="Stopping Distance (feet)")
+
+cars.glm <- glm(speed > 15 ~ dist, data = cars, family = "binomial")
+pander(summary(cars.glm))
+
+predict(cars.glm, data.frame(dist=70), type = "response")
+1-(exp(0.8142148))
+```
+
+
+
+#### Question 17
+
+Which of the following is a nonparametric test?
+Permutation/Randomization
+
+#### Question 18
+
+Perform a two-way ANOVA using the KidsFeet dataset in R that will allow you to test if the pattern shown in the following plot is real. Use the α=0.05 level and report the p-value of the test.
+
+```{r}
+xyplot(length ~ sex, data=KidsFeet, group=domhand, type=c("p","a"), auto.key=TRUE)
+
+View(KidsFeet)
+myaov <- aov(length ~ sex+domhand+sex:domhand, data=KidsFeet)
+summary(myaov)
+
+
+```
+
+
+
+#### Question 19
+
+Which set of statistics would be most meaningful to include in an analysis containing this histogram?
+
+summary()
+
+```{r}
+hist(islands, xlab="Area in Thousands of Square Miles", main="Areas of the World's Major Landmasses")
+```
+
+
+
+
+#### Question 20
+
+Which of the following plots can be created using the mtcars dataset in R?
+
+```{r}
+mPlot(mtcars)
+?mtcars
+View(mtcars)
+
+ggplot(mtcars, aes(x = factor(am), fill = factor(cyl))) +
+  geom_bar(position = "dodge", color = "black") +
+  ggtitle("BYU-Idaho Faculty Applicant Amount By Referral Source") +
+  labs(x="Referral Source", y="Count of Applicants") +
+  scale_fill_discrete(name = "Department") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 12, hjust = 0.5, vjust=0.8))
+
+
+
+singer %>% 
+   group_by(am) %>% 
+   summarise(Middle = median(height),
+             Avg = mean(height),
+             `Count of Names` = n()) %>%
+  pander()
+
+```
+
+
+
+
+
+#### Question 21
+
+What two things are needed to compute a p-value?
+
+Test stat and distribution
+
+#### Question 22
+
+```{r}
+exp(0.251)
+```
+
+
+#### Question 24
+
+```{r}
+((400+500+380+250+175+130+50)-2000)/2000
+```
+
+
+#### Question 25
+
+```{r}
+View(ToothGrowth)
+Tooth.myaov <- aov(len ~ as.factor(dose)+supp+as.factor(dose):supp, data=ToothGrowth)
+t.test(len ~ supp, data = ToothGrowth, mu = 0, alternative = "two.sided", conf.level = 0.95) 
+
+```
+

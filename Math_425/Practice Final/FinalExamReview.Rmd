@@ -1,0 +1,108 @@
+---
+title: "Math 425 - Final Exam Review"
+output: 
+  html_document:
+    theme: cerulean
+---
+
+## Week 1: Simple Linear Regression
+
+You should be able to explain the follow concepts and obtain them in R:
+
+* Normal error regression model $Y_i = \beta_0 + \beta_1 X_i + \epsilon_i$ where $\epsilon_i \sim N(0, \sigma^2)$ 
+* Functional relation $E\{Y_i\}$ 
+* Statistical relation $\epsilon_i$
+* Interpretation of slope and intercept
+
+## Week 2: Residuals, Sums of Squares, and R-squared
+
+You should be able to explain these ideas as well as compute them in R.
+
+* $\hat{Y}_i$ and $Y_i$
+* residuals: $r_i = Y_i - \hat{Y}_i$
+* SSE, SSR, SSTO
+* $R^2$
+* The concept of least squares regression
+
+## Week 3: Diagnosing the Model
+
+You should be able to explain these ideas as well as compute them in R.
+
+* The six regression assumptions that we diagnose for departures.
+* How to interpret residual vs fitted-values plots.
+* How to interpret normal Q-Q Plots of residuals.
+* How to interpret residuals vs order plots.
+
+
+## Week 4: Transformations
+
+You should be able to apply each of these concepts appropriately to a given set of data:
+
+* Square root, square, log, and 1 over type transformations of both X and Y.
+* Box-Cox transformation for Y.
+* How to write the $Y'$ equation and bring that equation back to the original $Y_i$ space on a graph.
+
+
+## Week 5: Hypothesis Tests for Model Parameters
+
+You should be able to explain these ideas as well as perform them in R.
+
+* Sampling distribution of $b_0$ and $b_1$ including the shape, centers, and standard errors of each distribution.
+* Hypothesis tests for $\beta_0$ and $\beta_1$ using both the default output in R and by hand calculations for the t-statistic and p-values.
+
+## Week 6: Confidence and Prediction Intervals
+
+You should be able to explain these ideas, recognize when to use each, and be able to perform them in R.
+
+* Confidence intervals for $\beta_0$ and $\beta_1$.
+* Confidence interval for $E\{Y_h\}$
+* Prediction interval for $Y_h$
+
+## Week 7: Different Types of Models
+
+* Qualitative predictors and dummy variables (0, 1 variables) like the "Two Lines Model" uses.
+* Quantitative and Qualitative interactions like the "Two Lines Model" uses, as well as polynomial versions of this equation like the "Double Quadratic Model" from the Week 7 Skills Quiz.
+* Plotting quadratic and "two lines" style models in 2D space.
+
+## Week 8: Model Selection
+
+* Adjusted R-squared and its use in model selection.
+* AIC and its use in model selection.
+* Pairs plots and their use as added variable plots using residuals and fitted values to select multiple regression models.
+
+
+## Week 9: Model Validation
+
+* You should be able to validate a regression model by splitting a given data set into train and test pieces.
+
+## Week 10: Model Selection in Real Life
+
+* Recognize how to use outside knowledge to aid the process of model selection.
+
+## Week 11: Lowess Curves and Goodness of Fit
+
+* Apply a robust regression in R.
+* Apply a regression tree in R.
+* Apply a Lowess curve to data in R.
+
+## Week 12: Logistic Regression
+
+* Use a pairs plot to select candidate variables in logistic regression.
+* Fit a logistic regression model.
+* Interpret coefficients and their effect on the odds.
+* Use a logistic model to make predictions on outcomes for $Y_i$.
+* Validate a logistic regresion model.
+
+
+<!--
+
+## Unused from Past Semesters
+
+* Interaction regression models like equations (8.22) and (8.28).
+* Maximum likelihood estimation
+* General linear F Test
+* How to test for constant variance, linearity, and normality of errors.
+* PRESS for model selection.
+* Ability to read and apply new concepts in regression from independent study.
+
+-->

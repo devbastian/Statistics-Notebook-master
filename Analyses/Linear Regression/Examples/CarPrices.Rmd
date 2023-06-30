@@ -1,0 +1,190 @@
+---
+title: "Car Prices - Multiple Linear Regression"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: TRUE
+    toc_float: TRUE
+---
+
+
+```{r Library and Pulling Data, include=FALSE}
+
+# Say my prayers
+library(mosaic)
+library(tidyverse)
+library(pander)
+library(ggplot2)
+library(car)
+library(DT)
+library(readr)
+
+# Load my CarPrices.csv file
+CarPrices <- read.csv("../../../Data/CarPrices.csv", header=TRUE)
+```
+<br>
+
+----
+
+## Do You Choose A Sedan Or Wagon?
+
+![](../SAAB_sedan_vs._Wagon.jpg)
+
+Many of the specific models of cars found in the dataset are brands that I do not typically look at. However, there are types of cars that I am interested in seeing if they differ in value over time. I want to see if sedan and wagon cars differ in value because these seem to be a type of vehicle that I would buy if I were specifically looking for **a car** and not a van or SUV if the purchase needed to be made with kids in mind. 
+
+<!-- I want to create a table that shows the number of Wagon and Sedans; the average in Price, Mileage, Cylinder, and Liter; and if possible what make/model is listed within this data. -->
+
+```{r}
+Sedans.Wagons <- filter(CarPrices,
+                        Model == "9_5 HO",
+                        Type %in% c("Sedan","Wagon"))
+Sedans.Wagons.lm <- lm(Price ~ Mileage + Type + Mileage:Type,
+                       data = Sedans.Wagons)
+ggplot(data = Sedans.Wagons, aes(x = Mileage, y = Price)) + 
+  geom_point()  + 
+  aes(colour = Type)  + 
+  stat_smooth(method = lm) + 
+  theme(legend.position = "right") + 
+  labs(title = "No Siginificant Differences Found Between SAAB 9-5 HO Sedans and Wagons") + 
+  geom_text(x = 30000, 
+            y = 29000, 
+            label = "Drops by 28 cents per mile", 
+            color = "cyan3", 
+            size = 3) +
+  geom_text(x = 15000, 
+            y = 27000, 
+            label = "Drops by 24 cents per mile", 
+            color = "coral3", 
+            size = 3)
+```
+
+I looked at the SAAB 9-5 HO models and found that there is a slight price difference over the years of driving these cars. However as I will explain later on, this is not enough of a proice difference to warrent choosing one type over the other due to the tests I ran on them.
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+### What You Want {.tabset}
+
+We're wanting to observe the following:
+
+$$
+  \underbrace{\hat{Y}_i}_\text{Price} = \overbrace{b_0}^\text{y-int} + \overbrace{b_1}^\text{slope} \underbrace{X_{1i}}_\text{Mileage of Sedan} + b_2 \overbrace{X_{2i}}^\text{Is a Wagon} + b_3 \underbrace{X_{1i}X_{2i}}_\text{Interaction of Sedan Mileage}
+$$
+
+When I went about looking at the data the first time around, I found that the data with Sedans and Wagons was right skewed. So I found a make and model of a car, the SAAB 9-5 HO, that was made as both a sedan and a wagon. If you are interested and would like to know why I chose to go with this second modification of data, please refer to my `Failed Attempt Calculations` section. 
+
+
+<!-- Am I supposed to include a hypothesis section for Multiple Regression?
+$$
+  H_0: \mu_1 = \mu_2
+$$
+$$ 
+  H_a: \mu_1 \neq \mu_2
+$$
+-->
+
+
+
+
+#### Information from Linear Model
+
+
+
+
+```{r Summary of Linear Model}
+Sedans.Wagons <- filter(CarPrices,
+                        Model == "9_5 HO",
+                        Type %in% c("Sedan","Wagon"))
+Sedans.Wagons.lm <- lm(Price ~ Mileage + Type + Mileage:Type,
+                       data = Sedans.Wagons)
+pander(summary(Sedans.Wagons.lm))
+```
+
+<!-- I need to write the results from this summary -->
+ 
+When looking at the data the results from our p-value shows that the drop in the value of the car is insufficent evidence to conclude that buying a Sedan over a Wagon is any better in the long run.
+
+$$
+\underbrace{\hat{Y}_i}_\text{Price of a Sedan} = \overbrace{32,703 \text{ miles}}^\text{y-int} + \overbrace{-0.2407 \text{ per mile}}^\text{slope} \underbrace{X_{1i}}_\text{Mileage of Sedan}
+$$
+
+$$
+\underbrace{\hat{Y}_i}_\text{Price of a Wagon} = \underbrace{32,703 + 2,501}_\stackrel{y-intercept}{35204} + \underbrace{-0.2407 + -0.04195}_\stackrel{slope}{-0.28265} \underbrace{X_{2i}}_\text{Mileage of Sedan}
+$$
+
+<!-- I'm not sure what else to write about. I need to get this turned it. -->
+
+#### Checking Assumptions
+
+```{r Checking Assumptions, fig.height=3, message=FALSE, warning=FALSE}
+
+par(mfrow = c(1,3))
+plot(Sedans.Wagons.lm,
+     which = 1)
+qqPlot(Sedans.Wagons.lm$residuals,
+       main = "Q-Q Plot of Residuals",
+       id = FALSE)
+plot(Sedans.Wagons.lm$residuals, 
+     type = "b", 
+     main = "Residuals vs Order")
+```
+
+1. *Residuals versus Fitted-values Plot*: I show that although the line does move a bit, this comes from outliers that I do not believe detract from the credibilty of the data. In other words, I believe the regression relation is linear and has a constant variance.
+
+2. *Q-Q Plot of the Residuals*: The Q-Q plot shows that the error terms are distributed normally.
+
+3. *Residuals versus Order Plot*: In checking this assumption, I believe that there is a mild trend and discrepancy within the error terms. Meaning, I believe that the error terms are not independent of one another. I am unable to look further into this due to my lack of Linear Regression knowledge and will continue with what I have.
+
+### Show Data {.tabset .tabset-pills .tabset-fade}
+
+The data for this analysis comes from the `CarPrices` data set found in `Data` file which Brother Saunders provided.
+
+#### Modified and Used for Analysis {.tabset}
+
+```{r Modified and Used Datatable, include=TRUE}
+Sedans.Wagons <- filter(CarPrices,
+                        Model == "9_5 HO",
+                        Type %in% c("Sedan","Wagon"))
+
+#View(Sedans.Wagons)
+datatable(Sedans.Wagons)
+
+```
+
+#### Failed Attempt Data
+
+```{r Failed Attempt Datatable}
+Sedans.Wagons1 <- filter(CarPrices,
+                        Type %in% c("Sedan","Wagon"))
+datatable(Sedans.Wagons1)
+```
+
+#### Original Data
+
+```{r Original Datatable}
+# Remember, to get the CarPrices data into your Console you have
+# to use the "Import Dataset" option in the "Environment" window.
+#view(CarPrices)
+datatable(CarPrices)
+```
+
+
+### Failed Attempt Calculations
+
+The Residuals vs Fitted plot shows the first set of modified data does not have a constant variance. It looks like the Q-Q plot shows that the error terms are not distributed normally. The data is right skewed from the Q-Q plot information. I am going to need to change the data to a specfic model that is made as both a sedan/wagon.
+
+```{r R-Skewed: Sedans and Wagons, warning=FALSE}
+Sedans.Wagons1 <- filter(CarPrices,
+                        Type %in% c("Sedan","Wagon"))
+Sedans.Wagons1.lm <- lm(Price ~ Mileage + Type,
+                       data = Sedans.Wagons1)
+pander(summary(Sedans.Wagons1.lm))
+par(mfrow = c(1,2))
+plot(Sedans.Wagons1.lm,
+     which = 1:2)
+```
+
+
+## Conclusion
+
+I would advice that those looking to buy a Sedan over a Wagon should not have any worry whether one is better as the years or miles go by. That said, the error terms are slightly off and I am not sure if this data can be fully trusted. I would suggest for future tests to pull data that has more Sedans and Wagons from different companies to see if the value is truly no different across this type of car or if this was only seen in the SAAB 9-5 HO version.

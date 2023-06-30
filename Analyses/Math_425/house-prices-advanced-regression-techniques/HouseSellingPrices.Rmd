@@ -1,0 +1,376 @@
+---
+title: "House Selling Prices"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, Lahman, blscrapeR, lubridate, riem, ggthemes, ggrepel, reshape2, plotly, MASS)
+
+```
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+train <- read.csv("train.csv")
+
+################## No need to join() anything. Use datatable to see all columns ######################
+#sample <- read.csv("sample_submission.csv")
+# new.train <- train %>%
+#   left_join(sample, by = c("Id", "Id"))
+#View(train)
+# View(sample)
+# View(new.train)
+
+set.seed(121)
+
+num_rows <- 1000 #1460 total
+keep <- sample(1:nrow(train), num_rows)
+
+mytrain <- train[keep, ] #Use this in the lm(..., data=mytrain)
+
+mytest <- train[-keep, ] #Use this in the predict(..., newdata=mytest)
+
+```
+
+----
+
+**Changes Made**
+
+1. I finished it for the first time. Final model selected, plots created, and final adjusted values were `Train` 0.8463 and `Test` 0.7837.
+2. The rlm() can be found at the bottom of the Interpreting Work -> Assumptions section.
+3. This is not well done, but I've spent a lot of time on it and need to finish other things.
+
+**Questions**
+
+1. What is the test dataset for? Is that if I get above 0.86 that's what will be used to submit my guess to Kaggle?
+
+----
+
+## Overview
+
+Kaggle.com is one website among many that hosts "data challenges" where participants can compete for the "best" model. Many of these competitions award cash prizes of thousands of dollars to the winning team. These are often listed as "machine learning" competitions, but regression models can often be among the top models as well.
+
+For this week's analysis, you will be working on one of the "friendly competition" (no cash prize) data sets from Kaggle.com. Here is a picture of the main page of the website listing the competition. You are welcome to click on the image to visit the actual page.
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+### Original Summary {.tabset .tabset-pills .tabset-fade}
+
+```{r}
+mytrain2 <- mytrain %>% 
+  mutate(Old_New = as.factor(case_when(YearBuilt >= 1990 ~ "Old",
+                            YearBuilt < 1990 ~ "New")),
+         PorchSF = OpenPorchSF + EnclosedPorch + X3SsnPorch + ScreenPorch,
+         PorchSF = as.numeric(ifelse(is.na(PorchSF), 0, PorchSF)),
+         Any.Porch = ifelse(PorchSF > 0, 1, PorchSF),
+         GrandTotalSF = LotArea + MasVnrArea + TotalBsmtSF + GrLivArea + GarageArea + WoodDeckSF + OpenPorchSF + EnclosedPorch + X3SsnPorch + ScreenPorch,
+         GrandTotalSF = as.numeric(ifelse(is.na(GrandTotalSF), 0, GrandTotalSF)),
+         TotalHomeSF = TotalBsmtSF + GrLivArea + GarageArea,
+         NeighborhoodGroups = case_when(Neighborhood %in% c("StoneBr","NoRidge","NridgHt") ~ "Expensive",
+                                        Neighborhood %in% c("NPkVill", "Mitchel", "SawyerW","Gilbert","NWAmes","Blmngtn","CollgCr","ClearCr","Crawfor","Veenker","Somerst","Timber") ~ "Moderate",
+                                        TRUE ~ "Poorer"),
+         NeighborhoodGroups = as.factor(NeighborhoodGroups),
+         Has2ndFl = as.factor(ifelse(X2ndFlrSF > 0, "Yes", "No")),
+         Pool = as.numeric(ifelse(X2ndFlrSF > 0, 1, X2ndFlrSF)),
+         Deck = as.numeric(ifelse(WoodDeckSF > 0, 1, WoodDeckSF)),
+         Has.Porch = as.numeric(ifelse(ScreenPorch > 0, 1, ScreenPorch)),
+         Has.Porch1 = as.numeric(ifelse(X3SsnPorch > 0, 1, X3SsnPorch)),
+         Has.Porch2 = as.numeric(ifelse(EnclosedPorch > 0, 1, EnclosedPorch)),
+         Has.Porch3 = as.numeric(ifelse(OpenPorchSF > 0, 1, OpenPorchSF)),
+         Fence1 = as.numeric(case_when(!is.na(Fence) ~ 1,
+                           is.na(Fence) ~ 0)),
+         Feature = as.numeric(case_when(!is.na(MiscFeature) ~ 1,
+                           is.na(MiscFeature) ~ 0)),
+         Paved = as.numeric(ifelse(PavedDrive == "Y", 1, 0)),
+         Fireplace = as.numeric(ifelse(Fireplaces > 0, 1, Fireplaces)),
+         Masonry = as.numeric(ifelse(MasVnrType %in% c("BrkCmn", "BrkFace", "Stone"), 1, 0)),
+         Amenities = Pool + Deck + Has.Porch + Has.Porch1 + Has.Porch2 + Has.Porch3 + Fence1 + Feature + Paved + Fireplace,
+         #Amenities2 = as.factor(Amenities),
+         Any.Garage = as.numeric(ifelse(GarageCars > 0, 1, GarageCars)),
+         Bathrooms = FullBath + HalfBath,
+         Three.Four.Bath = as.numeric(ifelse(Bathrooms %in% c(3,4), 1, 0)))
+```
+
+```{r}
+mytest2 <- mytest %>% 
+  mutate(Old_New = as.factor(case_when(YearBuilt >= 1990 ~ "Old",
+                            YearBuilt < 1990 ~ "New")),
+         PorchSF = OpenPorchSF + EnclosedPorch + X3SsnPorch + ScreenPorch,
+         PorchSF = as.numeric(ifelse(is.na(PorchSF), 0, PorchSF)),
+         Any.Porch = ifelse(PorchSF > 0, 1, PorchSF),
+         GrandTotalSF = LotArea + MasVnrArea + TotalBsmtSF + GrLivArea + GarageArea + WoodDeckSF + OpenPorchSF + EnclosedPorch + X3SsnPorch + ScreenPorch,
+         GrandTotalSF = as.numeric(ifelse(is.na(GrandTotalSF), 0, GrandTotalSF)),
+         TotalHomeSF = TotalBsmtSF + GrLivArea + GarageArea,
+         NeighborhoodGroups = case_when(Neighborhood %in% c("StoneBr","NoRidge","NridgHt") ~ "Expensive",
+                                        Neighborhood %in% c("NPkVill", "Mitchel", "SawyerW","Gilbert","NWAmes","Blmngtn","CollgCr","ClearCr","Crawfor","Veenker","Somerst","Timber") ~ "Moderate",
+                                        TRUE ~ "Poorer"),
+         NeighborhoodGroups = as.factor(NeighborhoodGroups),
+         Has2ndFl = as.factor(ifelse(X2ndFlrSF > 0, "Yes", "No")),
+         Pool = as.numeric(ifelse(X2ndFlrSF > 0, 1, X2ndFlrSF)),
+         Deck = as.numeric(ifelse(WoodDeckSF > 0, 1, WoodDeckSF)),
+         Has.Porch = as.numeric(ifelse(ScreenPorch > 0, 1, ScreenPorch)),
+         Has.Porch1 = as.numeric(ifelse(X3SsnPorch > 0, 1, X3SsnPorch)),
+         Has.Porch2 = as.numeric(ifelse(EnclosedPorch > 0, 1, EnclosedPorch)),
+         Has.Porch3 = as.numeric(ifelse(OpenPorchSF > 0, 1, OpenPorchSF)),
+         Fence1 = as.numeric(case_when(!is.na(Fence) ~ 1,
+                           is.na(Fence) ~ 0)),
+         Feature = as.numeric(case_when(!is.na(MiscFeature) ~ 1,
+                           is.na(MiscFeature) ~ 0)),
+         Paved = as.numeric(ifelse(PavedDrive == "Y", 1, 0)),
+         Fireplace = as.numeric(ifelse(Fireplaces > 0, 1, Fireplaces)),
+         Masonry = as.numeric(ifelse(MasVnrType %in% c("BrkCmn", "BrkFace", "Stone"), 1, 0)),
+         Amenities = Pool + Deck + Has.Porch + Has.Porch1 + Has.Porch2 + Has.Porch3 + Fence1 + Feature + Paved + Fireplace,
+         #Amenities2 = as.factor(Amenities),
+         Any.Garage = as.numeric(ifelse(GarageCars > 0, 1, GarageCars)),
+         Bathrooms = FullBath + HalfBath,
+         Three.Four.Bath = as.numeric(ifelse(Bathrooms %in% c(3,4), 1, 0)))
+
+# Perform lm()
+House.lm3 <- lm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + TotalHomeSF:NeighborhoodGroups,  data = mytrain2)
+
+# Get y-hat for each model on new data.
+  yhTru <- predict(House.lm3, newdata=mytest2)
+  
+  # Compute y-bar
+  ybar <- mean(mytest2$SalePrice) #Yi is given by Ynew
+  
+  # Compute SSTO
+  SSTO <- sum( (mytest2$SalePrice - ybar)^2 )
+  
+  # Compute SSE for each model
+  SSEtru <- sum( (mytest2$SalePrice - yhTru)^2 )
+  
+  # Compute R-squared for each
+  rstru <- 1 - SSEtru/SSTO
+  
+  # Compute adjusted R-squared for each
+  n <- length(mytest2$SalePrice)
+  ptre <- length(coef(House.lm3))
+  
+  
+  rs.T.a <- 1 - (n-1)/(n-ptre)*SSEtru/SSTO
+  
+  # Differences
+  difTRUE <- rstru - rs.T.a
+  
+```
+
+#### Age of Home {.tabset}
+
+```{r}
+#House.lm3 <- lm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + TotalHomeSF:NeighborhoodGroups,  data = mytrain2)
+
+House.age <- lm(SalePrice ~ TotalHomeSF + Old_New,  data = mytrain2)
+age <- House.age$coefficients
+
+mytrain2 %>% 
+  ggplot(aes(x = TotalHomeSF, y = SalePrice/100000, color = Old_New)) +
+  geom_point() +
+  #stat_function(fun = function(x)(age[1] + age[2]*x + age[3]*x*X2)) +
+  labs(title = "Predicting the value of a home",
+       x = "Total Square Feet of the Home \n(Basement, Liveable Above Ground, and Garage areas)",
+       y = "Price of Home by $100,000",
+       color = "20+ Years Old or Not")
+```
+
+$$
+  \underbrace{\hat{Y}_i}_\text{Home Price} = \overbrace{b_0}^\text{y-int} + \overbrace{b_1}^\text{slope} \overbrace{X_{1i}}^\text{ Total Sq Ft of Home} + b_2 \overbrace{X_{2i}}^\text{Old or New} + b_3 \overbrace{X_{3i}}^\text{Type of Neighborhood} + \\ b_4 \underbrace{X_{4i}}_\text{Amenities} + b_3 \underbrace{X_{1i}X_{3i}}_\text{Interaction of Sq Ft and Type of Neighborhood}
+$$
+
+The value of a home based on this linear model can be determined if the number of square feet (basement area, liveable area above ground, and garage area), if it's older than 1990, if the home is in a neighborhood worth `$80,000`-`$145,000`, `$146,000`-`$230,000`, or >`$230,000`, and if the home has any amenities (a pool, deck, porch, fence, paved driveway, fireplace, and other miscellaneous features).
+
+In this analysis, I show that each variable plays a significant part in predicting the price of a home. The average home value goes up `$101` for every one increase in square footage, `$1741` if it's newer than 1990, `$14,310` if it's in a moderate neighborhood, `$20,3100` if it's in a poorer neighborhood, `$6,945` if it has amenities, decreases by `$43` per square foot if it's in a moderate neighborhood, and decreases by `$72` per square foot if it's in a poorer neighborhood.
+
+| Model | $R^2$ | Adjusted $R^2$ | Difference |
+|----------|------------|----------------|-------------|
+| Test | `r rstru` | `r rs.T.a` | `r difTRUE` |
+
+Total difference in adjusted values is `Train` 0.8463 - `Test` 0.7837 = `0.0626`. 
+
+#### Type of Neighborhood 
+
+```{r}
+mytrain2 %>% 
+  ggplot(aes(x = TotalHomeSF, y = SalePrice/100000, color = NeighborhoodGroups)) +
+  geom_point() +
+  labs(title = "Predicting the value of a home",
+       x = "Total Square Feet of the Home \n(Basement, Liveable Above Ground, and Garage areas)",
+       y = "Price of Home by $100,000",
+       color = "Type of Neighborhood")
+```
+
+#### Number of Amenities
+
+```{r}
+mytrain2 %>% 
+  ggplot(aes(x = TotalHomeSF, y = SalePrice/100000, color = Amenities)) +
+  geom_point() +
+  facet_wrap(vars(Amenities)) +
+  labs(title = "Predicting the value of a home",
+       x = "Total Square Feet of the Home \n(Basement, Liveable Above Ground, and Garage areas)",
+       y = "Price of Home by $100,000",
+       color = "Number of Amenities")
+```
+
+```{r}
+mytrain2 %>% 
+  ggplot(aes(x = TotalHomeSF, y = SalePrice/100000, color = Amenities)) +
+  geom_point() +
+  #facet_grid(vars(Amenities)) +
+  labs(title = "Predicting the value of a home",
+       x = "Total Square Feet of the Home \n(Basement, Liveable Above Ground, and Garage areas)",
+       y = "Price of Home by $100,000",
+       color = "Number of Amenities")
+```
+
+#### Attempt at 3D
+
+```{r eval=FALSE, include=TRUE}
+#Perform the multiple regression
+House.lm3 <- lm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + TotalHomeSF:NeighborhoodGroups,  data = mytrain2)
+
+#Graph Resolution (more important for more complex shapes)
+graph_reso <- 0.5
+
+#Setup Axis
+axis_x <- seq(min(mytrain2$TotalHomeSF), max(mytrain2$TotalHomeSF), by = graph_reso)
+axis_y <- seq(min(mytrain2$Amenities), max(mytrain2$Amenities), by = graph_reso)
+
+#Sample points
+air_surface <- expand.grid(TotalHomeSF = axis_x, Amenities = axis_y, KEEP.OUT.ATTRS=F)
+air_surface$Z <- predict.lm(House.lm3, newdata = air_surface)
+air_surface <- acast(air_surface, Amenities ~ TotalHomeSF, value.var = "Z") #y ~ x
+
+plot_ly(mytrain2, 
+        x = ~TotalHomeSF, 
+        y = ~SalePrice/100000, 
+        z = ~Amenities,
+        text = rownames(mytrain2), 
+        type = "scatter3d", 
+        mode = "markers") %>%
+  add_trace(z = air_surface,
+            x = axis_x,
+            y = axis_y,
+            type = "surface")
+```
+
+### Interpreting Work {.tabset .tabset-pills .tabset-fade}
+
+#### Linear Models {.tabset}
+
+```{r}
+# pairs(mytrain[, c("SalePrice", "GarageCars", "LotFrontage", "LotArea", "LandContour", "OverallQual", "OverallCond", "YearBuilt", "YearRemodAdd", "MasVnrArea", "BsmtFinSF1", "BsmtUnfSF", "TotalBsmtSF", "CentralAir", "X1stFlrSF", "X2ndFlrSF", "GrLivArea", "FullBath", "TotRmsAbvGrd", "FireplaceQu", "GarageCars", "GarageArea", )], panel = panel.smooth)
+
+House.lm <- lm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + GrandTotalSF + PorchSF,  data = mytrain2)
+
+summary(House.lm)
+
+# try <- lm(SalePrice ~ PorchSF, data = mytrain2)
+# summary(try)
+```
+
+```{r}
+House.lm2 <- lm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + GrandTotalSF,  data = mytrain2)
+
+summary(House.lm2)
+
+#apply(mytrain2, 2, function(x) sum(is.na(x)))
+
+#length(House.lm2$residuals)
+#nrow(mytrain2)
+
+#pairs(cbind(R=House.lm2$res, Fit=House.lm2$fit, mytrain2[]), pch=16, cex=1, panel=panel.smooth, col=interaction(mytrain2$TotalHomeSF, mytrain2$Old_New, mytrain2$NeighborhoodGroups, mytrain2$Amenities, mytrain2$GrandTotalSF))
+```
+
+```{r}
+House.lm3 <- lm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + TotalHomeSF:NeighborhoodGroups,  data = mytrain2)
+
+summary(House.lm3)
+```
+
+| Model | $R^2$ | Adjusted $R^2$ | Difference |
+|----------|------------|----------------|-------------|
+| Test | `r rstru` | `r rs.T.a` | `r difTRUE` |
+
+Total difference in adjusted values is `Train` 0.8463 - `Test` 0.7837 = `0.0626`.
+
+#### Pairs Plot
+
+```{r}
+# pairs(mytrain[, c("SalePrice", "GarageCars", "LotFrontage", "LotArea", "LandContour", "OverallQual", "OverallCond", "YearBuilt", "YearRemodAdd", "MasVnrArea", "ExterCond", "BsmtFinSF1", "BsmtFinType2", "BsmtFinSF2", "BsmtUnfSF", "TotalBsmtSF", "CentralAir", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", "GrLivArea", "FullBath", "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Functional", "Fireplaces", "FireplaceQu", "GarageYrBlt", "GarageCars", "GarageArea", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch", "X3SsnPorch", "ScreenPorch", "SaleCondition")], panel = panel.smooth)
+
+pairs(mytrain[, c("SalePrice", "GarageCars", "LotFrontage", "LotArea", "LandContour", "OverallQual", "OverallCond", "YearBuilt", "YearRemodAdd", "MasVnrArea", "ExterCond")], panel = panel.smooth)
+
+pairs(mytrain[, c("SalePrice", "BsmtFinSF1", "BsmtFinType2", "BsmtFinSF2", "BsmtUnfSF", "TotalBsmtSF", "CentralAir", "X1stFlrSF", "X2ndFlrSF", "LowQualFinSF", "GrLivArea")], panel = panel.smooth)
+
+pairs(mytrain[, c("SalePrice", "FullBath", "BedroomAbvGr", "KitchenAbvGr", "TotRmsAbvGrd", "Functional", "Fireplaces", "FireplaceQu", "GarageYrBlt", "GarageCars", "GarageArea")], panel = panel.smooth)
+
+pairs(mytrain[, c("SalePrice", "WoodDeckSF", "OpenPorchSF", "EnclosedPorch", "X3SsnPorch", "ScreenPorch", "SaleCondition")], panel = panel.smooth)
+
+pairs(mytrain2[, c("SalePrice", "Old_New", "PorchSF", "GrandTotalSF", "TotalHomeSF", "NeighborhoodGroups", "Has2ndFl", "Pool", "Deck", "Has.Porch", "Has.Porch1")], panel = panel.smooth)
+
+pairs(mytrain2[, c("SalePrice", "Has.Porch2", "Has.Porch3", "Fence1", "Feature", "Paved", "Fireplace", "Masonry", "Amenities")], panel = panel.smooth)
+```
+
+![](fullpairsplot.png)
+
+#### Assumptions
+
+```{r}
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(House.lm3, which=1:2)
+plot(House.lm3$residuals, main = "Residuals vs Order")
+
+boxCox(House.lm3)
+
+House.lm5 <- lm(sqrt(sqrt(SalePrice)) ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + TotalHomeSF:NeighborhoodGroups,  data = mytrain2)
+
+summary(House.lm5)
+
+par(mfrow=c(1,3))
+plot(House.lm5, which=1:2)
+plot(House.lm5$residuals, main = "Residuals vs Order")
+```
+
+```{r}
+par(mfrow=c(1,3))
+plot(House.lm5, which=c(1,4,5))
+
+House.rlm <- rlm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + TotalHomeSF:NeighborhoodGroups,  data = mytrain2)
+
+summary(House.rlm)
+
+par(mfrow=c(1,3))
+plot(House.rlm, which=c(1,4,5))
+
+Remove.lm <- lm(SalePrice ~ TotalHomeSF + Old_New + NeighborhoodGroups + Amenities + TotalHomeSF:NeighborhoodGroups,  data = mytrain2[-c(471,775,470,575)])
+
+summary(Remove.lm)
+summary(House.lm3)
+```
+
+| Parameter | OLS   | Robust | OLS -Outlier |
+|-----------|-------|--------|--------------|
+| $\beta_0$ |   -1.649e+05   |   -179403.1763     |    -1.790e+05         |
+| $\beta_1$ |   1.010e+02    |    101.7687    |       1.007e+02       |
+| $\beta_2$ |   1.741e+04    |    16900.6365     |        1.753e+04      |
+| $\beta_3$ |   1.431e+05    |    155305.7878    |       1.427e+05       |
+| $\beta_3$ |   2.031e+05    |   202076.2367     |      2.024e+05        |
+| $\beta_3$ |   1.199e+04    |        |              |
+| $\beta_3$ |   6.945e+03    |   -47.9310     |      -4.331e+01        |
+| $\beta_3$ |   -4.342e+01   |    -72.4423    |       -7.257e+01       |
+| $\sigma$  |   31790   |    22140    |        31790      |

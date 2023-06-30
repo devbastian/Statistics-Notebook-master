@@ -1,0 +1,407 @@
+---
+title: "Practice Final Exam"
+author: "Devin Bastian"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, nycflights13, Lahman, blscrapeR, lubridate, riem, ggthemes, ggrepel)
+
+```
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+
+```
+
+### Question 1
+
+Question: Which of the following statements contains an error?
+
+Answer: $\underbrace{\hat{Y_i}}_\text{Weight} = \beta_0 + \beta_1 \underbrace{X_i}_\text{height}$
+
+### Question 2
+
+Question: Suppose a researcher from the 1920's was studying how far it took vehicles to stop (in feet) based on the speed they were traveling (in mph) when the brakes were applied.
+
+Suppose further that they came up with the following regression model from their study.
+
+$\hat{Y}_i = -17 + 4.2 X_i$
+
+Use the `"cars"` data set in R to validate this regression model. What is the value of the validation R-squared for this model? *(Hint: Yhat <- -17...)*
+
+Answer: 
+
+```{r message=FALSE, warning=FALSE}
+# Compute R-squared for each validation
+  
+  # pull out all the actual y values from the cars data
+  Yhat <- -17 + 4.2*cars$speed
+  # find y-bar for data
+  Ybar <- mean(cars$dist) #Y_i is given by cars
+  # Compute SSTO (sum of the squares of how far away the actual points are from the mean of y)
+  SSTO <- sum( (cars$dist - Ybar)^2 )
+  # Compute SSE for each model(sum of the squares of how far away the actual points are from the estimated line)
+  SSE <- sum( (Yhat - cars$dist)^2 )
+  1-SSE/SSTO
+```
+
+### Question 3
+
+Question: Four degree 1 lowess curves are shown below, each time on the same `cars` data.
+
+Which lowess curve uses 20% of the neighboring dots at each local regression to create the curve?
+
+*You'll need to draw it yourself to really know.*
+
+Answer: 
+
+```{r message=FALSE, warning=FALSE}
+plot(dist ~ speed, data = cars, pch = 21, bg = "steelblue", col = "darkgray",
+     xlab = "speed", ylab = "dist",
+     main = "cars dataset")
+lines(lowess(cars$speed, cars$dist, f=.2),lwd = 2, col="steelblue")
+```
+
+```{r message=FALSE, warning=FALSE}
+ggplot(cars, aes(x=speed, y=dist)) +
+  geom_point() +
+  geom_smooth(method="loess", span=0.2, # Control smoothing with span. Small number gives wigglier lines. Large number gives smoother lines.
+              se=FALSE, 
+              method.args=list(degree=2))
+```
+
+### Question 4
+
+Question: A logistic regression is performed to model the probability that a student will get an A in Math 325 based on their Analysis score. The following output is obtained.
+
+ |            | Estimate | Std. Error | z value | Pr(>|z|) |
+ |------------|------------|------------|------------|------------|
+ | (Intercept) | -31.1710 | 6.2806 | -4.963 | 6.94e-07 *** |
+ | AnalysisTotal | 1.1423 | 0.2252 | 5.071 | 3.95e-07 *** |
+ 
+Which of the following is a correct interpretation of this output?
+
+Answer: The odds of a student getting an A in Math 325 increase by 1.14% for every extra point a student gains in their Analysis Total score.
+
+Explaination: We need to compute $e^{b_1}$ in order to determine the effect on the odds that an extra point in the Analysis Total impacts the odds of getting an A in Math 325.
+
+This shows 3.134, which means the odds are being multiplied by 3.134 for each increase in Analysis Total. This means the odds are tripling for each extra point in the Analysis Total category.
+
+`> exp(1.1423)`
+`[1] 3.133968`
+
+### Question 5
+
+Question: A regression is performed, and the following output obtained. What conclusion can we make from this output?
+
+![](../../Images/Practice_Final_Q5.png)
+
+Answer: This regression model significantly predicts the mean Y-value, but does not do the best job at predicting the individual Y values.
+
+Explaination: The p-value tells us if the X-variable can significantly predict the average y-value. Since the p-value is significant (3.41e-08), X is useful for predicting the average y-value. However, since the R-squared value is 0.5655, the model does not really offer very much insight on the individual y-values because they vary so much from the line. When the R-squared value is close to 1, then the regression model gives great insight about both the mean, and the individuals.
+
+### Question 6
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 7
+
+Question: Use the mtcars data set in R to plot the robust regression line for hp ~ wt. 
+
+Identify the robust regression line in the plot below.
+
+Answer: Blue Line
+
+```{r}
+mtcars.lm <- lm(hp ~ wt, data = mtcars)
+mtcars.co <- mtcars.lm$coefficients
+
+mtcars.rlm <- rlm(hp ~ wt, data = mtcars)
+mtcars.r.co <- mtcars.rlm$coefficients
+
+ggplot(mtcars, aes(x=wt, y=hp)) +
+  geom_point() +
+  stat_function(fun = function(x)(mtcars.co[1] + mtcars.co[2]*x), color = "green") +
+  stat_function(fun = function(x)(mtcars.r.co[1] + mtcars.r.co[2]*x), color = "blue")
+```
+
+### Question 8
+
+Question: Which logistic curve represents the males in the following plot?
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 9
+
+Question: 
+
+Answer: (intercept)    mileage   *   miles        corolla      corrolla:mileage * miles
+
+```{r}
+19408 - 0.1926*40000 - 2002 + 0.1202*40000
+```
+
+### Question 10
+
+Question: Which of the following is a "best" statement to make when interpreting a regression slope?
+
+Answer: The change in the average y-value per unit change in x.
+
+Explaination: The regression line models the average y-value for any given x-value. Since the slope is the change in the line as x changes by 1 unit, then the slope should be interpreted as the change in the average y-value (the line) for each unit change in x.
+
+### Question 11
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 12
+
+Question: Use the cars data set in R to test the following hypotheses.
+
+Answer: 
+
+```{r}
+cars.lm2 <- lm(dist ~ speed, data = cars)
+summary(cars.lm2)
+
+#T-stat math formula: (Estimate (b_0 or b_1) - hypothesis number)/std.Error_{b_0 or b_1}
+t.val.b1 <- (3.9324 - 4.2) / .4155
+#P-value is hard to calculate use this: pt(-abs(tvalue), degrees of freedom)*2
+pt(-abs(t.val.b1), 48)*2
+
+```
+
+### Question 13
+
+Question: Estimate the coefficients in the following regression model using the airquality data set in R.
+
+Answer: 
+
+```{r}
+summary(lm(Temp ~ Month + I(Month^2), data = airquality))
+```
+
+### Question 14
+
+Question: Which of the following graphs would support the statement that "the odds that Y = 1 increases by 20% for each 1 unit change in x"?
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 15
+
+Question: Suppose you are asked to help decide how wide (in centimeters) kid's shoes should be for kids with foot lengths of 25 centimeters. Suppose further you are provided with the KidsFeet dataset found in library(mosaic). Perform a regression that would help provide an answer to this question.
+
+Select the interval below that, according to your regression, should contain 95% of the widths of kids feet that are 25 centimeters long.
+
+Answer: 
+
+```{r}
+#colnames(KidsFeet)
+
+Kid.lm <- lm(width ~ length, data = KidsFeet)
+predict(Kid.lm, data.frame(length=25), interval="confidence") # Use predict for individuals and confidence for the group or \hat{Y}
+```
+
+### Question 16
+
+Question: What is the value of the residual for the orange dot in the plot below?
+
+Answer: 
+
+```{r}
+cars.lm3 <- lm(dist ~ speed, data = cars)
+car.co <- cars.lm3$coefficients
+
+par(mfrow=c(1,3))
+plot(cars.lm3, which=c(1,4,5))
+
+cars2 <- cars %>% 
+  filter(., speed < 15 & dist > 75)
+
+ggplot(cars, aes(x=speed, y=dist)) +
+  geom_point() +
+  geom_point(data = cars[23,], color = "red") +
+  #geom_point(data = cars2, color = "red") you can narrow down the area of the dot by using the filtered data
+  stat_function(fun = function(x)(car.co[1] + car.co[2]*x), color = "red") +
+  labs(title = "cars data set")
+
+cars.lm$residuals[23]
+```
+
+### Question 17
+
+Question: Which regression from the options below would best fit the data for the scatterplot shown?
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 18
+
+Question: Return to the RailTrail data set in R.
+
+Perform an appropriate analysis that would allow you to predict the average volume of users on the trail by knowing the cloud cover measurement for a given day.
+
+Draw a graphic that includes the results of your analysis in the plot.
+
+Use your graphic to estimate the average volume for days with a cloud cover measurement of 8.
+
+Answer: 
+
+```{r}
+Rail.lm <- lm(volume ~ cloudcover, data=RailTrail)
+rail.co <- Rail.lm$coefficients
+
+ggplot(RailTrail, aes(x=cloudcover, y=volume)) +
+  geom_point() +
+  geom_vline(xintercept = 8) +
+  stat_function(fun = function(x)(rail.co[1] + rail.co[2]*x), color = "red") +
+  labs(title = "RailTrail data set")
+
+predict(Rail.lm, data.frame(cloudcover=8), interval="confidence")
+```
+
+### Question 19
+
+Question: 
+
+Answer: Computing the SSE for each graph identifies the graph with:
+
+`sum(c(-7.1,13,-7.4,4.1,-2.7)^2) = 298.27`
+
+as the line of least squares. 
+
+```{r}
+sum(c(-7.1,13,-7.4,4.1,-2.7)^2)
+```
+
+### Question 20
+
+Question: View the `Marriage` data in R.
+
+This data set lists characteristics of 98 individuals (49 couples) at the time they were married. The age column lists the age of each individual. The prevcount column states how many times the individual was previously married prior to this marriage. So a prevcount of 2 means that person was previously married twice.
+
+Perform an analysis using this data that looks to see if the age of the individual at the time of marriage can predict if that person was previously married. 
+
+Then, suppose that Frank is getting married and is 27 years old. Based on your analysis, what is the probability that Frank was previously married?
+
+Answer: 
+
+```{r}
+Marriage.glm <- glm(prevcount > 0 ~ age, data = Marriage, family = binomial)
+predict(Marriage.glm, data.frame(age = 27), type = "response")
+```
+
+### Question 21
+
+Question:Run the following code in R.
+
+`plot(time ~ age, data=TenMileRace, col=sex)`
+
+Perform an appropriate analysis that would allow you to add two linear regression lines with the same slope to this plot. One line should be for the male's data, the other for the female's data. The common slope of the two lines should be 16.493.
+
+Based on the results of your analysis, by how much do the average times of males and females differ?
+
+Answer: 
+
+```{r}
+Mile.lm <- lm(time ~ age + sex, data = TenMileRace)
+Mile.co <- Mile.lm$coefficients
+
+ggplot(TenMileRace, aes(x=age, y=time, color = sex)) +
+  geom_point() +
+  #stat_function(fun = function(x)(Mile.co[1] + Mile.co[2]*x + Mile.co[3]*x)) +
+  #stat_function(fun = function(x, color = M)(Mile.co[1] + Mile.co[2]*x), color = "green") +
+  geom_smooth(method="lm", se=F, formula=y ~ poly(x, 2, raw=TRUE) ) +
+  labs(title = "TenMileRace data set")
+```
+
+### Question 22
+
+Question: 
+
+Answer: 
+
+```{r}
+air.lm <- lm(Ozone ~ Wind + Temp + Wind:Temp, data=airquality)
+
+b <- coef(air.lm)
+
+ggplot(airquality, aes(x=Wind, y=Ozone, color = Temp)) +
+  geom_point() +
+  stat_function(fun = function(x)(b[1] + b[2]*x + b[3]*70 + b[4]*x*70)) +
+  labs(title = "TenMileRace data set")
+```
+
+### Question 23
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 24
+
+Question: 
+
+Answer: 
+
+```{r}
+
+```
+
+### Question 25
+
+Question: 
+
+Answer: 
+
+```{r}
+mtcars.lm2 <- lm(mpg ~ hp, data = mtcars)
+
+boxCox(mtcars.lm2)
+
+mtcars.lm3 <- lm(log(mpg) ~ hp, data = mtcars)
+
+exp(predict(mtcars.lm3, data.frame(hp = 350), interval = "predict"))
+```

@@ -1,0 +1,491 @@
+---
+title: "Practice Exam 1"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r Libraries, message=FALSE, warning=FALSE}
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(pander)
+library(gridExtra)
+library(MASS)
+library(ResourceSelection)
+```
+
+
+---
+
+#### Question 1
+
+To get a p-value you need two things. What are they?
+Stat and distribution
+
+```{r}
+
+```
+
+
+
+#### Question 2
+
+How many runners in the race were from North Carolina (NC), New Jersey (NJ), and Maryland (MD)?
+
+```{r}
+#View(TenMileRace)
+
+TenMileRace2 <- filter(TenMileRace, state %in% c("NC", "NJ", "MD"))
+
+TenMileRace2 %>%
+
+   group_by(state) %>%
+
+   summarise(Count = n())
+
+```
+
+
+
+
+#### Question 3
+
+Perform an analysis that fits the following mathematical model to the cats data set.
+
+$$
+  \underbrace{Y_i}_\text{heart Weight} = \overbrace{\beta_0}^\text{y-int} + \overbrace{\beta_1}^\text{slope} \underbrace{X_i}_\text{Body Weight} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)
+$$
+
+State the estimate of LaTeX: $\beta_1$ from your analysis. 
+
+```{r}
+#View(cats)
+#?cats
+
+# Perform the Test
+cats.mylm <- lm(Hwt ~ Bwt, data = cats)
+summary(cats.mylm)
+
+
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(cats.mylm, which=1:2)
+plot(cats.mylm$residuals, main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+#Plot the Regression Line
+#plot(Y ~ X, data=YourDataSet)
+#abline(mylm)
+```
+
+
+#### Question 4
+
+Which of the following options would be most appropriate for identifying any differences in the data depicted in this graph?
+
+```{r}
+#View(CES11)
+
+boxplot(weight ~ education, data=CES11)
+
+# Perform the ANOVA
+CES.myaov <- aov(weight ~ education, data=CES11) 
+
+# View the ANOVA Results
+summary(CES.myaov)  
+
+# Check ANOVA Assumptions
+par(mfrow = c(1,2))
+plot(CES.myaov, which=1:2)
+#DATA IS SKEWED
+
+pander(kruskal.test(weight ~ education, data=CES11))
+
+```
+
+
+#### Question 5
+
+Based on the information in this data set, is there significant evidence (at the $\alpha$ = 0.05) that the presence of a speed limit reduces the daily numbers of traffic accidents?
+
+
+```{r}
+View(Traffic)
+?Traffic
+
+yes <- filter(Traffic, limit == "yes")
+
+t.test(y ~ limit, data = Traffic, mu = 0, alternative = "two.sided", conf.level = 0.95)
+
+#To perform a logistic regression:
+
+traffic.glm <- glm(limit == "yes" ~ y, data = Traffic, family = binomial)
+summary(traffic.glm)
+
+Traffic %>%
+
+   group_by(y) %>%
+
+   summarise(avg = n(limit)) %>%
+  pander()
+
+#Goodness of fit test with many replicated x-values:
+pchisq(232.72, 182, lower.tail = FALSE)
+
+#Goodness of fit test with few or no replicated x-values
+library(ResourcesSelection)
+hoslem.test(traffic.glm$y, traffic.glm$fitted)
+
+#To predict the probability that Yi=1 for a given x-value:
+predict(YourObjectName, data.frame(ColumnName = DesiredValue), type = "response")
+
+# Challenger Example
+predict(chall.glm, data.frame(Temp=31), type='response')
+
+#To predict by-hand
+exp(b[1]+b[2]*x)/(1+exp(b[1]+b[2]*x))
+
+#To find the estimated value of eβ1
+exp(b1)
+```
+
+
+#### Question 6
+
+Create a graphic in R that shows the distribution of Composition scores for painters that studied in the various schools of art. Perform an appropriate test of the data contained in your graphic that would allow for us to conclude whether or not the distribution of composition scores for painters from each of these schools can all be considered to be from the same population of scores.
+
+```{r}
+View(painters)
+
+?painters
+
+
+```
+
+
+
+#### Question 7
+
+Which gender is more likely to volunteer, men or women?
+
+```{r}
+View(Cowles)
+
+cow <- filter(Cowles, volunteer == "yes")
+
+pander(table(cow$sex, cow$volunteer), split.table=Inf)
+x <- table(Cowles$sex, Cowles$volunteer)
+x.chi <- chisq.test(x)
+pander(x.chi)
+pander((x.chi$expected), split.table=Inf)
+pander((x.chi$expected > 5), split.table=Inf)
+pander((x.chi$residuals), split.table=Inf)
+```
+
+
+#### Question 8
+
+Perform a permutation one-way ANOVA test to see if the average number of words correctly recalled is the same for each condition of the study. Report the p-value of your test.
+
+```{r}
+View(Friendly)
+
+set.seed(101)
+
+# Again, we run the initial test and find the test statistic
+myTest <- aov(weight ~ feed, data = chickwts)
+observedTestStat <- summary(myTest)[[1]]$`F value`[1]
+
+# For this permutation, we need to shake up the groups similar to the Independent Sample example
+N <- 2000
+permutedTestStats <- rep(NA, N)
+for (i in 1:N){
+  permutedData <- sample(chickwts$weight)
+  permutedTest <- aov(permutedData ~ feed, data = chickwts)
+  permutedTestStats[i] <- summary(permutedTest)[[1]]$`F value`[1]
+}
+
+# The histogram of this distribution gives an interesting insight into the results
+hist(permutedTestStats, col = "skyblue", xlim = c(0,16))
+abline(v = observedTestStat, col = "red", lwd = 3)
+
+# Here is the greater-than p-value:
+sum(permutedTestStats >= observedTestStat)/N
+
+# Here is the less-than p-value: not the one that we want
+sum(permutedTestStats <= observedTestStat)/N
+
+# And here is the two-sided p-value: the same used in the original analysis
+2*sum(permutedTestStats >= observedTestStat)/N
+
+
+```
+
+
+#### Question 9 
+
+Filter the storms data set down to a data set that contains just hurricanes from 2015 during the month of August. This should result in 14 rows of data with only  hurricanes "Danny" and "Fred" remaining in this filtered data set.
+
+Report the p-value of your test.
+```{r}
+View(storms)
+?storms
+```
+
+
+
+#### Question 10
+
+Run logistic curve
+
+```{r}
+?mtcars
+#To perform a logistic regression:
+
+cars.glm <- glm(am == 1 ~ mpg, data = mtcars, family = binomial)
+summary(cars.glm)
+
+plot(am == 1 ~ mpg, data = mtcars, xlab="Average Temperature", ylab="Did $20 Cover The Bill?", main="Success or Failure of $20 Fitting the Electric Bill", col="chocolate1", pch=19)
+curve(exp(-6.6035 + 0.3070*x)/(1 + exp(-6.6035 + 0.3070*x)), add = TRUE)
+
+#Goodness of fit test with many replicated x-values:
+pchisq(residual deviance, df for residual deviance, lower.tail = FALSE)
+
+#Goodness of fit test with few or no replicated x-values
+#library(ResourcesSelection)
+hoslem.test(YourObjectName$y, YourObjectName$fitted)
+
+#To predict the probability that Yi=1 for a given x-value:
+predict(YourObjectName, data.frame(ColumnName = DesiredValue), type = "response")
+
+# Challenger Example
+predict(chall.glm, data.frame(Temp=31), type='response')
+
+#To predict by-hand
+exp(b[1]+b[2]*x)/(1+exp(b[1]+b[2]*x))
+
+#To find the estimated value of eβ1
+exp(b1)
+
+```
+
+
+
+#### Question 11
+
+```{r}
+
+```
+
+
+
+#### Question 12
+
+
+```{r}
+View(Chile)
+
+# Perform the Test
+chile.mylm <- lm(population ~ income, data = Chile)
+summary(chile.mylm)
+
+
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(chile.mylm, which=1:2)
+plot(chile.mylm$residuals, main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+#Plot the Regression Line
+plot(population ~ income, data = Chile)
+abline(chile.mylm)
+```
+
+
+
+#### Question 13
+
+```{r}
+View(SaratogaHouses)
+# Perform the Test
+homes.mylm <- lm(price ~ heating + centralAir + heating + centralAir, data = SaratogaHouses)
+pander(summary(homes.mylm))
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals, type = "b", main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+# Plot Regression Line
+predict(mylm, data.frame(X1=X1h, X2=X2h), type="response")
+myPlot(NameOfYourDataset)
+```
+
+
+
+#### Question 14
+
+```{r}
+
+homes <- filter(SaratogaHouses, heating=="hot water/steam")
+homes %>%
+
+   group_by(centralAir) %>%
+
+   summarise(Count = mean(price))
+```
+
+
+#### Question 15
+
+```{r}
+  
+```
+
+
+
+#### Question 16
+
+```{r}
+
+```
+
+
+
+#### Question 17
+
+```{r}
+
+```
+
+
+#### Question 18
+
+
+```{r}
+View(airquality)
+
+mplot(airquality)
+
+?plot
+
+plot(Temp ~ Wind, 
+data=airquality, 
+xlab="Daily Wind Speed (mph)", ylab="Temperature", main="La Guardia Airport (May - Sep)", col="ivory3", pch=18)
+
+gf_point(Temp ~ Wind, data = airquality, color = ~ Month) %>% 
+gf_theme(legend.position = "right") %>% 
+gf_labs(title = "", caption = "")
+```
+
+
+
+#### Question 19
+
+compute the correlation between the length of a foot and the width of a foot for fourth grade students.
+
+```{r}
+?KidsFeet
+# Perform the Test
+feet.mylm <- lm(length ~ width, data = KidsFeet)
+summary(feet.mylm)
+
+feet2.mylm <- lm(width~length, data = KidsFeet)
+summary(feet2.mylm)
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals, type = "b", main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+#Plot the Regression Line
+plot(Y ~ X, data=YourDataSet)
+abline(mylm)
+```
+
+
+
+#### Question 20
+
+```{r}
+
+
+```
+
+
+
+
+
+#### Question 21
+
+```{r}
+((340+315+180+100+50+28+10+10+390+310+170+70+20+10+2)-(340+315+180+100+50+28+10+10+390+310+170+70+20))/(340+315+180+100+50+28+10+10+390+310+170+70+20+10+2)
+```
+
+
+#### Question 22
+
+```{r}
+View(Prestige)
+Prestige2 <- mutate(Prestige, type = as.factor(ifelse(type == "prof", "prof","other")))
+View(Prestige2)
+
+# Perform the Test
+prestige.mylm <- lm(income ~ prestige + type + prestige:type, data = Prestige2)
+pander(summary(prestige.mylm))
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals, type = "b", main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+# Plot Regression Line
+predict(mylm, data.frame(X1=X1h, X2=X2h), type="response")
+myPlot(NameOfYourDataset)
+```
+
+
+#### Question 23
+
+```{r}
+View(KidsFeet)
+
+boys.feet <- filter(KidsFeet, birthyear == 88 & sex == "B")
+View(boys.feet)
+
+wilcox.test(length ~ domhand, data = boys.feet, mu = 0, alternative = "two.sided", conf.level = 0.95)
+```
+
+
+#### Question 24
+
+A recent `college graduate` just landed a new job and is trying to `find` the `quickest commute route` to work. A quick internet search lists `five different routes` they could take and shows the `average time` for each route (at the given moment). Curious, the student decides to check up on the "internet" to see how `their actual commuting times` compare to the `"internet's" predicted` times. Over the first week of their new job, they take each of the five different routes to work, `one route each day`, and record both the `internet's predicted` times and the `actual time` it took them to make the commute. They then perform an analysis to see how "reality" matches up with the internet's predictions.
+
+```{r}
+
+```
+
+
+#### Question 25
+
+```{r}
+((9-5.035)^2)/5.035
+chisq.test(8)
+```
+

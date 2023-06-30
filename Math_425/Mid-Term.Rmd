@@ -1,0 +1,430 @@
+---
+title: "Mid-Term: Math 425"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: TRUE
+    toc_float: TRUE
+---
+
+```{r Libraries, message=FALSE, warning=FALSE}
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(pander)
+library(gridExtra)
+library(MASS)
+library(ResourceSelection)
+```
+
+
+---
+
+#### Question 1 {done/WRONG}
+
+
+
+```{r}
+
+```
+
+
+
+#### Question 2 {done}
+
+Open the `RailTrail` data set in R from library(mosaic).
+
+Perform an appropriate analysis that would allow you to predict the `average volume of users` on the trail by knowing the `cloud cover measurement` for a given day.
+
+Estimate the average volume of users on the trail for days with a cloud cover measurement of 4.
+
+```{r}
+#?RailTrail
+RailTrail.lm <- lm(volume ~ cloudcover, data = RailTrail)
+RailTrail.lm.co <- RailTrail.lm$coefficients
+pander(summary(RailTrail.lm))
+```
+
+```{r}
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(RailTrail.lm, which=1:2)
+plot(RailTrail.lm$residuals, main = "Residuals vs Order")
+# plot(RailTrail.lm, which = 1)
+# qqPlot(RailTrail.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+Everything checks out
+
+```{r}
+predict(RailTrail.lm, data.frame(cloudcover=4), interval="prediction")
+```
+
+
+
+#### Question 3 {done}
+
+I am going with answer two because there are more data points to argue for more evidence of non-linearity.
+
+```{r}
+
+
+```
+
+
+#### Question 4 {done}
+
+Using the notation we have learned in our course this semester for the regression model, which of the following statements contains an error?
+
+We don't use betas when measuring for the average y-value. 
+
+```{r}
+
+
+```
+
+
+#### Question 5 {HELP/WRONG}
+
+<!-- What is the value of the SSE for the plot shown below? -->
+
+I'm not sure. I just looked at the graphs online and compared numbers.I don't think the numbers can be above 100
+
+```{r}
+(7.1 + 13 + 7.4 + 4.1 + 2.7)^2
+
+19
+```
+
+
+#### Question 6 {done}
+
+Report the value of the p-value for their test.
+
+```{r}
+# ?cars
+# View(cars)
+cars.lm <- lm(dist ~ speed, data = cars)
+summary(cars.lm)
+```
+
+```{r}
+#T-stat math formula: (Estimate (b_0 or b_1) - hypothesis number)/std.Error_{b_0 or b_1}
+# (-17.579 - 0)/16.7006 # Interc t-stat
+(3.9324 - 3.8)/0.4155 # Slope t-stat
+# b_0.lm <- (45.7966 - 0)/16.7006
+b_1.cars <- (3.9324 - 3.8)/0.4155
+#P-value is hard to calculate use this: pt(-abs(tvalue), degrees of freedom)
+# pt(-abs(b_0.lm), 134)*2 # Interc p-value
+pt(-abs(b_1.cars), 48)*2 # Slope p-value
+
+```
+
+
+
+#### Question 7 {done/WRONG}
+
+The $R^2$ is at 0.56 meaning that the points are only half the time near the regression line. So this will not be the best fit. The p-values are significant but some sort of transformation will need to take place for the regression model to matter.
+
+```{r}
+
+```
+
+
+#### Question 8
+
+Use the mtcars data set in R to perform an appropriate transformation regression of mpg against wt. 
+
+Use your transformation regression to predict the gas mileage (mpg) of a vehicle that has a weight of 4,000 lbs.
+
+
+```{r}
+# ?mtcars
+# View(mtcars)
+
+mtcars.lm <- lm(mpg ~ wt, data = mtcars)
+mtcars.lm.co <- mtcars.lm$coefficients
+summary(mtcars.lm)
+```
+
+```{r}
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(mtcars.lm, which=1:2)
+plot(mtcars.lm$residuals, main = "Residuals vs Order")
+# plot(mtcars.lm, which = 1)
+# qqPlot(mtcars.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+boxCox(mtcars.lm)
+mtcars.lm.t <- lm(mpg^.25 ~ wt, data = mtcars)
+```
+
+Everything checks out
+
+```{r}
+predict(mtcars.lm.t, data.frame(wt=4), interval="prediction") # Do I sqrt this?
+# exp(predict(mtcars.lm.t, data.frame(wt=4), interval="prediction")) # I logged the mt.lm.t
+```
+
+#### Question 9 {done}
+
+
+```{r}
+# ?cars
+cars.lm9.t <- lm(sqrt(dist) ~ speed, data = cars)
+cars.lm9.t.co <- cars.lm9.t$coefficients
+summary(mtcars.lm)
+predict(cars.lm9.t, data.frame(speed=20), interval="prediction")^2
+```
+
+#### Question 10 {done}
+
+
+
+```{r}
+# ?airquality
+airqual.lm <- lm(Temp ~ Wind, data = airquality)
+airqual.lm.co <- airqual.lm$coefficients
+```
+
+```{r}
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(airqual.lm, which=1:2)
+plot(airqual.lm$residuals, main = "Residuals vs Order")
+# plot(airqual.lm, which = 1)
+# qqPlot(airqual.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+
+
+#### Question 11 {done}
+
+Suppose you are asked to help decide how wide (in centimeters) kid's shoes should be for girls with foot lengths of 25 centimeters. Suppose further you are provided with the `KidsFeet` dataset found in library(mosaic). Perform a regression that would help provide an answer to this question.
+
+Select the interval below that, according to your regression, should contain 95% of the widths of girl's feet that are 25 centimeters long.
+
+```{r}
+# ?KidsFeet
+GirlsFeet <- filter(KidsFeet, sex == "G")
+GirlsFeet.lm <- lm(width ~ length, data = GirlsFeet)
+GirlsFeet.lm.co <- GirlsFeet.lm$coefficients
+summary(mtcars.lm)
+predict(GirlsFeet.lm, data.frame(length=25), interval= "prediction")
+```
+
+Is this correct? Now I'm second guessing myself.
+
+#### Question 12 {done}
+
+
+```{r}
+
+```
+
+
+
+#### Question 13 {done}
+
+```{r}
+80-38 # My guess and realizing I have to do the actual value. Come back to this.
+
+#View(cars)
+
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(cars.lm, which=1:2)
+plot(cars.lm$residuals, main = "Residuals vs Order")
+# plot(cars.lm, which = 1)
+# qqPlot(cars.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+# Observation 23 speed 14 dist 80
+
+80 - (-17.5791 + 3.9324*14)
+```
+
+
+
+#### Question 14 {done}
+
+```{r}
+airq.lm <- lm(Ozone ~ Temp, data=airquality)
+summary(airq.lm) #0.4877
+airq.lm.log <- lm(log(Ozone) ~ Temp, data=airquality)
+summary(airq.lm.log) # 0.5473
+airq.lm.sqrt <- lm(sqrt(Ozone) ~ Temp, data=airquality)
+summary(airq.lm.sqrt) # 0.5527
+airq.lm.1 <- lm((Ozone^-1) ~ Temp, data=airquality)
+summary(airq.lm.1) #0.1682
+```
+
+
+#### Question 15 {done}
+
+```{r}
+#?ChickWeight
+#View(ChickWeight)
+ChickWeight.lm <- lm(weight ~ Time, data = ChickWeight)
+```
+
+```{r}
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(ChickWeight.lm, which=1:2)
+plot(ChickWeight.lm$residuals, main = "Residuals vs Order")
+# plot(ChickWeight.lm, which = 1)
+# qqPlot(ChickWeight.lm$residuals, main = "Q-Q Plot of Residuals", id = FALS
+```
+
+Constant variance is obviously violated. Normal distributation is violated. Error terms may not be independent.
+
+#### Question 16 {done}
+
+```{r}
+
+```
+
+
+
+## Question 17 {HELP/WRONG}
+
+I'm not sure. 
+```{r}
+
+```
+
+
+## Question 18 {done}
+
+
+```{r}
+sqrt(1.9/22) # 0.2938769
+sqrt(77.3/22) # 1.87447
+sqrt(38.9/22) # 1.32973
+sqrt(25.2/22) # 1.070259
+```
+
+
+
+## Question 19 {done/WRONG}
+
+
+
+```{r}
+#T-stat math formula: (Estimate (b_0 or b_1) - hypothesis number)/std.Error_{b_0 or b_1}
+
+(389.075 - 0)/374.182 # Testing the value of y
+(-6.171 - 0)/51.379 # Testing first x value
+(-109.736 - 0)/374.404 # My question
+
+pt(-abs((-109.736 - 0)/374.404), 27)*2 # Subtract 3 parameters from this
+```
+
+
+
+## Question 20 {done}
+
+```{r}
+# ?mpg
+# View(mpg)
+
+plot(hwy ~ cty, data = mpg)
+mpg.lm <- lm(hwy ~ cty, data=mpg)
+summary(mpg.lm)
+```
+
+
+
+
+
+## Question 21 {done}
+
+Use the Orange dataset in R to perform a linear regression of the circumference (y) of an orange tree according to the age of the tree (x).
+
+Which regression assumption is not satisfied for this regression?
+
+```{r}
+orange.lm <- lm(circumference ~ age, data = Orange)
+# ?Orange
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(orange.lm, which=1:2)
+plot(orange.lm$residuals, main = "Residuals vs Order")
+# plot(orange.lm, which = 1)
+# qqPlot(orange.lm$residuals, main = "Q-Q Plot of Residuals", id = FALS
+```
+
+
+## Question 22 {done}
+
+```{r}
+cars.lm <- lm(dist ~ speed, data = cars)
+cars.lm.co <- cars.lm$coefficients
+boxCox(cars.lm)
+cars.lm.t <- lm(sqrt(dist) ~ speed, data = cars)
+cars.lm.t.co <- cars.lm.t$coefficients
+```
+
+```{r}
+cars %>%
+  ggplot(aes(y = dist, x = speed)) +
+  geom_point(alpha = .09) +
+  stat_function(fun = function(x)cars.lm.co[1] + cars.lm.co[2]*x, 
+                aes(color = "a")) +
+  stat_function(fun = function(x){(cars.lm.t.co[1] + cars.lm.t.co[2]*x)^2}, 
+                aes(color = "b")) +
+  labs(title = "Car Data",
+       x = "Speed",
+       y = "Distance") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = c(0.15, .85)) +
+  scale_color_manual("",
+                     values = c("black", "firebrick"),
+                     labels = c("Regression Line", "Transformed Regression"))
+```
+
+
+#### Question 23 {done}
+
+describe SSR
+
+## Question 24 {done}
+
+```{r}
+Loblolly.lm <- lm(height ~ age, data = Loblolly)
+Loblolly.lm.co <- Loblolly.lm$coefficients
+```
+
+```{r}
+Loblolly %>%
+  ggplot(aes(y = height, x = age)) +
+  geom_point() +
+  stat_function(fun = function(x)Loblolly.lm.co[1] + Loblolly.lm.co[2]*x) +
+  theme_bw()
+```
+
+```{r}
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(Loblolly.lm, which=1:2)
+plot(Loblolly.lm$residuals, main = "Residuals vs Order")
+# plot(Loblolly.lm, which = 1)
+# qqPlot(Loblolly.lm$residuals, main = "Q-Q Plot of Residuals", id = FALS
+```
+
+
+## Question 25 {done/WRONG}
+
+I'm going with X2 X3 because it appears that no matter the angle I'll have more data points further away from the line while the others seem to have a heavier set of data towards the line, at least in the beginning or in general. Meaning that there are more data points clumped towards the line and not towards the outer bounds of the graph.
+
+```{r}
+
+```
+

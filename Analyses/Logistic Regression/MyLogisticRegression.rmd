@@ -1,0 +1,254 @@
+---
+title: "My Simple Logistic Regression"
+output: 
+  html_document:
+    theme: readable
+    code_folding: hide
+---
+
+<!-- Find some data of interest to you that can be analyzed with a logistic regression. Complete your Logistic Regression Analysis using this file. 
+
+Hint, run the command 
+
+> data() 
+
+in your Console to see available datasets in R that you could use for this Analysis. You are also welcome to collect data yourself, or find other available datasets online for this Analysis. Just be careful to not use anyone else's "analysis" for this Analysis. Also, no conducting surveys unless you have IRB approval to do so. -->
+
+```{r Library.and.Data, include=FALSE}
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(ResourceSelection)
+
+Mybills <- read.csv("../../Data/bastbills.csv")
+Mybills2 <- Mybills %>%
+  mutate(Electric.Over.20 = ifelse(ElectricBill <= 20, 1, 0),
+         Gas.Over.30 = ifelse(GasBill <= 30, 1, 0))
+#view(Mybills2)
+```
+
+
+
+
+
+
+---
+
+## Background
+
+My wife and I have not created a budget for how much we should spend on our utilities. We plan on living here in Rexburg until July 2019 and we would like to save a little bit of money. I've pulled our gas and electric bills from Rocky Mountain Power and Intermountain Gas Company. I believe that `$20` for electric and `$30` for gas per month will be sufficent. I am going to test if this will be enough money based upon the temperature outside. I do not know what temperature will tip this amount out of balance, yet I will say for now that these amounts will be correct for any temperature. I will determine this hypothesis by running a logistic regression test on both the electric and gas data.
+
+<!-- What am I suppose to write here about my hypothesis? -->
+
+$$
+  H_0: \text{A logistical regression model will be a good fit or test to run for the data}
+$$
+$$ 
+  H_a: \text{A logistical regression model will not be a good fit}
+$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+<!-- When am I suppose to use the exp funciton and what does it do? When am I suppose to use it for an interpertation? -->
+
+To decide whether the budget amount I shared will hopefully cover my utilities will be determined by the following equation. This equation provides me the probability whether the determined amount, `$20` for electric or `$30` for gas, will pay the bill based off of the temperature outside.
+
+$$
+  P(Y_i = 1|x_i) = \frac{e^{\beta_0+\beta_1 x_i}}{1+e^{\beta_0 + \beta_1 x_i}} = \pi_i
+$$
+where you see an observation $i$, it will mean: 
+
+* $Y_i = 1$ denotes that `$20` or `$30` will cover the respective utility. 
+* $Y_i = 0$ denotes that the data is above the desired budget amount, and 
+* $x_i$ denotes the average outside temperature in degrees farenheit for the month. 
+
+Note that if $\beta_1$ is zero in the above model, then $x_i$ (temperature) provides no insight whether my utilities will be covered. Thus, we could test the hypothesis that
+
+$$
+  H_0: \beta_1 = 0 \\
+  H_a: \beta_1 \neq 0
+$$
+
+### Electric Bills 
+
+#### Is this test worth pursuing?
+
+```{r Checking Assumptions - Electric, fig.height=3, message=FALSE, warning=FALSE}
+My.electric.bills.glm <- glm(ElectricBill <= 20 ~ Average.Temperature, data = Mybills,
+ family=binomial)
+pander(hoslem.test(My.electric.bills.glm$y, My.electric.bills.glm$fitted))
+
+```
+
+Usually a Hosmer-Lemeshow Goodness of Fit Test is ran after conducting a logistical regression test first because the required numbers needed to complete the formula for a Goodness of Fit test come from the logistical test. We will analyze that logistical test later, yet I would like to first answer the first hypothesis that running a logistical regression test on the electric bill data is a good fit and to thus continue forward. The Goodness of Fit's p-value is `0.1499` meaning that we fail to reject the null hypothesis because our $\sigma$ = .05.
+
+<br>
+
+#### General Information
+
+Now that we have determined this is the right type of test to run, let's see if the results from the actual logistical test show that I can base my budget off of the temperature. We will do so by obtaining the values of $\beta_0$ and $\beta_1$ and looking at $\beta_1$'s p-value.
+
+```{r Tests - My.Electric.Bills, message=FALSE, warning=TRUE}
+
+My.electric.bills.glm <- glm(ElectricBill <= 20 ~ Average.Temperature, data = Mybills,
+ family=binomial)
+pander(summary(My.electric.bills.glm)) 
+
+
+#Can I use the pander function with this type of summary?
+#Yes, it is. - Vivian   
+
+```
+
+
+<!-- Write about the equation and the interpretation here. Base the writing off of the Challenger example -->
+
+Here we see that the estimate of probability or $\pi_i$ is:
+
+$$
+  P(Y_i = 1|x_i) = \frac{e^{-1.492 + 0.0468 x_i}}{1+e^{-1.492 + 0.0468 x_i}} = \pi_i
+$$
+
+<!--  How do you use the p-value in logistical regression? 
+
+      Answer: You don't look at the B0 and B1 p-values. You are only concerned about the Hosmer goodness of fit test p-value. This lets me know if the line I create for the graph is a good fit (accurate).-->
+
+What this means is that $b_0 = -1.492$ and $b_1 = 0.0468$. $b_0$ in this example shows that the value of our `intercept` and $b_1$ relates back to our `Average Temperature`. The $p$-value however shows that we cannot in good faith rely upon the `Avg. Temp.` to determine a budget as the $p$-value equals `0.2786`. What this means is that there is significant evidence to determine that $\beta_1 = 0$ thus providing that $x_i$ or `Avg. Temp.` will have no real impact in showing the probability.  
+
+<br>
+
+#### A Look At The Data
+
+```{r Graphs - Electric, message=FALSE, warning=FALSE}
+plot(ElectricBill <= 20 ~ Average.Temperature, data=Mybills, xlab="Average Temperature", ylab="Did $20 Cover The Bill?", main="Success or Failure of $20 Fitting the Electric Bill", col="chocolate1", pch=19)
+curve(exp(-1.492 + 0.04684*x)/(1 + exp(-1.492 + 0.04684*x)), add = TRUE)
+
+```
+
+  When I first looked at this chart, I thought that it looked okay. But then I realized this was for the electricity bill and that average temperatures of both 20&deg; F and 70&deg; F were failing to have `$20` cover the bill. That didn't make sense to me. So after taking another look at the data I realized a key part in the data. My wife did not have a job when we initially moved here to Rexburg. It was not until May that she found work. From May to September, she worked part-time until mid-September when she was offered full-time employment in her position. After realizing this, the graph makes sense why the budget was not covering two vastly different average temperatures.  
+  Additionally, I noticed that there were two months with aproxametiately the same average temperature, 70&deg; F, and yet the budget covered the bill one month and not another. Here I realized that the month in which the budget covered the bill, August's, was during the three weeks my wife and I had left to visit India.  
+  In short, this data is a bit abnormal due to the fact that my wife was home all day during the winter months to use the electricity. More information will need to be collected to have a better use of this data. 
+
+
+
+
+
+
+
+
+### Gas Bills
+
+#### Is this test worth pursuing?
+
+```{r Assumptions - Gas Bills, fig.height=3, message=FALSE, warning=FALSE}
+
+My.gas.bills.glm <- glm(GasBill <= 30 ~ Average.Temperature, data = Mybills,
+ family=binomial)
+pander(hoslem.test(My.gas.bills.glm$y, My.gas.bills.glm$fitted))
+
+```
+
+Usually a Hosmer-Lemeshow Goodness of Fit Test is ran after conducting a logistical regression test first because the required numbers needed to complete the formula for a Goodness of Fit test come from the logistical test. We will analyze that logistical test later, yet I would like to first answer the first hypothesis that running a logistical regression test on the gas bill data is a good fit and to thus continue forward. The Goodness of Fit's p-value is `0.9662` meaning that we fail to reject the null hypothesis.  
+
+<br>
+
+#### General Information
+
+Now that we have determined this is the right type of test to run, let's see if the results from the actual logistical test show that I can base my budget off of the temperature. We will do so by obtaining the values of $\beta_0$ and $\beta_1$ and looking at $\beta_1$'s p-value.  
+
+```{r Tests - Gas Bills, message=FALSE, warning=FALSE}
+
+My.gas.bills.glm <- glm(GasBill <= 30 ~ Average.Temperature, data = Mybills,
+ family=binomial)
+pander(summary(My.gas.bills.glm), fig.align="center")
+
+```
+
+<br>
+
+Here we see that the estimate of probability or $\pi_i$ is:
+
+$$
+  P(Y_i = 1|x_i) = \frac{e^{-17.38 + 0.5411 x_i}}{1+e^{-17.38 + 0.5411 x_i}} = \pi_i
+$$
+
+What this means is that $b_0 = -17.38$ and $b_1 = 0.5411$. $b_0$ shows the value of our `intercept` and $b_1$ relates back to our `Average Temperature`. The $p$-value however shows that we cannot in good faith rely upon the `Avg. Temp.` to determine a budget as the $p$-value equals `0.4014`. What this means is that there is significant evidence to determine that $\beta_1 = 0$ thus providing that $x_i$ or `Avg. Temp.` will have no real impact in showing the probability.
+
+<br>
+
+#### A Look At The Data
+
+```{r Graphs - Gas, message=FALSE, warning=FALSE}
+
+plot(GasBill <= 30 ~ Average.Temperature, data = Mybills, xlab="Average Temperature", ylab="Did $30 Cover The Bill?", main="Success or Failure of $30 Fitting the Gas Bill", col="chocolate1", pch=19)
+curve(exp(-17.38 + 0.5411*x)/(1 + exp(-17.38 + 0.5411*x)), add = TRUE)
+
+#ggplot(Mybills, aes(x=Average.Temperature, y=GasBill <= 30)) +
+#  geom_point(color = "ivory3", pch = 18) +
+#  labs(title="Success or Failure of $20 Fitting the Gas Bill", x="Average #Temperature", y="Did $20 Cover The Bill?") +
+#  theme_bw() +
+#  stat_function(fun=exp(-17.38 + 0.5411*x)/(1 + exp(-17.38 + 0.5411*x)))
+
+
+
+```
+
+When reviewing the graph for this logistical model, I did not see anything out of the ordinary.
+
+
+
+
+
+
+
+### Show Data {.tabset .tabset-pills .tabset-fade}
+
+The data comes from my personal account with Rocky Mountain Power and Intermountian Gas. It starts from when we moved into our trailer in January 2019.  
+
+#### Original Data
+
+```{r Datatable, message=FALSE, warning=FALSE}
+
+datatable(Mybills)
+
+```
+
+
+
+
+
+
+## Conclusion
+
+<!-- I want to show how a prediction in the temperature will show if my budget amount will be suffienct to cover the bills or not. -->
+
+The ability to trust the effectiveness of this data is very low due to our measurements with the $p$-values, but for fun let's look into this a little bit more if we were to trust the results. Although reaching 0&deg; F is possible here in Rexburg, Idaho, the likelihood of Rexburg reaching an average temperature of 0&deg; F is unlikely and so we will not be able to interpet the value of $e^{b_0}$. Yet, we will be able to show that electric's $e^{b_1}$ = $e^{0.04684}$ $\approx$ `1.05` and gas's $e^{b_1}$ = $e^{0.5411}$ $\approx$ `1.72`. This means that for every 1&deg; F increase we can say that the odds of our budget covering the bill will increase by a factor of `1.05` or 5% for electricity and `1.72` or 72% for gas. So let's look at that.
+
+| Temperature | Electricity's Probability | Gas's Probability |
+|------------|---------------|--------------|
+| 10&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=10), type = "response"), digits=3)` | `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=10), type = "response"), digits=5)`|
+| 20&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=20), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=20), type = "response"), digits=4)`|
+| 30&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=30), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=30), type = "response"), digits=4)`|
+| 40&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=40), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=40), type = "response"), digits=4)`|
+| 50&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=50), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=50), type = "response"), digits=4)`|
+| 60&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=60), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=60), type = "response"), digits=4)`|
+| 70&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=70), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=70), type = "response"), digits=4)`|
+| 80&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=80), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=80), type = "response"), digits=4)`|
+| 90&deg; F | `r round(predict(My.electric.bills.glm, newdata = data.frame(Average.Temperature=90), type = "response"), digits=3)`| `r round(predict(My.gas.bills.glm, newdata = data.frame(Average.Temperature=90), type = "response"), digits=4)`|

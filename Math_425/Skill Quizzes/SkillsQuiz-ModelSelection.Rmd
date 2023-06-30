@@ -1,0 +1,554 @@
+---
+title: "Skills Quiz: Model Selection"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+
+## Instructions
+
+Use this file to keep a record of your work as you complete the "Skills Quiz: Model Selection" assignment in Canvas.
+
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, plotly, reshape2)
+```
+
+
+----
+
+<!-- Note: The {} after each Problem and Part header allows you to keep track of what work you have completed. Write something like {Done} once you complete each problem and your html file will then show you a nice summary of what you have "done" already. -->
+
+
+
+## Problem 1 {?}
+
+Run this code in R. Notice that the loess curves being fit to the data do not "fit" very well currently. Work through the following parts of this problem to learn how to improve the fit of a loess curve.
+
+```{r, echo=TRUE}
+#Ensure library(ggplot2) and library(mosaicData) are loaded
+ggplot(Births78, aes(x=day_of_year, y=births, color=wday)) +
+  geom_point() +
+  geom_smooth(method="loess", span=0.75,
+              se=FALSE, 
+              method.args=list(degree=1))
+```
+
+### Part (a) {Question for Saunders}
+
+Copy and paste the code from above, then change the `span` and the `degree` until you come up with a nice fitting set of loess curves. Write a brief comment about how these two choices effect the fit of your loess curves.
+
+* `span` adjusts the percentage of points that are used in each local regression. It should be a number between 0 and 1. 
+
+* `degree` changes the type of polynomial that is used in each local regression. A choice of `degree = 1` uses lines and `degree = 2` uses parabolas.
+
+Hint: it may help to add `+ facet_wrap(~wday)` to the end of the above code, which will allow you to see each loess curve in its own little plot.
+
+<div class="YourAnswer">
+
+```{r}
+ggplot(Births78, aes(x=day_of_year, y=births, color=wday)) +
+  geom_point() +
+  geom_smooth(method="loess", span=0.45, # Control smoothing with span. Small number gives wigglier lines. Large number gives smoother lines.
+              se=FALSE, 
+              method.args=list(degree=2)) + 
+  facet_wrap(~wday)
+```
+
+What are the percentage points in span?
+
+Span controls how (0.0) close or (1.0) far to listen to other data when measuring the current data point. Small number gives wigglier lines. Large number gives smoother lines.
+
+
+Degree states to plot with (1) straight lines or more (2) parabola lines.
+
+</div>
+
+### Part (b)
+
+Use your nicely fitting loess curve that you came up with in Part (a) to visually predict the number of births that happened on day 366 of 1978... (i.e., January 1st of 1979, which happened to be a Monday).
+
+How accurate do you think this prediction will be? Why?
+
+<div class="YourAnswer">
+
+
+>8500
+
+I think this prediction will not be completely accurate as the data shows for the very first day of the year to be a significant outlier from the rest of the data.
+
+
+</div>
+
+
+## Problem 2 {Done}
+
+Open the `CO2` data set in R. This data is based around an experiment aimed to understand CO2 `uptake` of plants, which is an important characteristic of a plant's overall health and longevity. Variables known to be associated with `uptake` were controlled in this experiment at different values to try to model their effect on `uptake`. 
+
+* `conc` - the ambient CO2 concentration surrounding the plant. The more CO2 available, the higher the uptake levels should be.
+
+* `Type` - The type of plant. Plants from the warmer climate of Mississippi were compared to plants from a colder climate like Quebec.
+
+* `Treatment` - Plants were either chilled or left un-chilled to see how refrigeration preserved CO2 uptake.
+
+
+### Part (a)
+
+Create a scatterplot with overlaid loess curves showing how uptake is effected by the (1) ambient CO2 `conc`entration, (2) the `Type` of plant, and (3) the `Treatment` applied to the plant. 
+
+Fit loess curves to the data using span=0.6 and degree=2. (You should have four different curves.)
+
+Hint: use a ggplot and `color=interaction(Type, Treatment)`
+
+<div class="YourAnswer">
+
+```{r}
+ggplot(CO2, aes(x=conc, y=uptake, color=interaction(Type, Treatment))) +
+  geom_point() +
+  geom_smooth(method="loess", span=0.6, # Control smoothing with span. Small number gives wigglier lines. Large number gives smoother lines.
+              se=FALSE, 
+              method.args=list(degree=2))
+
+```
+
+</div>
+
+### Part (b)
+
+Using one of the four loess curves that were drawn on your plot, predict the `uptake` of CO2 for a plant that is chilled, from Quebec, and is placed in an ambient CO2 concentration of 300 mL/L.
+
+Note: It would be awesome if you could run something like `loess(uptake ~ conc + Treatment + Type, data=CO2)`. Unfortunately, this will not work. Instead, you will need to run something like `loess(uptake ~ conc, data= ...)` where the `...` is an appriopriately reduced version of the `CO2` data. Also, be sure to specify the span and degree in your loess(...) function as instructed in Part (a).
+
+
+<div class="YourAnswer">
+
+```{r}
+CO2.reduced <- CO2 %>% 
+  filter(Type == "Quebec",
+         Treatment == "chilled")
+
+CO2.loess <- loess(uptake ~ conc, data= CO2.reduced, span=0.6, method.args=list(degree=2))
+predict(CO2.loess, data.frame(conc = 300), interval="prediction")
+```
+
+</div>
+
+<br/>
+
+
+## Problem 3 {Done}
+
+Open the `Loblolly` data set in R. Sometimes a lowess curve can be used to help us decide on an appropriate model for data.
+
+### Part (a)
+
+Create a scatterplot of the `height` of a tree on the `age` of the tree. Overlay both a simple linear regression line and a lowess curve, degree 1 on the plot. Does the lowess curve suggest that the line is a good fit or a poor fit?
+
+<div class="YourAnswer">
+
+```{r}
+Loblolly.lm <- lm(height ~ age, data = Loblolly)
+```
+
+```{r}
+# What is the decimal point functions doing?
+#abline(davis.lm, lwd=3, col=rgb(.4,.4,.4,.2))
+#abline(v=seq(40,120,20), h=seq(40,120,20), lty=2, col=rgb(.6,.6,.6,.2))
+
+
+plot(height ~ age, data = Loblolly, pch = 21, bg = "steelblue", col = "darkgray",
+     xlab = "Age of the tree in years (age)", ylab = "Height in feet (height)",
+     main = "Height of a tree by their age")
+mtext(side=3, text="Dataset (Loblolly)", cex=0.8)
+abline(Loblolly.lm, lwd = 2, col="chocolate4")
+lines(lowess(Loblolly$age, Loblolly$height), lwd = 2, col="steelblue")
+  
+```
+
+The lowess curve shows that the line **is not** a very **good fit**. This is because the lowess curve seems to go through the means of each cluster of points, but the line seems to substantially miss the means of each cluster. The line often goes throught the max or min of a cluster, rather than the mean.
+
+</div>
+
+
+### Part (b)
+
+Re-draw the scatterplot, this time overlaying the curve from a quadratic regression model as well as the lowess curve of degree 1. Does this model look better or worse than the simple linear regression line when compared to the lowess curve?
+
+<div class="YourAnswer">
+
+```{r}
+Loblolly.quad <- lm(height ~ age +I(age^2), data = Loblolly)
+lob.b <- Loblolly.quad$coefficients
+```
+
+```{r}
+plot(height ~ age, data = Loblolly, pch = 21, bg = "steelblue", col = "darkgray",
+     xlab = "Age of the tree in years (age)", ylab = "Height in feet (height)",
+     main = "Quadratic regression to show height of a tree by their age")
+mtext(side=3, text="Dataset (Loblolly)", cex=0.8)
+curve(lob.b[1] + lob.b[2]*x + lob.b[3]*x^2, col="firebrick", lwd=2, add=TRUE)
+lines(lowess(Loblolly$age, Loblolly$height), lwd = 2, col="steelblue")
+```
+
+The lowess curve shows that the quadratic model is a fairly good fit. This is because the lowess curve and the quadratic model seem to both generally go through the mean of each cluster of points. 
+
+</div>
+
+
+
+## Problem 4 {Done}
+
+Consider the `?Utilities` data set. The goal of this question is to find a "best model" for predicting the monthly electricity bill `elecbill`. Work through each of the parts below to do this.
+
+
+### Part (a)
+
+Identify the row of the pairs plot below that corresponds to `elecbill` being the y-variable in each of the plots. This is the main row you want to look at as you decide which variable is most useful in explaining y, the `elecbill`.
+
+```{r}
+pairs(Utilities, panel = panel.smooth, pch=16, cex=0.7, col=rgb(.2,.2,.2,.5))
+```
+
+
+<div class="YourAnswer">
+
+Second to last row.
+
+</div>
+
+### Part (b)
+
+Fit a simple linear regression model on the most "useful" variable for predicting `elecbill`.
+
+State the p-value for the $\beta_1$ term. State the $R^2$ value of the regression. Show the residuals vs fitted values plot for the regression. What do each of these show?
+
+<div class="YourAnswer">
+
+```{r}
+elec.lm <- lm(elecbill ~ kwh, data = Utilities)
+pander(summary(elec.lm))
+
+# Check Your Assumptions
+par(mfrow=c(1,3))
+plot(elec.lm, which=1:2)
+plot(elec.lm$residuals, main = "Residuals vs Order")
+#plot(elec.lm, which = 1)
+# qqPlot(elec.lm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+```
+
+| Estimate | Value |
+|----------|----------|
+| $\beta_1$ | $p$-value: <2e-16 |
+| $R^2$ | 0.7525 |
+
+The variance is not constant and the linearity of the data is not normal. This means that we will need to potentially change our regression model due to the non-linear issue and transform the model to fix the variance.
+
+</div>
+
+
+### Part (c)
+
+Create a new pairs plot that includes the residuals and fitted values from the previous regression. 
+
+Hint: `cbind(R = lm1$res, Fit = lm1$fit, Utilities)`
+
+There are a lot of interesting patterns in the pairs plot at this point. Identify all of the plots that seem like they might explain something useful about the residuals from the regression in Part (b).
+
+Notice how `month` is strongly related to several variables in a quadratic way. Identify the scatterplots where month, acting as the x-variable, is a strong predictor of those variables.
+
+Thus, while many variables could give some insight on the residuals, month seems to explain most of them, so that would suggest using month as a variable that could explain elecbill. Also, month would be the best choice to actually use over any of the other related variables, because it would be the easiest variable to "measure" in real life. However, there is one other variable that does not relate to `month` that also seems to shed some insight on the residuals from the regression from Part (b).
+
+Which variable is this? (It shows a low correlation, but positive linear relationship and is not related to month at all according to the pairs plots.)
+
+<div class="YourAnswer">
+
+```{r}
+pairs(cbind(R = elec.lm$res, Fit = elec.lm$fit, Utilities), panel = panel.smooth, pch=16, cex=0.7, col="black")
+
+```
+
+Year
+
+</div>
+
+
+
+### Part (d)
+
+Perform a second regression that adds both of these newly identified variables to the regression performed in Part (b). This should now be a regression of elecbill on three different explanatory variables.
+
+Report the p-values of each of the two new variables, as well as the $R^2$ value of the regression, and create a residuals vs fitted values plot for the regression.
+
+What do each of these values show?
+
+<div class="YourAnswer">
+
+```{r}
+Elec.exp.lm <- lm(elecbill ~ kwh + year + month, data = Utilities)
+Elec.exp.b <- Elec.exp.lm
+
+pander(summary(Elec.exp.lm))
+
+plot(Elec.exp.lm, which=1)
+```
+
+The $p$-value for `month` is 0.208 and the $p$-value for `year` is 1.43e-14
+
+Adjusted $R^2$ = 0.8501
+
+This plot continues to suggest a possible $y$ transformation to correct the constant variance problem. However, before we do that, we'll try adding in the quadratic `month` term.
+
+</div>
+
+
+
+
+### Part (e)
+
+Add to the regression model of Part (d) a quadratic `month` term. Note how the p-values of all terms have now changed. State the adjusted $R^2$ value of the regression. Create a residuals vs fitted values plot of the regression.
+
+What does all of this show?
+
+<div class="YourAnswer">
+
+```{r}
+Elec.2.lm <- lm(elecbill ~ kwh + year + month + I(month^2), data = Utilities)
+
+pander(summary(Elec.2.lm))
+
+plot(Elec.2.lm, which=1)
+```
+
+Adjusted $R^2$ = 0.9078
+
+The residual plot ironically now shows a problem with linearity and constant variance.
+
+</div>
+
+<br />
+
+
+
+### Part (f)
+
+Let's check one more time if any other variables should be added to the model before we try a transformation.
+
+Create another pairs plot that uses the residuals and fitted values from the regression in Part (d). What do you see? 
+
+<div class="YourAnswer">
+
+```{r}
+pairs(cbind(R = Elec.exp.lm$res, Fit = Elec.exp.lm$fit, Utilities), panel = panel.smooth, pch=16, cex=0.7, col="black")
+```
+
+</div>
+
+
+### Part (g)
+
+Perform a regression that includes temp and I(temp^2) into the regression from Part (e).
+
+What happens to the p-values for month and I(month^2)?
+
+What is the adjusted R-squared of this model?
+
+<div class="YourAnswer">
+
+
+```{r}
+Elec.3.lm <- lm(elecbill ~ kwh + year + month + I(month^2) + temp +I(temp^2), data = Utilities)
+pander(summary(Elec.3.lm))
+
+```
+
+</div>
+
+### Part (h)
+
+Drop month and I(month^2) from the model in Part (g) but leave all other terms in the model. 
+
+What is the adjusted R-squared of this model?
+
+What does the residuals vs fitted values plot show?
+
+<div class="YourAnswer">
+
+```{r}
+Elec.4.lm <- lm(elecbill ~ kwh + year + temp +I(temp^2), data = Utilities)
+pander(summary(Elec.4.lm))
+plot(Elec.4.lm, which=1)
+```
+
+Adjusted $R^2$ = 0.9232
+
+It shows that observation number 95 needs to be removed from the regression as it is an extreme outlier.
+
+</div>
+
+
+### Part (i)
+
+Though we could check another pairs plot at this point (it actually doesn't show anything useful), let's try a y-transformation instead, just for fun. Run boxCox(...) on your lm from Part (h). Which value of $\lambda$ is suggested?
+
+<div class="YourAnswer">
+
+```{r}
+boxCox(Elec.4.lm)
+```
+
+Anywhere from 0.5 to 1.0.
+
+</div>
+
+
+### Part (j)
+
+State the equation for the final regression model for predicting elecbill. Be sure observation 95 is removed, (i.e., data=Utilities[-95,]). What is the adjusted R-squared of this final model?
+
+<div class="YourAnswer">
+```{r}
+
+Elec.5.lm <- lm(elecbill ~ kwh + year + temp +I(temp^2), data = Utilities[-95, ])
+pander(summary(Elec.5.lm))
+plot(Elec.5.lm, which=1)
+```
+
+$$
+ \underbrace{\hat{Y_i}}_\text{Avg. Elec. Bill} = -5773 + 0.09969 \underbrace{X_1}_\text{KWH} + 2.88 \underbrace{X_2}_\text{Year} + -0.518 \underbrace{X_3}_\text{Temperature} + 0.009226 \underbrace{X_3^2}_\text{Temperature^2}
+$$
+
+```{r}
+## Hint: library(car) has a scatterplot 3d function which is simple to use
+#  but the code should only be run in your console, not knit.
+
+## library(car)
+## scatter3d(Y ~ X1 + X2, data=yourdata)
+
+
+
+## To embed the 3d-scatterplot inside of your html document is harder.
+#library(plotly)
+#library(reshape2)
+
+#Perform the multiple regression
+#air_lm <- lm(Ozone ~ Temp + Month, data= airquality)
+util_lm <- lm(elecbill ~ kwh + year, data = Utilities)
+
+#Graph Resolution (more important for more complex shapes)
+#graph_reso <- 0.5
+graph_reso_year <- 0.5
+graph_reso_kwh <- 50
+
+#Setup Axis
+#axis_x <- seq(min(airquality$Temp), max(airquality$Temp), by = graph_reso)
+#axis_y <- seq(min(airquality$Month), max(airquality$Month), by = graph_reso)
+axis_x <- seq(min(Utilities$kwh), max(Utilities$kwh), by = graph_reso_kwh)
+axis_y <- seq(min(Utilities$year), max(Utilities$year), by = graph_reso_year)
+
+
+#Sample points
+#air_surface <- expand.grid(Temp = axis_x, Month = axis_y, KEEP.OUT.ATTRS=F)
+#air_surface$Z <- predict.lm(air_lm, newdata = air_surface)
+#air_surface <- acast(air_surface, Month ~ Temp, value.var = "Z") #y ~ x
+elecbill_surface <- expand.grid(kwh = axis_x, year = axis_y, KEEP.OUT.ATTRS=F)
+elecbill_surface$Z <- predict.lm(util_lm, newdata = elecbill_surface)
+elecbill_surface <- acast(elecbill_surface, year ~ kwh, value.var = "Z")
+
+#Create scatterplot
+plot_ly(Utilities, 
+        x = ~kwh, 
+        y = ~year, 
+        z = ~elecbill,
+        text = rownames(Utilities), 
+        type = "scatter3d", 
+        mode = "markers") %>%
+  add_trace(z = elecbill_surface,
+            x = axis_x,
+            y = axis_y,
+            type = "surface")
+```
+
+```{r}
+par(mfrow = c(1,2))
+plot(elecbill ~ kwh, data = Utilities)
+plot(elecbill ~ year, data = Utilities)
+
+```
+
+```{r}
+util_lm <- lm(elecbill ~ kwh + year, data = Utilities)
+
+b <- util_lm$coefficients
+
+plot(elecbill ~ kwh, data = Utilities)
+
+year=2000
+curve(b[1] + b[2]*kwh + b[3]*year, add=TRUE, xname ="kwh", col = "skyblue")
+
+year=2004
+curve(b[1] + b[2]*kwh + b[3]*year, add=TRUE, xname ="kwh", col = "firebrick")
+
+year=2008
+curve(b[1] + b[2]*kwh + b[3]*year, add=TRUE, xname ="kwh", col = "green3")
+```
+
+
+```{r}
+plot(elecbill ~ year, data = Utilities)
+
+util_lm <- lm(elecbill ~ year + kwh, data = Utilities)
+
+c <- util_lm$coefficients
+
+kwh = 200
+curve(c[1] + c[2]*year + c[3]*kwh, add=TRUE, xname ="kwh", col = "orange")
+
+kwh = 600
+curve(b[1] + b[2]*year + b[3]*kwh, add=TRUE, xname ="kwh", col = "purple")
+
+kwh = 1000
+curve(b[1] + b[2]*year + b[3]*kwh, add=TRUE, xname ="kwh", col = "pink")
+```
+
+</div>
+
+<br />
+
+
+
+**Concluding Comments**
+
+This is a pretty good model. However, one final comment. In order to use this model to predict the elecbill, we have to know the "temp" for the month of interest. Some reading about the data ?Utilities shows that "temp" is the "average temperature (F) for billing period". Similarly, kwh is the "electricity usage (kwh)" for the billing period. So... our model is only useful for predicting the bill a day or two before it arrives. If you wanted to predict the elecbill for each month during the coming year, you would be forced to move to a model that only used year and month... and the adjusted R-squared of this model: 
+
+```{r}
+pander(summary(lm(elecbill ~ year + I(month^2), data = Utilities)))
+```
+
+is unfortunately a lot lower.... So, remember, there is a balance between the usefulness of the model and the accuracy of the model. Our work came up with a model that was highly accurate, but by the time we would know all of the information needed to make our prediction, the bill would be arriving in our inbox. Fortunately, our model does give the customer great insight about how their final bill is created, and would allow them an opportunity (if we assume causation) to make changes to their habits that might change their overall bill. So, while not as useful for prediction, it is highly valuable for interpretation and insight.
+
+
+
+
+
+
+
+
+<style>
+
+.YourAnswer {
+  color: #317eac;
+  padding: 10px;
+  border-style: solid;
+  border-width: 2px;
+  border-color: skyblue4;
+  border-radius: 5px;
+}
+
+</style>
+
+ 
+ 

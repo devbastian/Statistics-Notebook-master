@@ -1,0 +1,1202 @@
+---
+title: "Class Activities"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r Libraries and Data, message=FALSE, warning=FALSE}
+# Load your libraries
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+
+```
+
+## Questions I have {.tabset .tabset-pills .tabset-fade}
+
+| Questions | Answers|
+|-------------------|--------------------|
+|What is a residual? | |
+
+### Week 1 - Simple Linear Regression {.tabset .tabset-pills .tabset-fade}
+
+#### Wednesday {.tabset}
+
+```{r}
+#View(mtcars)
+#?mtcars
+#mPlot(mtcars)
+gf_histogram(~ mpg, data = mtcars, binwidth = 5, fill="skyblue", color = "skyblue") %>%
+  gf_labs(title = "Gas Mileage of mtcars Vehicles", y="Number of Vehicles", x="Gas Mileage (mpg)")
+
+
+ggplot(mtcars, aes(x=mpg)) +
+  geom_histogram(binwidth=5, fill="skyblue", color="skyblue") +
+  labs(title="Gas Mileage of mtcars Vehicles", x="Gas Mileage (mpg)", y="Number of Vehicles")
+
+mean(mtcars$mpg)
+sd(mtcars$mpg)
+
+#mtcars2 <- as.factor(mtcars$mpg)
+#View(mtcars2)
+
+ggplot(mtcars, aes(x=factor(cyl), y=mpg)) +
+  geom_boxplot(color="skyblue") +
+  labs(title="Gas Mileage of mtcars Vehicles", x="Number of Cylinders of Engine (cyl)", y="Daily Mean Temperature")
+
+mtcars %>%
+  group_by(cyl) %>%
+  summarise(sdTemp =sd(mpg),
+            mean = mean(mpg))
+```
+
+
+```{r}
+mylm <- lm(mpg ~ qsec, data=subset(mtcars, am==0))
+summary(mylm)
+plot(mpg ~ qsec, data=subset(mtcars, am==0))
+abline(mylm)
+
+#mPlot(mtcars)
+mtcars %>%
+  filter(am==0) %>%
+  ggplot(aes(x = qsec, y = mpg)) +
+  geom_point(color = "skyblue", pch = 18) +
+  labs(title = "Gas Mileage of mtcars Vehicles", subtitle = "Automatic Transmissions Only (am==0)", y= "Gas Mileage (mpg)", x = "Quarter Mile (qsec)")
+
+-9.0099 + 1.4385*19
+```
+
+
+
+
+
+
+
+
+#### Friday
+
+```{r warning=FALSE, message=FALSE}
+#?Utilities
+#View(Utilities)
+
+# Perform the Test
+mylm <- lm(elecbill ~ kwh, data = Utilities)
+summary(mylm)
+
+
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals, type = "b", main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+#Plot the Regression Line
+plot(elecbill ~ kwh, data = Utilities)
+abline(mylm)
+abline(-5.000714+12.66, 0.108754, lty=2)
+abline(-5.000714-12.66, 0.108754, lty=2)
+abline(-5.000714+2*12.66, 0.108754, lty=2)
+abline(-5.000714-2*12.66, 0.108754, lty=2)
+```
+
+Being more extreme 
+Test statistic and 
+The line is the average y-value. The slope is the change in the average y-value. The y-intercept is the average y value when x equals zero.
+
+Never touches x-axis. 68, 95, 99.7
+
+$$
+  \underbrace{Y_i}_\text{Some Label} = \overbrace{\beta_0}^\text{y-int} + \overbrace{\beta_1}^\text{slope} \underbrace{X_i}_\text{Some Label} + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)
+$$
+
+### Week 2 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday 
+
+$\underbrace{Y_i}_\text{High Temp} = \beta_0 + \beta_1 X_i + \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)$
+
+$\hat{Y}_i = b_0 + b_1 X_i$
+
+
+Box said "All models are wrong. Some are useful."
+
+
+What is a residual?  
+* Residuals are the distance from the line to the data point. How far the dot has deviated from the line.
+
+In which direction (vertical, horizontal, diagonal) is a residual? Why?  
+* It's vertical because it cooresponds to the x-value.
+
+What happens to the magnitude of the residuals as you move the line to the "center" of the data? Or away from the data?  
+* The residuals become the smallest they can be when the line is centered.
+
+What are positive or negative residuals?  
+* That a data point is above or below the line.
+
+What happens when we add or sum the residuals together?
+* We get zero.
+
+What do the shaded "squares" that appeared next to each residual bar in the scatterplot represent?  
+* They represent the squared residual or the "area".
+
+What does the length of the shaded bar under "Squared Residuals", my estimation for the line, represent?  
+* How far off my predicted line is from zero.
+
+Why would the phrase "Least Squares Regression Line" be a good name for the "Best-Fit Line"?  
+* The "Best-Fit Line" creates residuals that are the smallest they can be. 
+
+What does the length of the shaded bar under "Squared Residuals", the best fit line, show?  
+* The mathmatically correct way to get the least residuals.
+
+How is the "Sum of Squared Residuals" and "Correlation Coefficient" effected by the distance of the dots from the line?
+* As the dots are further from the line, the residuals are greater. As the dots are further from the line, the correlation becomes smaller.
+
+What happens to the "Sum of Squared Residuals" and "Correlation Coefficient" if you put all of the dots exactly on the line?  
+* You would get a correlation of 1 and a sum of squared residuals of 0. 
+
+```{r Class Stuff, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+plot(dist~speed, data=cars)
+cars.lm <- lm(dist ~ speed, data = cars)
+summary(cars.lm)
+
+abline(cars.lm)
+mean(cars.lm$residuals)
+round(mean(cars.lm$residuals), 4)
+plot(cars.lm, which=1)
+car.lm$residuals[c(23,49)]
+which.min(cars.lm$residuals)
+cars.lm$residuals[c(49)]
+
+```
+
+
+#### Wednesday
+
+View(cars)
+?cars
+
+```{r Examples of Summing, message=FALSE, warning=FALSE, include=FALSE}
+1+2+3+4+5+6
+
+\sum_{i=1}^6 i
+
+sum(1:6)
+```
+
+$\sum_{i=1}^6 i$
+
+
+```{r}
+sum(1:100)
+```
+
+$\sum_{i=1}^100 i$
+
+
+```{r}
+x = c(5, 15, 2, 29, 35, 24, 25, 39)
+sum(x)
+```
+
+
+```{r}
+1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2
+
+\sum_{i=1}^6 i^2
+
+sum((1:6)^2)
+```
+
+$\sum_{i=1}^6 i^2$
+
+Does a "sum of squares" equal a "square of a sum"?  
+* No
+```{r}
+(1^2 + 2^2 + 3^2)
+
+(1 + 2 + 3)^2
+
+```
+
+```{r}
+x2 = c(5, 15, 2, 29, 35, 24, 25, 39)
+
+sum((x2^2))
+```
+
+
+```{r}
+var(x)
+sum((x-mean(x))^2/7)
+```
+
+```{r}
+plot(dist ~ speed,
+     data=cars,
+     ylab="Stopping Distance in Feet (dist)", 
+     xlab="Vehicle Speed in mph (speed)", 
+     main="Stopping Distance of 1920's Vehicles",
+     sub="(cars data set)",
+     col="firebrick", 
+     pch=16)
+text(4, 120, 
+     expression(hat(Y)), 
+     col="gray")
+text(4, 110, 
+     expression(bar(Y)), 
+     col="gray")
+
+# Run regression
+sumlm <- lm(dist ~ speed, data=cars)
+summary(sumlm)
+
+# Plot your lines
+abline(sumlm, 
+       col="gray")
+mean(cars$dist)
+abline(h=mean(cars$dist),
+       lty=2, 
+       col="gray")
+```
+
+```{r}
+#SSE
+sum( (cars$dist - sumlm$fit)^2 )
+
+#SSR
+sum( (sumlm$fit - mean(cars$dist))^2 )
+
+#SSTO
+sum( (cars$dist - mean(cars$dist))^2 )
+
+#$R^2$
+SSR <- sum( (sumlm$fit - mean(cars$dist))^2 )
+SSTO <- sum( (cars$dist - mean(cars$dist))^2 )
+SSR/SSTO
+#$r$
+cor(cars$speed, cars$dist)
+
+# # SSE
+# sum(mylm$res^2)
+# 
+# # SSR
+# sum( (mylm$fit - mean(Orange$circumference))^2 )
+# SSR <- sum( (mylm$fit - mean(Orange$circumference))^2 )
+# 
+# # SSTO
+# sum( (Orange$circumference - mean(Orange$circumference))^2 )
+# SSTO <- sum( (Orange$circumference - mean(Orange$circumference))^2 )
+# 
+# # R^2
+# SSR/SSTO
+# 
+# # r
+# cor(Orange$age, Orange$circumference)
+```
+
+What does SSE, SSR, SSTO, $R^2$, and $r$ stand for?  
+
+
+Variance is essentially an "average" of a "sum of squares".
+  Can you explain why?
+The values being squared in the numerator of variance are the deviations of each data point from the mean.
+  Can you explain which part of the numerator specifically shows this?
+Variance is large when the data is very spread out from the mean.
+  Can you explain why?
+Variance is small when data is closely clustered around the mean.
+  Can you explain why?
+Variance is zero when all the data is equal to the mean.
+  Can you explain why?
+Variance is never negative.
+  Can you explain why?
+  
+#### Friday
+
+How are residuals used to 
+
+
+
+```{r}
+# Perform the Test
+w2d3lm <- lm(dist ~ speed, data = cars)
+summary(w2d3lm)
+
+
+# Check Assumptions
+par(mfrow=c(1,3))
+plot(mylm, which=1:2)
+plot(mylm$residuals, type = "b", main = "Residuals vs Order")
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+#Plot the Regression Line
+plot(dist ~ speed, data = cars)
+abline(w2d3lm)
+points(14,80, col="skyblue", pch=16, cex=2)
+text(14,80, "Dot 23", pos=3, col="skyblue")
+
+lines(c(14,14), c(80, predict(w2d3lm, data.frame(speed=14))), lwd=2, col="skyblue")
+
+predict(w2d3lm, data.frame(speed=14))
+80-37.47463 
+w2d3lm$residuals[23]
+```
+
+### Week 3 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+```{r}
+View(Orange)
+View(Loblolly)
+View(mtcars)
+```
+
+```{r}
+plot(circumference ~ age, data = Orange)
+
+o.lm <- lm(circumference ~ age, data = Orange)
+abline(o.lm)
+plot(o.lm, which = 1)
+points(circumference ~ age, data = Orange[25,], col="orange", pch = 16)
+```
+
+```{r}
+plot(height ~ age, data = Loblolly)
+lob.lm <- lm(height ~ age, data = Loblolly)
+abline(lob.lm)
+plot(lob.lm, which = 1)
+```
+
+```{r}
+plot(mpg ~ qsec, data=mtcars)
+mt.lm <- lm(mpg ~ qsec, data = mtcars)
+abline(mt.lm)
+summary(mt.lm)
+```
+
+#### Wednesday
+
+#### Friday
+
+```{r}
+log(5000) # This is the base e version
+exp(8.517193)
+```
+
+```{r}
+mPlot(islands)
+
+islands %>%
+  ggplot() +
+  aes(x = ) +
+  geom_histogram(log())
+
+```
+
+
+```{r}
+library(mosaicData)
+View(Utilities)
+?Utilities
+
+plot(gasbill ~ temp, data = Utilities)
+plot(log(gasbill) ~ temp, data = Utilities)
+u.lm.t <- lm(log(gasbill) ~ temp, data = Utilities)
+abline(u.lm.t)
+b <- coef(u.lm.t)
+curve(exp(b[1] + b[2]*x), add = TRUE)
+
+
+```
+
+```{r}
+library(tidyverse)
+
+Utilities %>%
+  ggplot() +
+  aes(y = gasbill, x = temp) +
+  geom_point() +
+  stat_function(fun = function(x) exp(b[1] + b[2]*x))
+
+```
+
+```{r}
+u.lm <- lm(gasbill~ temp, data = Utilities)
+abline(u.lm)
+coef(u.lm)
+summary(u.lm)$sigma
+abline(225.78 + 26.44766, -2.970442, lty = 2)
+abline(225.78 - 26.44766, -2.970442, lty = 2)
+curve(exp)
+```
+
+```{r}
+orange.lm <- lm(circumference ~ age, data = Orange)
+b.Orange <- coef(orange.lm)
+orange.u.lm.t <- lm(log(circumference) ~ age, data = Orange)
+b.Orange.log <-  coef(orange.u.lm.t)
+
+
+Orange %>%
+ggplot() +
+  aes(x=age, y=circumference) +
+  geom_point(color="orangered") +
+#  stat_function(fun = function(x) b.Orange[1] + b.Orange[2]*x)
+  stat_function(fun = function(x) exp(b.Orange.log[1] + b.Orange.log[2]*x)) +
+#  stat_function(fun = function(x) exp(b.Orange.log[1] + b.Orange.log[2]*x))
+  labs(title="Growth of Orange Trees", x="Age of Tree in Days", y="Circumference of Tree (mm)") +   theme_bw( )
+```
+
+```{r}
+orange.lm <- lm(circumference ~ age, data = Orange)
+b.Orange <- coef(orange.lm)
+orange.u.lm.t <- lm(log(circumference) ~ age, data = Orange)
+b.Orange.log <-  coef(orange.u.lm.t)
+
+sqrt
+```
+
+
+### Week 4 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+```{r}
+N <- 512  # Creates a loop of how many times will go through the formula
+storage <- rep(NA, N) # NA means not available
+storage
+
+for (i in 1:N){
+  storage[i] <- 2*i # [] brackets mean to reference a specfic point within the data set
+  cat("i =", i, " and 2*i =", 2*i, " was saved in storage[", i, "]\n") # This lets us print a record of what is occurring
+}
+
+storage
+```
+
+In my own words, *sampling distribution of a sample statistic* means that I have obtained a mean or average of the samples and their means I obtained.
+
+```{r}
+# Hint 1
+N <- 10
+n <- 40 # the number of data points
+Xi <- rep(seq(30, 100, length.out=n/2), each=2) #n must be even. (start at 30, end at 100, divide by the number of data points)
+Yi <- 2.5 + 3*Xi + rnorm(n, 0, 1.2)
+storage_b0 <- rep(NA, N)
+storage_b1 <- rep(NA, N)
+for (i in 1:N){
+  mylm <- (Yi - Xi)
+  storage_b0[i] <- coef(mylm)[1]
+  storage_b1[i] <- coef(mylm)[2]
+}
+
+# Hint 2
+
+mylm <- lm(Yi ~ Xi)
+coef(mylm)
+coef(mylm)[1] #intercept only
+coef(mylm)[2] #slope only
+
+# Hint 3
+par(mfrow=c(1,2))
+hist(storage)
+hist(storage_b0)
+hist(storage_b1)
+```
+
+
+```{r}
+#Hint 1
+
+N <- 500
+n <- 40
+Xi <- rep(seq(30, 100, length.out=n/2), each=2) #n must be even.
+
+storage_b0 <- rep(NA, N)
+storage_b1 <- rep(NA, N)
+
+#Hint 2
+
+# mylm <- lm(Yi ~ Xi)
+# coef(mylm)
+# coef(mylm)[1] #intercept only
+# coef(mylm)[2] #slope only
+
+for (i in 1:N){
+  Yi <- 2.5 + 3*Xi + rnorm(n, 0, 1.2)
+  mylm <- lm(Yi ~ Xi)
+  storage_b0[i] <- coef(mylm)[1]
+  storage_b1[i] <- coef(mylm)[2]
+}
+
+#Hint 3
+par(mfrow=c(1,2))
+hist(storage_b0)
+hist(storage_b1)
+
+```
+
+
+
+What shape are the sampling distributions of $b_0$ and $b_1$ ?
+Normal Distribution
+
+What is the mean of each distribution? Why is this interesting?
+Mean of $b_0$ = 2.534024 and $b_1$ = 2.999535
+
+What is the standard deviation of each distribution?
+SD of $b_0$ = 0.6331799 and $b_1$ = 0.009223521
+
+How do the standard deviations of the sampling distributions change when the value of $\sigma$ is changed in the regression model?
+As sigma increases or decreases, so do our standard deviations increase or decrease.
+
+How do the standard deviations of the sampling distributions change when the spread of X is increased or decreased in the regression model?
+
+Can you create a formula that would provide an estimate of the standard deviations of these sampling distributions from just knowledge about X and $\sigma$?
+
+#### Wednesday
+
+```{r W4-Wed Gray Line of Regression Line, message=FALSE, warning=FALSE}
+ggplot(cars, aes(x=speed, y=dist)) +
+  geom_point() +
+  geom_smooth(method="lm")
+
+```
+
+What is a donkey and a hulla-hoop?
+- A test statstic and distribution of test statistic
+
+Answer 1: Std. Error
+Answer 2: 6.7584 
+Answer 3: 0.4155 
+Answer 4: Standard Error
+Answer 5: 15.38 
+
+Cody R package
+
+#### Friday
+
+```{r}
+curve(dt(x, 3), from=-4, to=4, lwd=2)
+curve(dnorm(x), add=TRUE, col="gray")
+abline(h=0, v=c(-1,1), col=c("gray","orange","orange"), lwd=c(1,2,2))
+
+pt(-1, 3)*2 #gives the area more extreme than t=-1 for t-dist with 3 df.
+pt(-abs(1.285), 13)*2
+pt(-abs(2.991), 48)*2
+pt(-abs(766.16), 418)*2
+qt(1-0.05/2, 48)
+```
+
+### Week 5 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+```{r}
+faithful.lm <- lm(waiting ~ eruptions, data = faithful)
+summary(faithful.lm)
+b.Faithful <- faithful.lm$coefficients
+
+faithful %>%
+  ggplot(aes(y = waiting, x = eruptions)) +
+  geom_point(fill = "skyblue", color = "gray", pch = 21) +
+  geom_smooth(method = "lm") +
+  geom_segment(aes(x = 2, xend = 2, y = 53.77, yend = 56.09), lwd = 4, color = "firebrick") +
+  geom_segment(aes(x=2, xend=2, y=43.23, yend=66.63), lwd=2, color="forestgreen") +
+  # stat_function(fun = function(x){(b.Faithful[1] + b.Faithful[2]*x)},
+  #               aes(color = "a")) +
+  labs(x = "Length of Eruption",
+       y = "Waiting Time Until Eruption",
+       title = "Predicting Waiting Time Until Next Eruption \nFaithful dataset") +
+  theme_bw() 
+  # theme(plot.title = element_text(hjust = 0.5),
+  #       legend.position = c(0.25, .85)) +
+  # scale_color_manual("",
+  #                    values = c("black"),
+  #                    labels = c("Regression Line"))
+```
+
+```{r}
+predict(faithful.lm, data.frame(eruptions = 2), response = type)
+predict(faithful.lm, data.frame(eruptions = 2), response = type, interval = "prediction") # Predictions are for individuals. Contains 95% of all eruptions. Green lines
+predict(faithful.lm, data.frame(eruptions = 2), response = type, interval = "confidence") # Confidence are for averages. Beta will be contained 95% of the time within the confidence interval or the gray line.
+```
+
+#### Wednesday
+
+```{r ggplot version, message=FALSE, warning=FALSE}
+Ult.lm <- lm(gasbill ~ temp, data = Utilities)
+Ult.lm.co <- Ult.lm$coefficients
+boxCox(Ult.lm)
+Ult.lm.t <- lm(sqrt(sqrt(gasbill)) ~ temp, data = Utilities)
+Ult.lm.t.co <- Ult.lm.t$coefficients
+mylines <- predict(Ult.lm.t, data.frame(temp = 30), interval = "prediction")^4
+
+Utilities %>%
+  ggplot(aes(y = gasbill, x = temp)) +
+  geom_point() +
+  geom_point(aes(x = 30, y = mylines[2]), color = "firebrick") +
+  geom_point(aes(x = 30, y = mylines[1]), color = "firebrick") +
+  geom_point(aes(x = 30, y = mylines[3]), color = "firebrick") +
+  geom_hline(aes(yintercept = mylines[2]), color = "firebrick", linetype = 2) +
+  geom_hline(aes(yintercept = mylines[3]), color = "firebrick", linetype = 2) +
+  geom_segment(aes(x=30, xend=30, y=mylines[2], yend=mylines[3]), color="firebrick", linetype = 2) + # mylines[2] lowend mylines[3] highend
+  stat_function(fun = function(x) Ult.lm.co[1] + Ult.lm.co[2]*x,
+                aes(color = "a")) +
+  stat_function(fun = function(x) (Ult.lm.t.co[1] + Ult.lm.t.co[2]*x)^4,
+                aes(color = "b")) +
+  labs(title = "Utilities Dataset",
+        x = "Temperature",
+        y = "Gasbill") +
+  theme_test() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = c(0.85, .85)) +
+  scale_color_manual("",
+                     values = c("black", "firebrick"),
+                     labels = c("Regression Line", "Transformed Regression"))
+
+```
+
+```{r base r version}
+Ult.lm <- lm(gasbill ~ temp, data = Utilities)
+u.lm.t <- lm(sqrt(sqrt(gasbill)) ~ temp, data = Utilities)
+b <- coef(u.lm.t)
+
+plot(gasbill ~ temp, data = Utilities)
+abline(Ult.lm, col = "hotpink")
+curve((Ult.lm.t.co[1] +  Ult.lm.t.co[2]*x)^4, add = TRUE, col = "skyblue", lwd = 2)
+abline(h=predict(Ult.lm, data.frame(temp = 30), interval = "prediction"), lty = 2, col = "hotpink")
+abline(v=30, lty = 2, col = "skyblue")
+abline(h= predict(Ult.lm.t, data.frame(temp = 30), interval = "prediction")^4, lty = 2, col = "skyblue")
+```
+
+#### Friday
+
+### Week 6 - Different Types of Regression Models {.tabset .tabset-pills .tabset-fade}
+
+#### Monday: Quadratic {.tabset}
+
+```{r Quadratic_Simulation, message=FALSE, warning=FALSE}
+## Simulating Data from a Regression Model
+## This R-chunk is meant to be played in your R Console.
+## It allows you to explore how the various elements
+## of the regression model combine together to "create"
+## data and then use the data to "re-create" the line.
+
+set.seed(101) #Allows us to always get the same "random" sample
+              #Change to a new number to get a new sample
+
+n <- 100 #set the sample size
+X_i <- runif(n, -2, 25) 
+  #Gives n random values from a uniform distribution between 15 to 45.
+
+beta0 <- 3 #Our choice for the y-intercept. 
+
+beta1 <- 1.8 #Our choice for the slope. 
+
+beta2 <- -0.05 #DEVIN - beta2 variable
+
+sigma <- 2.5 #Our choice for the std. deviation of the error terms.
+
+
+epsilon_i <- rnorm(n, 0, sigma) 
+  #Gives n random values from a normal distribution with mean = 0, st. dev. = sigma.
+
+Y_i <- beta0 + beta1 * X_i + beta2 * X_i^2 + epsilon_i 
+  #Create Y using the normal error regression model
+
+fabData <- data.frame(y=Y_i, x=X_i) 
+  #Store the data as data
+
+#View(fabData) 
+  
+
+#In the real world, we begin with data (like fabData) and try to recover the model that 
+# (we assume) was used to created it.
+
+fab.lm <- lm(y ~ x + I(x^2), data=fabData) #Fit an estimated regression model to the fabData.
+
+summary(fab.lm) #Summarize your model. 
+
+
+```
+
+```{r}
+fab.lm.co <- fab.lm$coefficients
+
+fabData %>%
+  ggplot(aes(y = y, x = x)) +
+  geom_point(aes(color = "a")) +
+  stat_function(fun = function(x)fab.lm.co[1] + fab.lm.co[2]*x + fab.lm.co[3]*x^2, 
+                aes(color = "b")) +
+  stat_function(fun = function(x)beta0 + beta1*x + beta2*x^2, 
+                aes(color = "c"), linetype = 2) +
+  labs(title="Quadratic Regression Relation Diagram",
+       x = "X Variable",
+       y = "Y Variable") +
+  scale_color_manual(name = "",
+                     values = c("coral1","brown4", "black"),
+                     labels = c("(Y_i) is the observed data", "hat{Y_i} is the estimated regression relation (curve)", "E{Y} is the true regression relation (usually unknown)")) +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = c(0.55, .25)) 
+
+```
+
+```{r Base_r plot, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+plot(y ~ x, data=fabData) #Plot the data.
+  
+abline(fab.lm) #Add the estimated regression line to your plot.
+
+
+# Now for something you can't do in real life... but since we created the data...
+
+abline(beta0, beta1, lty=2) 
+  #Add the true regression line to your plot using a dashed line (lty=2). 
+
+legend("topleft", legend=c("True Line", "Estimated Line"), lty=c(2,1), bty="n") 
+  #Add a legend to your plot specifying which line is which.
+```
+
+
+
+
+
+
+#### Wednesday: Cubic Regression
+
+```{r Cubic_simulation}
+## Simulating Data from a Regression Model
+## This R-chunk is meant to be played in your R Console.
+## It allows you to explore how the various elements
+## of the regression model combine together to "create"
+## data and then use the data to "re-create" the line.
+
+set.seed(101) #Allows us to always get the same "random" sample
+              #Change to a new number to get a new sample
+
+n <- 5 #set the sample size
+X_i <- runif(n, -18, 6) 
+  #Gives n random values from a uniform distribution between 15 to 45.
+
+beta0 <- 2 #Our choice for the y-intercept. 
+
+beta1 <- -1 #Our choice for the slope. 
+
+beta2 <- -1 #DEVIN - beta2 variable
+
+beta3 <- -.05 #DEVIN - beta3 or cubic
+
+sigma <- 12.5 #Our choice for the std. deviation of the error terms.
+
+
+epsilon_i <- rnorm(n, 0, sigma) 
+  #Gives n random values from a normal distribution with mean = 0, st. dev. = sigma.
+
+Y_i <- beta0 + beta1 * X_i + beta2 * X_i^2 + beta3 * X_i^3 + epsilon_i 
+  #Create Y using the normal error regression model
+
+fabData <- data.frame(y=Y_i, x=X_i) 
+  #Store the data as data
+
+#View(fabData) 
+  
+
+#In the real world, we begin with data (like fabData) and try to recover the model that 
+# (we assume) was used to created it.
+
+fab.lm <- lm(y ~ x + I(x^2)  + I(x^3), data=fabData) #Fit an estimated regression model to the fabData.
+
+summary(fab.lm) #Summarize your model. 
+
+
+```
+
+```{r cubic_graph}
+fab.lm.co <- fab.lm$coefficients
+
+fabData %>%
+  ggplot(aes(y = y, x = x)) +
+  geom_point() +
+  stat_function(fun = function(x)fab.lm.co[1] + fab.lm.co[2]*x + fab.lm.co[3]*x^2 + fab.lm.co[4]*x^3, 
+                aes(color = "b")) +
+  stat_function(fun = function(x)beta0 + beta1*x + beta2*x^2 + beta3*x^3, 
+                aes(color = "c"), linetype = 2) +
+  labs(title="Quadratic Regression Relation Diagram",
+       x = "X Variable",
+       y = "Y Variable") +
+  scale_color_manual(name = "",
+                     values = c("coral1", "chartreuse4"),
+                     labels = c("hat{Y_i} is the estimated cubic regression relation (curve)", "E{Y} is the true cubic regression relation (usually unknown)")) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position = c(0.25, .85))
+
+```
+
+
+
+
+
+
+
+
+```{r two_lines_simulation}
+## Simulating Data from a Regression Model
+## This R-chunk is meant to be played in your R Console.
+## It allows you to explore how the various elements
+## of the regression model combine together to "create"
+## data and then use the data to "re-create" the line.
+
+set.seed(101) #Allows us to always get the same "random" sample
+              #Change to a new number to get a new sample
+
+n <- 100 #set the sample size
+
+X_i <- runif(n, 0, 25) 
+X2_i <- sample(c(0,1), n, replace = TRUE)
+
+  #Gives n random values from a uniform distribution between 15 to 45.
+
+beta0 <- 5 #Our choice for the y-intercept. 
+
+beta1 <- -4 #Our choice for the slope. 
+
+beta2 <- .05 #DEVIN - beta2 variable
+
+beta3 <- 3 #DEVIN - beta3 or cubic
+
+sigma <- 2.5 #Our choice for the std. deviation of the error terms.
+
+
+epsilon_i <- rnorm(n, 0, sigma) 
+  #Gives n random values from a normal distribution with mean = 0, st. dev. = sigma.
+
+Y_i <- beta0 + beta1 * X_i + beta2 * X2_i + beta3 * X_i * X2_i + epsilon_i 
+  #Create Y using the normal error regression model
+
+fabData <- data.frame(y=Y_i, x=X_i, x2=X2_i) 
+  #Store the data as data
+
+#View(fabData) 
+  
+
+#In the real world, we begin with data (like fabData) and try to recover the model that 
+# (we assume) was used to created it.
+
+fab.lm <- lm(y ~ x + x2 + x:x2, data=fabData) #Fit an estimated regression model to the fabData.
+
+summary(fab.lm) #Summarize your model. 
+
+
+```
+
+```{r two_lines_graph}
+fab.lm.co <- fab.lm$coefficients
+
+fabData %>%
+  ggplot(aes(y = y, x = x, fill = factor(x2))) +
+  geom_point(pch=21) +
+  stat_function(fun = function(x, x2 = 0) fab.lm.co[1] + fab.lm.co[2]*x + fab.lm.co[3]*x2 + fab.lm.co[4]*x*x2, 
+                aes(color = "a", linetype = "a")) +
+  stat_function(fun = function(x, x2 = 1) fab.lm.co[1] + fab.lm.co[2]*x + fab.lm.co[3]*x2 + fab.lm.co[4]*x*x2, 
+                aes(color = "b", linetype = "b")) +
+  stat_function(fun = function(x, x2 = 0) beta0 + beta1*x + beta2*x2 + beta3*x*x2, 
+                aes(color = "c", linetype = "c")) +
+  stat_function(fun = function(x, x2 = 1) beta0 + beta1*x + beta2*x2 + beta3*x*x2, 
+                aes(color = "d", linetype = "d")) +
+  labs(title="Quadratic Regression Relation Diagram",
+       x = "X Variable",
+       y = "Y Variable") + 
+  scale_fill_discrete(name = "Data Points") + 
+  scale_color_manual(name = "Type of Line",
+                     values = c("coral1", "black", "coral1", "black"),
+                     labels = c("Estimated Two-Lines Coral", "Estimated Two-Lines Black", "True Two-Lines Coral", "True Two-Lines Black")) +
+  scale_linetype_manual(name = "Type of Line",
+                     values = c(1,1,2,2),
+                     labels = c("Estimated Two-Lines Coral", "Estimated Two-Lines Black", "True Two-Lines Coral", "True Two-Lines Black")) +
+  theme(legend.position = "right")
+
+```
+
+#### Friday
+
+```{r Two_Quadratic_Simulation, message=FALSE, warning=FALSE}
+## Simulating Data from a Regression Model
+## This R-chunk is meant to be played in your R Console.
+## It allows you to explore how the various elements
+## of the regression model combine together to "create"
+## data and then use the data to "re-create" the line.
+
+set.seed(101) #Allows us to always get the same "random" sample
+              #Change to a new number to get a new sample
+
+n <- 100 #set the sample size
+X_i <- runif(n, -2, 3) 
+X2_i <- sample(c(0,1), n, replace = TRUE)
+  #Gives n random values from a uniform distribution between 15 to 45.
+
+beta0 <- -2 #Our choice for the y-intercept. 
+
+beta1 <- 3 #Our choice for the slope. 
+
+beta2 <- 4 #DEVIN - beta2 variable
+
+beta3 <- 4
+
+beta4 <- 2
+
+beta5 <- -7
+
+sigma <- 3.5 #Our choice for the std. deviation of the error terms.
+
+
+epsilon_i <- rnorm(n, 0, sigma) 
+  #Gives n random values from a normal distribution with mean = 0, st. dev. = sigma.
+
+Y_i <- beta0 + beta1 * X_i + beta2 * X_i^2 + beta3 * X2_i + beta4 * X_i * X2_i + beta5 * X_i^2 * X2_i + epsilon_i 
+  #Create Y using the normal error regression model
+
+fabData <- data.frame(y=Y_i, x=X_i, x2=X2_i) 
+  #Store the data as data
+
+#View(fabData) 
+  
+
+#In the real world, we begin with data (like fabData) and try to recover the model that 
+# (we assume) was used to created it.
+
+fab.lm <- lm(y ~ x + I(x^2) + x2 + x:x2 + I(x^2):x2, data=fabData) #Fit an estimated regression model to the fabData.
+
+summary(fab.lm) #Summarize your model. 
+
+
+```
+
+```{r Two_Quadratic_Graph}
+fab.lm.co <- fab.lm$coefficients
+
+fabData %>%
+  ggplot(aes(y = y, x = x, fill = as.factor(x2))) +
+  geom_point(pch = 21) +
+  stat_function(fun = function(x, x2 = 0)fab.lm.co[1] + fab.lm.co[2]*x + fab.lm.co[3]*x^2 + fab.lm.co[4]*x2 + fab.lm.co[5]*x*x2 + fab.lm.co[6]*x^2*x2,
+                aes(color = "a"), linetype = 1) +
+  stat_function(fun = function(x, x2 = 1)fab.lm.co[1] + fab.lm.co[2]*x + fab.lm.co[3]*x^2 + fab.lm.co[4]*x2 + fab.lm.co[5]*x*x2 + fab.lm.co[6]*x^2*x2,
+                aes(color = "b"), linetype = 1) +
+  stat_function(fun = function(x, x2 = 0)beta0 + beta1*x + beta2*x^2 + beta3*x2 + beta4*x*x2 + beta5*x^2*x2,
+                aes(color = "c"), linetype = 2) +
+  stat_function(fun = function(x, x2 = 1)beta0 + beta1*x + beta2*x^2 + beta3*x2 + beta4*x*x2 + beta5*x^2*x2,
+                aes(color = "d"), linetype = 2) +
+  theme_light() +
+  labs(title="Two Quadratic Regression Relations Diagram",
+       x = "X Variable",
+       y = "Y Variable") +
+  scale_fill_discrete(name = "Data Points") + 
+  scale_color_manual(name = "Type of Line",
+                     values = c("brown3", "darkcyan", "brown3", "darkcyan"),
+                     labels = c("Estimated Two-Lines Brown3", "Estimated Two-Lines Darkcyan", "True Two-Lines Brown3", "True Two-Lines Darkcyan")) +
+  scale_linetype_manual(name = "Type of Line",
+                        values = c(1,1,2,2),
+                        labels = c("Estimated Two-Lines Brown3", "Estimated Two-Lines Darkcyan", "True Two-Lines Brown3", "True Two-Lines Darkcyan")) +
+  theme(legend.position = "right")
+
+```
+
+### Week 7 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+#### Wednesday
+
+```{r}
+X <- c(1, 4,  7,   8,  10, 20)
+
+Y <- c(3, 5, 18, 13, 12,   1)
+
+ 
+
+w <- c(.1, .3, 1, 1, 1, 1)
+
+mylm <- lm(Y ~ X, weights=w)
+
+par(mfrow=c(1,4))
+
+plot(Y ~ X, pch=21, bg=rgb(1-w,1-w,1-w), col="orange")
+
+abline(mylm)
+```
+
+```{r}
+plot(gasbill ~ month, data = Utilities)
+lines(lowess(Utilities$month, Utilities$gasbill), col = "red")
+lines(lowess(Utilities$month, Utilities$gasbill, f = .2), col = "red")
+lm1 <- lm(gasbill ~ month + I(month^2), data = Utilities)
+b<- lm1$coefficients
+curve(b[1] + b[2]*x + b[3]*X^2, add = TRUE)
+
+ggplot(Utilities, aes(x = month, y = gasbill)) +
+  geom_point() +
+  geom_smooth(se = F)
+```
+
+#### Friday
+
+```{r}
+library(dplyr)
+View(starwars)
+star.lm <- lm(mass ~ height + species, data=starwars)
+summary(star.lm)
+
+starwars.b <- star.lm$coefficients
+curve(starwars.b[1] + starwars.b[2]*x, add = TRUE, col = palette()[1])
+curve(starwars.b[1] + starwars.b[2]*x + starwars.b[3], add = TRUE, col = palette()[1])
+curve(starwars.b[1] + starwars.b[2]*x, add = TRUE, col = palette()[1])
+curve(starwars.b[1] + starwars.b[2]*x, add = TRUE, col = palette()[1])
+curve(starwars.b[1] + starwars.b[2]*x, add = TRUE, col = palette()[1])
+
+```
+
+### Week 8 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+#### Wednesday
+
+#### Friday
+
+### Week 9 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+#### Wednesday
+
+#### Friday
+
+### Week 10 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+#### Wednesday
+```{r}
+train <- train %>% 
+  mutate(TotalSqft = TotalBsmtSF + X2ndFlrSF) %>% 
+  mutate(Has2ndFl = as.factor(ifelse(X2ndFlrSF > 0, "Yes", "No")))
+
+pairs(trains[,c("SalePrice", "TotalSqft", "Has2ndFl")], panel = panel.smooth)
+
+lm1 <- lm(SalePrice~TotalSqft, data = train)
+plot(lm1, which=1)
+
+##Remove outliers 524 and 1299
+
+train2 <- train[-c(524, 1299), ]
+lm1 <- lm(SalePrice ~ TotalSqft, data = train2)
+plot(lm1, which =1)
+boxCox(lm1) #suggests mabe a sqrt(sqrt(y)) 0.25
+
+plot(sqrt(sqrt(SalePrice)) ~ TotalSqft, data = train2, col = as.factor(Has2ndFl))
+
+lm2 <- lm(sqrt(sqrt(SalePrice)) ~ TotalSqft, data = train2)
+summary(lm2)
+
+
+lm3 <- lm(log(SalePrice) ~ TotalSqft, data = train2)
+  ## The log is interpreted as the percentage change in Y as X increases by 1 unit.
+  ## exp(slope) - %change in Y
+
+plot(SalePrice ~ TotalSqft, data = train)
+b <- coef(lm2)
+curve((b[1] + b[2]*x)^4, add = TRUE, col = "skyblue")
+
+## When you transform, only the log transformation preserves interpretation
+
+train <- mutate(TotalBsmtSF + )
+```
+
+#### Friday
+
+### Week 11 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+#### Wednesday
+
+#### Friday
+
+### Week 12 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+#### Wednesday
+
+```{r}
+grade425 <- read.csv("../../Data/Math425HistoricGrades.csv", header = TRUE)
+names(grade425)
+```
+
+```{r}
+grades425 <- grade425 %>% 
+  mutate(FinalGrade = ifelse(Final.Letter.Grade %in% c("A", "A-"), 1, 0))
+
+pairs(grades425[, c(29,24, 11:17)], panel = panel.smooth)
+```
+
+Hard Work 2 Looks Promising
+
+```{r}
+glm1 <- glm(FinalGrade == 1 ~ Hard.Work.2, data = grades425, family = binomial)
+summary(glm1)
+
+## Try a worse model to see what happens to AIC
+glm2 <- glm(FinalGrade == 1 ~ Hard.Work.7, data = grades425, family = binomial)
+summary(glm2) # AIC: 26.343; AIC is better, but the p-val is not sig
+
+```
+
+We use the AIC in logistic regression to select the "best" model. AIC stands for Akalke Information Criterion. Akalke was some guy that came up with this thing. 
+Lower is better (-infity is best, positive infinity is worst)
+
+```{r}
+## Try stuff
+
+
+```
+
+#### Friday
+
+### Week 13 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+23%. Line is created from equation. In R it is the predict(dataset, data.frame(column = "some number"), )
+
+```{r}
+
+```
+
+#### Wednesday
+
+```{r}
+
+```
+
+#### Friday
+
+### Week 14 {.tabset .tabset-pills .tabset-fade}
+
+#### Monday {.tabset}
+
+#### Wednesday
+
+#### Friday

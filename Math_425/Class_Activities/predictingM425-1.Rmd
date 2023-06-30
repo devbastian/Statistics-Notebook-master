@@ -1,0 +1,179 @@
+---
+title: "Predicting Math 425 Grades"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+
+grades425 <- read.csv("Math425HistoricGrades.csv", header=TRUE)
+names(grades425)
+```
+
+```{r}
+grades425 <- grades425 %>%
+  mutate(FinalGrade = ifelse(Final.Letter.Grade %in% c("A","A-"), 1, 0))
+
+pairs(grades425[,c(29,24,11:17)], panel=panel.smooth)
+
+```
+
+## Hard.Work.2 Looks Promising
+
+```{r}
+glm1 <- glm(FinalGrade == 1 ~ Hard.Work.2, data=grades425, family=binomial)
+summary(glm1) #AIC: 81.082
+
+# Try a worse model, just to see what happens to AIC
+glm2 <- glm(FinalGrade == 1 ~ Hard.Work.7, data=grades425, family=binomial)
+summary(glm2) #AIC: 26.343, AIC is better, but p-value not sig. and 44 missing values.
+
+```
+
+We use the AIC in logistic regression to select the "best" model. AIC stands for Akaike Information Criterion. Akaike was some guy that come up with this thing.
+
+Lower is better (-infity is best, positive infinity is worst)
+
+Question: "Is the AIC still interpreted as the proportion of variation?"
+Answer: No. It has absolutely NO interpretation.
+
+Question: "Is this important: Number of Fisher Scoring iterations: 7"?
+Answer: No.
+
+Question: "Is this important: Warning message:
+glm.fit: fitted probabilities numerically 0 or 1 occurred "
+Answer: Yes, it tells you your model has a really sharp "s" curve, which is good.
+
+
+Question: "Is this important: 1: glm.fit: algorithm did not converge?"
+Answer: Yes, it tells you that you have a "perfect split" see graph below.
+
+## Try some stuff...
+
+```{r}
+summary(glm(FinalGrade == 1 ~ Hard.Work.2 + Hard.Work.1, data=grades425, family=binomial)) #AIC dropped to 79.243, but Hard.Work.1 not sig.
+
+summary(glm(FinalGrade == 1 ~ Hard.Work.2 + Hard.Work.Subtotal.Numerator, data=grades425, family=binomial)) #AIC dropped to 58.295, but now Hard.Work.2 not sig.
+
+summary(glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data=grades425, family=binomial)) #AIC dropped to 56.557 and p-values all sig.
+
+summary(glm(FinalGrade == 1 ~  Hard.Work.2 + Hard.Work.Subtotal.Numerator +  Hard.Work.2:Hard.Work.Subtotal.Numerator, data=grades425, family=binomial)) #AIC goes up to 60.285, which tells us this model is worse. And nothing sig anymore, so really worse.
+
+summary(glm(FinalGrade == 1 ~ Calculated.Final.Grade.Numerator, data=grades425, family=binomial)) #AIC: 4 amazing, so amazing, it's silly.
+
+# Draw the "perfect split"
+perfect.glm <- glm(FinalGrade == 1 ~ Calculated.Final.Grade.Numerator, data=grades425, family=binomial)
+plot(FinalGrade == 1 ~ Calculated.Final.Grade.Numerator, data=grades425)
+b <- coef(perfect.glm)
+curve(exp(b[1] + b[2]*x)/(1 + exp(b[1] + b[2]*x)), add=TRUE)
+abline(v=90, col="red")
+```
+
+
+## Making Predictions
+
+```{r}
+# Best Simple Logistic Regression
+best.glm <- glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data=grades425, family=binomial)
+summary(best.glm)
+
+plot(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data=grades425)
+b <- coef(best.glm)
+curve(1/(exp(-b[1]-b[2]*x)+1), add=TRUE)
+curve(exp(b[1] + b[2]*x)/(1+ exp(b[1]+b[2]*x)), add=TRUE)
+
+#80% of Skills Quizzes is equal to 30*0.8 = 24 points...
+predict(best.glm, data.frame(Hard.Work.Subtotal.Numerator=24), type="response")
+abline(v=24, h=0.03252479, lty=2, col="red")
+
+#100% of Skills Quizzes is equal to 30*1 = 30 points...
+predict(best.glm, data.frame(Hard.Work.Subtotal.Numerator=30), type="response")
+abline(v=30, h=0.8783876, lty=2, col="blue")
+
+```
+
+
+```{r}
+# Best Multiple Logistic Regression
+best.glm <- glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator + Attendance.Weighted.Grade, data=grades425, family=binomial)
+summary(best.glm)
+
+# Drawing our Logistic Regression
+par(mfrow=c(2,1))
+plot(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator, data=grades425, xaxt='n', xlab="Hard Work (Skills Quizzes) Score")
+axis(1, at=seq(5,30,5), labels=c("17%","33.3%","50%","67%","83%","100%"))
+b <- coef(best.glm)
+summary(grades425$Attendance.Weighted.Grade)
+Att=23.75;
+curve(exp(b[1] + b[2]*HW + b[3]*Att)/(1+ exp(b[1] + b[2]*HW + b[3]*Att)), xname="HW", add=TRUE, lwd=1)
+Att=23.99;
+curve(exp(b[1] + b[2]*HW + b[3]*Att)/(1+ exp(b[1] + b[2]*HW + b[3]*Att)), xname="HW", add=TRUE, lwd=2)
+Att=25;
+curve(exp(b[1] + b[2]*HW + b[3]*Att)/(1+ exp(b[1] + b[2]*HW + b[3]*Att)), xname="HW", add=TRUE, lwd=2.2)
+legend("topleft", legend=c("95%", "95.96%", "100%"), title="Attendance Grade", lwd=c(1,2,2.2))
+
+predict(best.glm, data.frame(Hard.Work.Subtotal.Numerator=30, Attendance.Weighted.Grade=23.75), type="response")
+
+predict(best.glm, data.frame(Hard.Work.Subtotal.Numerator=30, Attendance.Weighted.Grade=25), type="response")
+
+
+plot(FinalGrade == 1 ~ Attendance.Weighted.Grade, data=grades425)
+b <- coef(best.glm)
+HW=5;
+curve(exp(b[1] + b[2]*HW + b[3]*Att)/(1+ exp(b[1] + b[2]*HW + b[3]*Att)), xname="Att", add=TRUE, lwd=1)
+
+HW=28;
+curve(exp(b[1] + b[2]*HW + b[3]*Att)/(1+ exp(b[1] + b[2]*HW + b[3]*Att)), xname="Att", add=TRUE, lwd=2)
+
+HW=30;
+curve(exp(b[1] + b[2]*HW + b[3]*Att)/(1+ exp(b[1] + b[2]*HW + b[3]*Att)), xname="Att", add=TRUE, lwd=3)
+legend("topleft", legend=c("17%", "93%", "100%"), title="Hard Work Grade", lwd=c(1,2,3))
+
+```
+
+
+
+
+## Goodness of Fit
+
+```{r}
+library(ResourceSelection)
+hoslem.test(best.glm$y, best.glm$fitted.values, g=10)
+# p-value of test: p-value = 0.6575
+# GOOD! This null shouldn't be rejected... the null
+# of the goodness-of-fit test is that your "logistic regression"
+# was a "good idea" or "good fit." If that is "rejected" then 
+# everything you did was essentially garbage.
+```
+
+
+## Validation
+
+```{r}
+set.seed(121)
+keep <- sample(1:nrow(grades425), 50)
+mytrain <- grades425[keep,]
+mytest <- grades425[-keep,]
+
+train_best.glm <-  glm(FinalGrade == 1 ~ Hard.Work.Subtotal.Numerator + Attendance.Weighted.Grade, data=mytrain, family=binomial)
+
+#Predict gives probabilities of being a 1
+predict(train_best.glm, newdata=mytest, type="response")
+  #Turn probabilities into predictions:
+  preds <- ifelse(predict(train_best.glm, newdata=mytest, type="response") > 0.7, 1, 0)
+
+#The y-variabe is either a 1 or a 0
+mytest$FinalGrade == 1
+
+
+#Compare our Predictions (preds) to the Actual results
+table(preds, mytest$FinalGrade)
+
+# Accuracy Rating:
+(9+9) / (9+2+3+9)
+  #0.7826 #Called: PCC or Percent Correctly Classified.
+
+```

@@ -1,0 +1,81 @@
+[{
+  "id" : 4804099134,
+  "date" : "12/29/17",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 4804387425,
+  "date" : "12/29/17",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 4813248090,
+  "date" : "01/02/18",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5248501602,
+  "date" : "05/23/18",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5248319109,
+  "date" : "05/23/18",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5940718345,
+  "date" : "02/02/19",
+  "waterAmount" : 8.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5940780224,
+  "date" : "02/02/19",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5941122068,
+  "date" : "02/02/19",
+  "waterAmount" : 8.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5970267416,
+  "date" : "02/12/19",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5969958273,
+  "date" : "02/12/19",
+  "waterAmount" : 8.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5970760076,
+  "date" : "02/12/19",
+  "waterAmount" : 8.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5971143384,
+  "date" : "02/12/19",
+  "waterAmount" : 8.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5972009020,
+  "date" : "02/12/19",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5972552577,
+  "date" : "02/12/19",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5973603265,
+  "date" : "02/13/19",
+  "waterAmount" : 24.0,
+  "measurementUnit" : "FL_OZ"
+},{
+  "id" : 5973594000,
+  "date" : "02/13/19",
+  "waterAmount" : 8.0,
+  "measurementUnit" : "FL_OZ"
+}]

@@ -1,0 +1,340 @@
+---
+title: "Chi Squared Test"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+
+<!-- Directions
+
+Come up with a chi squared test analysis of your own creation. 
+
+* Write the Background and clearly state your question. Then collect data and perform the linear regression analysis in order to answer your question. Use the proper order of first, ask the question, then second, figure out the answer.
+
+* You can use data from 
+    - An R data set
+    - the internet (like weather data, Facebook data, or sports data) 
+    - your own experiment 
+    - your own observational study
+* However,     
+    - Do not violate the "Human Subjects Rules" of the university: http://www.byui.edu/executive-strategy-and-planning/institutional-research/research-and-assessments/research-and-surveys
+
+* You need a sample size large enough to meet the requirements of the chi squared test. Unfortunately, the sample size is completely dependent on the situation you select. A good rule of thumb is 10 observations per "combination-group" in your data.
+
+-->
+
+```{r Libraries and Dataset, message=FALSE, warning=FALSE}
+# Load your libraries
+library(car)
+library(tidyverse)
+library(mosaic)
+library(pander)
+library(ggplot2)
+library(readr)
+library(stringr)
+library(DT)
+library(pander)
+library(gridExtra)
+
+# Load my All_Submitted_Applications.csv file
+Faculty_Source <- read.csv("../../Data/Faculty_Employment_Source.csv", header = TRUE)
+#view(Faculty_Source)
+```
+
+
+----
+
+<!--If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+
+**Comments to Critiquers:**  
+
+Questions I have:
+
+* How do I get the barplot graphs to line up side by side? They look squished. I've tried using I've tried using: library(patchwork), grid.arrange(), par(), and and plot_grid()
+* Is there a way to have THIS R chunck open, but leave the rest automatically closed? 
+* Is it possible to link a word to another part of this very HTML file? I can easily links things to other HTML files or URL links, but how do you link something within the same HTML file?
+
+
+<!--End your comments to your critiquers before this line.-->
+
+
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Background {.tabset .tabset-pills .tabset-fade}
+
+### Hide Questions {.tabset}
+
+Every year BYU-Idaho faculty positions become vacant for a variety of reasons. Towards the end of summer, positions start being posted. A member of the Faculty Employment Team in Human Resources is then tasked with advertising to help spread the word and fill these positions. The applications have never been measured from year to year. I am part of the team that manages those positions and I would like to see what the trend has been from year to year. Eventually, I would like be able to pull specific information on individuals and our advertising avenues. For now, I am only able to pull broad information. The hope is to see if there are any noticeable trends within certain departments, years, or other scenerios to help with advertising and departmental needs.  
+<br>
+
+This analysis is part of an overall effort to answer the questions found in the above `Show Questions` tab. The question that I am seeking to answer in this analysis is whether or not certain departments receive applications because of specific advertising or referral sources.
+
+### Show Questions
+
+1. Are we increasing the number of applicants each year?
+2. Are we able to predict the number of applicants a department might receive?
+3. Which advertising avenues bring in our applicants?
+4. Which departments are the hardest and easiest to obtain a hearty applicant pool?
+5. How many faculty job postings have we had to fill each year?
+6. How many applicants do we receive every year?
+7. How many applicants do each department receive?
+8. Is there a connection between the number of submitted and incomplete applications?
+9. Is there a correlation between these variables: 
+  a. The amount of money we spend on advertising
+  b. The type of advertising
+  c. The number of applicants
+  d. The number of incomplete applicants
+  e. Residence of applicant
+  f. The job market or company an applicant comes from
+10. How did we find the correct candidate?
+11. How many times did we fail to fill a posting? Why? When? 
+12. How many applicants receive an Interest Card email?
+13. Did receiving an Interest Card email impact if a candidate started or submitted an application?
+14. When do we receive the fewest and highest number of applications in a job posting?
+15. How long does it take for an application to be submitted?
+16. Are applications normally submitted on the same day or spread out over time?
+17. At what length of time does an application become incomplete?
+18. Where on the application process do applicants commonly stop filling it out?
+19. Do letters of reference help an applicant receive a job?
+20. What is the ratio of male/female applicants?
+21. Are we hiring more Master or PhD degree level applicants?
+22. Do certain departments keep receiving reoccuring multiple job opening positions?
+23. Which departments are growing the most based upon a job opening?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Hypothesis
+
+To make my hypothesis clear, I am determining whether or not certain departments receive applications because of specific referral sources or not. I will be using a significance level of $\alpha$ = 0.05.
+
+$$
+  H_0 : \text{The advertising avenue by which an applicant found out and applied to a job opening is independent of a department.}
+$$
+
+$$
+  H_a : \text{The advertising avenue by which an applicant found out and applied to job opening is associated with a department (not independent).}
+$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Analysis {.tabset .tabset-pills .tabset-fade}
+
+### Quick Overview {.tabset}
+
+At first glance, the table looks to be fairly normally. But upon closer inspection, it appears that if you are applying to the Management (85) or Teacher Education (85) department that you most likely learned of the opening through BYU-Idaho's Employment Website. Whereas if you applied to the Communication (52) department, it's likely an employee told the applicant about the job opening. Just from the table alone, it looks as if there may be associations between a referral source and department. For a visulization of this, take a look below where you can toggle between the Referral Source and Department graphs.
+
+```{r Create and Observe, message=FALSE, warning=FALSE}
+
+#pander(Faculty_Source %>%
+#  group_by(Department) %>%
+#  summarise(n())) 
+
+#table(Faculty_Source$Department)
+#table(Faculty_Source$Referral_Source)
+
+
+# Create the Data here:
+Top_Six <- filter(Faculty_Source, `Department` %in% c("Communication", "English", "Foundations & Interdisciplinary Studies", "Management", "Religious Education", "Teacher Education") & Referral_Source %in% c("BYU-Idaho Employment Website", "Other", "Referral by BYU-Idaho employee", "Referral by someone other than a BYU-Idaho employee")) %>% droplevels()
+#view(Top_Six)
+#table(Top_Six$Department)
+
+
+# List the observations in a table here
+pander(table(Top_Six$`Department`, Top_Six$`Referral_Source`), split.table=Inf)
+
+
+```
+
+#### Referral Source Graph
+
+<center>
+
+```{r Barplots, message=FALSE, warning=FALSE}
+
+# Make a barplot here
+
+ggplot(Top_Six, aes(x = factor(Referral_Source), fill = factor(Department),)) +
+  geom_bar(position = "dodge", color = "black") +
+  ggtitle("BYU-Idaho Faculty Applicant Amount By Referral Source") +
+  labs(x="Referral Source", y="Count of Applicants") +
+  scale_fill_discrete(name = "Department") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 12, hjust = 0.5, vjust=0.8))
+
+
+# How do I get these graphs to line up side by side? They look squished. I'll make a tab in the meantime to easily switch back and forth between the two.
+
+#library(patchwork)
+#plot1 + plot2
+#grid.arrange(plot1, plot2, ncol=2)
+#library(cowplot)
+#align_plots(plot1, plot2, align = "hv")
+#plot_grid(plot1, plot2)
+```
+
+</center>
+
+When looking at Referral Sources, the majority of departments receive applicants who learn about the job openings through the <a href= "https://employment.byui.net/" target="_blank">BYU-Idaho Employment website</a>. Like we noted before though, the Communication department does a great job in spreading word about job openings.
+
+
+#### Department Graph
+
+<center>
+
+```{r Department Graph, message=FALSE, warning=FALSE}
+ggplot(Top_Six, aes(x = factor(Department), fill = factor(Referral_Source),)) +
+  geom_bar(position = "dodge", color = "black") +
+  ggtitle("BYU-Idaho Faculty Applicant Amount By Department") +
+  scale_fill_discrete(name = "Referral Source") +
+  labs(x="Department", y="Count of Applicants") +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 18, hjust = 0.5, vjust=0.8))
+```
+
+</center>
+
+Although Management and Teacher Education on the table show more applicants via the Employment Website, it does not look to differ a significant amount from the Foundations and Interdisciplinary Studies and Religious Education departments. Let's see if running a Chi-Squared test will offer any insights. Click on the `Interpretation` tab for that test.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Interpretation
+
+<center>
+
+```{r Chi-Squared Test, message=FALSE, warning=FALSE}
+# I have to create a matrix for the Chi-Squared test to work. Create a dataset from the table and run the test.
+x <- table(Top_Six$`Department`, Top_Six$`Referral_Source`)
+Top.six.chi <- chisq.test(x)
+pander(Top.six.chi)
+```
+
+</center>
+
+```{r Numbers of Expected, message=FALSE, warning=FALSE}
+# Show the actual numbers of the expected counts.
+pander((Top.six.chi$expected), split.table=Inf)
+
+```
+
+```{r Requirements Met?, message=FALSE, warning=FALSE}
+# Are the requirements of a Chi-Squared Test met?
+pander((Top.six.chi$expected > 5), split.table=Inf)
+
+```
+
+All expected counts are greater than five. Which means the requirements for a Chi-Squared test are met and we can move forward with our analysis. The $p$-value of the test shows that $p$ = 3.581e-08. Our $\alpha$ was 0.05 giving us the ability to conclude that there is enough evidence to reject the null hypothesis. This means then that certain departments and referral sources are indeed linked or associated to one another. 
+
+```{r Observed v. Expected, message=FALSE, warning=FALSE}
+# How far does the observed data differ from the expected counts?
+pander((Top.six.chi$residuals), split.table=Inf)
+```
+
+This table is very similar to what we observed when looking at the graphs. Management and Teacher Education differed by having an additional applicants referred by BYU-Idaho's employment website than what was expected. The Communication department acutally faired significantly lower with a value of -3.194 than what was expected within this category. Yet, they made it up in a terrific way a value of 5.152 by having more applicants learning of the opening through a BYU-Idaho employee. This was one of the biggest differences noted between any referral source and department. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Show Data {.tabset .tabset-pills .tabset-fade}
+
+The data comes from BYU-Idaho Human Resources's account with PeopleAdmin (an application managing program). This specific dataset is obtained by applicants completing a short survey during the application process. It asks several questions and one of those questions is "How did they learn of this job opening" with five to ten avenues to select from.
+
+#### Modified and Used for Analysis {.tabset}
+
+For means of simplicity and seeking to understand how to run a Chi-Square test, I narrowed my data down to six departments. These department were chosen because they had over 100 applicants listed in the dataset. I also chose five advertsing avenues due to two reasons:
+
+1. It was simplier to work with five advertising avenues than ten avenues.
+2. Our team only recently began surveying specific advertising avenues (i.g. Alumni Communications, Deseret News, Facebook, KBYUI Radio, Instagram, and LDS Living). We still survey the broad advertising avenues and so I chose those avenues because they will be listed on both current postings and postings prior to the decision to survey specific advertising avenues.
+
+```{r Modified and Used Datatable, include=TRUE}
+datatable(Top_Six)
+```
+
+#### Original Data
+
+```{r Original Datatable}
+datatable(Faculty_Source)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Conclusion
+
+<!-- Website: Management and TE get info from here. Communication does not as they received a lot of word of mouth. -->
+
+<!-- Referral: Communication helps their own kind out more than any other. AKA, we got yo back. -->
+
+Both our graphs and the Chi-Squared test showed us that certain departments and advertising avenues were associated with one another. The biggest surprise was the Communication department. They received significantly more applicants via referral, a vaule of 5.152, from a BYU-Idaho employee than any other department. Not only that, but this was the biggest difference between what was observed and what was expected. Simply put, the Communication department looks to help out their career-mates quite well. It would be interesting to run this test again looking at every department to see if there are any more associations to an advertising source. It could also be worth looking into whether these associations change from year to year or if they remain the same across the years.  
+<br>
+One of the main take aways from this analysis is determining if it would be worth finding out how the Communication department spreads the word and if this could be taught to other departments.  

@@ -1,0 +1,357 @@
+---
+title: "Regression Battleship"
+author: "Devin Bastian"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output:
+  html_document:  
+    keep_md: true
+    toc: true
+    toc_float: true
+    code_folding: hide
+    fig_height: 6
+    fig_width: 12
+    fig_align: 'center'
+---
+
+```{r, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r load_libraries, include=FALSE}
+# Use this R-Chunk to load all your libraries!
+#install.packages("tidyverse") # run this line once in console to get package
+pacman::p_load(readr, haven, readxl, downloader, tidyverse, ggbeeswarm, mosaic, stringr, pander, DT, ggplot2, alr3, foreign, measurements, mosaicData)
+```
+
+```{r load_data}
+# Use this R-Chunk to import all your datasets!
+RB.Danny <- read.csv("../../../Data/RBdata_Danny.csv")
+RB.Milca <- read.csv("../../../Data/RBdata_Milca.csv")
+
+```
+
+----
+
+# Peer Attacking {.tabset .tabset-pills .tabset-fade}
+
+## Danny 
+
+### 1st Attempt
+
+```{r}
+#View(RB.Danny)
+
+pairs(RB.Danny, panel = panel.smooth, pch=16, cex=0.7, col=rgb(.2,.2,.2,.5))
+
+```
+
+More than 1 dummy variable? I think X3 may be needed, but let's start with X7.
+
+### Use X7
+
+```{r}
+#pairs(RB.Danny, panel = panel.smooth, pch=16, cex=0.7, col=rgb(.2,.2,.2,.5))
+
+Danny.lm <- lm(Y ~ X7, data = RB.Danny)
+summary(Danny.lm)
+
+pairs(cbind(R = Danny.lm$res, Fit = Danny.lm$fit, RB.Danny), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Danny$X7))
+```
+
+Looks like there is a bend in X6 and X9 from X7. I think X3 was used.
+
+### Try X6 or X9; See how X3 goes
+
+```{r}
+#pairs(RB.Danny, panel = panel.smooth, pch=16, cex=0.7, col=rgb(.2,.2,.2,.5))
+
+Danny2.lm <- lm(Y ~ X3 + X7, data = RB.Danny)
+summary(Danny2.lm)
+
+pairs(cbind(R = Danny2.lm$res, Fit = Danny2.lm$fit, RB.Danny), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Danny$X7, RB.Danny$X3)) 
+```
+
+I think I need to look into X4
+
+### Look at X4
+
+```{r}
+######### Oops! I used Milca's data here! ##############
+plot(Y ~ X4, data = RB.Milca, col=interaction(RB.Danny$X7, RB.Danny$X3))
+```
+
+This is a mess. **Update**: Oops! I used Milca's data here!
+
+```{r}
+plot(Y ~ X10, data = RB.Milca, col=interaction(RB.Danny$X7))
+```
+
+**Update**: Oops! I used Milca's data here too!
+
+```{r}
+plot(Y ~ X4, data = RB.Danny, col=interaction(RB.Danny$X7))
+```
+
+### Take a step back
+
+```{r}
+Danny3.lm <- lm(Y ~ X7 + X3, data = RB.Danny)
+summary(Danny3.lm)
+
+pairs(cbind(R = Danny3.lm$res, Fit = Danny3.lm$fit, RB.Danny), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Danny$X7, RB.Danny$X3)) 
+```
+
+It's got to be X4. 
+
+### Use X4
+
+```{r}
+Danny4.lm <- lm(Y ~ X7 + X4 + X4:X3 + X4:X7 + X4:X3:X7, data = RB.Danny)
+summary(Danny4.lm)
+
+pairs(cbind(R = Danny4.lm$res, Fit = Danny4.lm$fit, RB.Danny), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Danny$X7, RB.Danny$X3)) 
+```
+
+### Let's see how things look
+
+```{r}
+Danny5.lm <- lm(Y ~ X7 + X3 + X4 + X4:X3 + X4:X7 + X4:X3:X7, data = RB.Danny)
+summary(Danny5.lm)
+
+Danny6.lm <- lm(Y ~ X7 + X4 + X4:X3 + X4:X7 + X4:X3:X7, data = RB.Danny)
+summary(Danny6.lm)
+```
+
+Did Danny forget to add X3 as an individual variable since p-value is `0.619369`?
+
+```{r}
+plot(Y ~ X4, data=RB.Danny, col=interaction(X3, X7, X7*X3))
+points(Danny6.lm$fitted ~ X10, data=RB.Danny, col=interaction(X3, X7), cex=0.5, pch=16)
+```
+
+### Time to draw it!
+
+#### ggPlot
+
+```{r}
+ggplot(RB.Danny, aes(x=X4, y=Y, col=interaction(X3,X7))) + 
+  geom_point() +
+  geom_smooth(method="lm", se=F, formula=y ~ poly(x, 2, raw=TRUE) )
+```
+
+#### baseR
+
+```{r}
+palette(c("black","orange","green", "red"))
+
+plot(Y ~ X4, data=RB.Danny, col=interaction(X3,X7))
+b.d <- coef(Danny6.lm)
+
+X3 = 0; X7 = 0;
+curve(b.d[1] + b.d[2]*X7 + b.d[3]*x + b.d[4]*x*X3 + b.d[5]*x*X7 + b.d[6]*x*X3*X7, add=TRUE, col=palette()[1])
+
+X3 = 1; X7 = 0;
+curve(b.d[1] + b.d[2]*X7 + b.d[3]*x + b.d[4]*x*X3 + b.d[5]*x*X7 + b.d[6]*x*X3*X7, add=TRUE, col=palette()[2])
+
+X3 = 0; X7 = 1;
+curve(b.d[1] + b.d[2]*X7 + b.d[3]*x + b.d[4]*x*X3 + b.d[5]*x*X7 + b.d[6]*x*X3*X7, add=TRUE, col=palette()[3])
+
+X3 = 1; X7 = 1;
+curve(b.d[1] + b.d[2]*X7 + b.d[3]*x + b.d[4]*x*X3 + b.d[5]*x*X7 + b.d[6]*x*X3*X7, add=TRUE, col=palette()[4])
+```
+
+$$
+  \hat{Y_i} = b_0 + b_1X_4 + b_2X_7 + b_3X_4 X_7 + b_4X_4 X_3 + b_5X_4 X_3 X_7 + \underbrace{b_6X_3}_\text{Needed, but p = 0.619369}
+$$
+
+
+
+## Milca
+
+### 1st Attempt
+
+```{r}
+#View(RB.Milca)
+
+pairs(RB.Milca, panel = panel.smooth, pch=16, cex=0.7, col=rgb(.2,.2,.2,.5))
+```
+
+X2, X3, X8 were used
+
+Odd number base: X1, X5, X7, X9
+
+* X1 = .192
+
+* X5 = .1946
+
+* X7 = .1991
+
+* X9 = .194
+
+
+### Look at X2, X3, X8; Maybe X6?
+
+```{r}
+Milca1.lm <- lm(Y ~ X2 + X8, data = RB.Milca)
+summary(Milca1.lm)
+
+pairs(cbind(R = Milca1.lm$res, Fit = Milca1.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X8))
+```
+
+X3 does a better job in this pairs plot explaining Y and maybe X9 than what X6 is showing.
+
+
+### Add X3
+
+```{r}
+Milca2.lm <- lm(Y ~ X2 + X3 + X8, data = RB.Milca)
+summary(Milca2.lm)
+
+pairs(cbind(R = Milca2.lm$res, Fit = Milca2.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X3, RB.Milca$X8))
+```
+
+X3 doesn't show significance when adding X6 into the lm(). Looking back in the beginning, X3 is more sloped than X6 is.
+
+
+### Replace with X6
+
+```{r}
+Milca3.lm <- lm(Y ~ X2 + X6 + X8, data = RB.Milca)
+summary(Milca3.lm)
+
+pairs(cbind(R = Milca3.lm$res, Fit = Milca3.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X6, RB.Milca$X8))
+```
+
+I think X3 is better because X2 and X3 show some residuals.
+
+
+### Trying base options now
+
+```{r}
+Milca4a.lm <- lm(Y ~ X2 + X8 + X1 + X1:X2 + X1:X8, data = RB.Milca)
+summary(Milca4a.lm)
+
+Milca4b.lm <- lm(Y ~ X2 + X8 + X5 + X5:X2 + X5:X8, data = RB.Milca)
+summary(Milca4b.lm)
+
+Milca4c.lm <- lm(Y ~ X2 + X8 + X7 + X7:X2 + X7:X8, data = RB.Milca)
+summary(Milca4c.lm)
+
+Milca4d.lm <- lm(Y ~ X2 + X8 + X9 + X9:X2 + X9:X8, data = RB.Milca)
+summary(Milca4d.lm)
+
+#pairs(cbind(R = Milca4.lm$res, Fit = Milca4.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X6, RB.Milca$X8))
+```
+
+X9 is definitely the way to go
+
+
+### X3 vs. X6
+
+```{r}
+Milca5.lm <- lm(Y ~ X2 + X3 + X8 + X9 + X9:X2 + X9:X3 + X9:X8, data = RB.Milca)
+summary(Milca5.lm)
+
+Milca5b.lm <- lm(Y ~ X2 + X6 + X8 + X9 + X9:X2 + X9:X6 + X9:X8, data = RB.Milca)
+summary(Milca5b.lm)
+
+pairs(cbind(R = Milca5.lm$res, Fit = Milca5.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X3, RB.Milca$X8))
+```
+
+
+### Throw in some parabolas
+
+```{r}
+Milca6.lm <- lm(Y ~ X2 + X3 + X8 + X9 + X9:X2 + X9:X3 + X9:X8 + I(X9^2):X2 + I(X9^2):X3 + I(X9^2):X8, data = RB.Milca)
+summary(Milca6.lm)
+
+Milca6b.lm <- lm(Y ~ X2 + X6 + X8 + X9 + X9:X2 + X9:X6 + X9:X8 + I(X9^2):X2 + I(X9^2):X6 + I(X9^2):X8, data = RB.Milca)
+summary(Milca6b.lm)
+
+pairs(cbind(R = Milca6.lm$res, Fit = Milca6.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X3, RB.Milca$X8))
+
+pairs(cbind(R = Milca6b.lm$res, Fit = Milca6b.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X6, RB.Milca$X8))
+```
+
+
+### Zoom in on X9
+
+```{r}
+plot(Y ~ X9, data = RB.Milca, col=interaction(RB.Milca$X2, RB.Milca$X3, RB.Milca$X8))
+```
+
+### Double straight lines on X2?
+
+```{r}
+Milca7.lm <- lm(Y ~ X2 + X3 + X8 + X9 + X9:X2 + X9:X3 + I(X9^2):X3 + I(X9^2):X8, data = RB.Milca)
+summary(Milca7.lm)
+
+pairs(cbind(R = Milca7.lm$res, Fit = Milca7.lm$fit, RB.Milca), panel = panel.smooth, pch=16, cex=0.7, col=interaction(RB.Milca$X2, RB.Milca$X3, RB.Milca$X8))
+```
+
+
+### What do I do next?
+
+```{r}
+Milca8.lm <- lm(Y ~ X2 + X3 + X8 + X9 + X9:X2 + X9:X3 + I(X9^2):X3 + I(X9^2):X8, data = RB.Milca)
+summary(Milca8.lm)
+
+Milca8a.lm <- lm(Y ~ X2 + X3 + X8 + X9 + X9:X2 + X9:X3 + X9:X8 + I(X9^2):X3 + I(X9^2):X8, data = RB.Milca)
+summary(Milca8a.lm)
+
+####### Only produces NA's #############
+# Milca8a.lm <- lm(Y ~ X2:X3:X8 + X9 + X9:X2:X3:X8 + I(X9^2):X2:X3:X8 + I(X9^2):X2:X3:X8, data = RB.Milca)
+# summary(Milca8a.lm)
+
+par(mfrow=c(1,3))
+plot(Milca8.lm, which=1:2)
+plot(Milca8.lm$residuals, type = "b", main = "Residuals vs Order")
+```
+
+I think I have captured everything, but it seems like X8:X9 is missing for this model to work.
+
+
+### Plot it
+
+
+#### ggPlot
+
+```{r}
+ggplot(RB.Milca, aes(x=X9, y=Y, col=interaction(X2, X3, X8))) + 
+  geom_point() +
+  geom_smooth(method="lm", se=F, formula=y ~ poly(x, 2, raw=TRUE) )
+```
+
+
+#### BaseR
+
+```{r}
+palette(c("black", "orange", "green", "red", "blue", "purple"))
+
+plot(Y ~ X9, data=RB.Milca, col=interaction(X2, X3, X8))
+m.d <- coef(Milca8.lm)
+
+X2 = 0; X3 = 0; X8 = 0;
+curve(m.d[1] + m.d[2]*X2 + m.d[3]*X3 + m.d[4]*X8 + m.d[5]*x + m.d[6]*x*X2 + m.d[7]*x*X3 + m.d[8]*x^2*X3 +m.d[9]*x^2*X8, add=TRUE, col=palette()[1])
+
+X2 = 1; X3 = 0; X8 = 0;
+curve(m.d[1] + m.d[2]*X2 + m.d[3]*X3 + m.d[4]*X8 + m.d[5]*x + m.d[6]*x*X2 + m.d[7]*x*X3 + m.d[8]*x^2*X3 +m.d[9]*x^2*X8, add=TRUE, col=palette()[2])
+
+X2 = 1; X3 = 1; X8 = 0;
+curve(m.d[1] + m.d[2]*X2 + m.d[3]*X3 + m.d[4]*X8 + m.d[5]*x + m.d[6]*x*X2 + m.d[7]*x*X3 + m.d[8]*x^2*X3 +m.d[9]*x^2*X8, add=TRUE, col=palette()[3])
+
+X2 = 1; X3 = 1; X8 = 1;
+curve(m.d[1] + m.d[2]*X2 + m.d[3]*X3 + m.d[4]*X8 + m.d[5]*x + m.d[6]*x*X2 + m.d[7]*x*X3 + m.d[8]*x^2*X3 +m.d[9]*x^2*X8, add=TRUE, col=palette()[4])
+
+X2 = 1; X3 = 0; X8 = 1;
+curve(m.d[1] + m.d[2]*X2 + m.d[3]*X3 + m.d[4]*X8 + m.d[5]*x + m.d[6]*x*X2 + m.d[7]*x*X3 + m.d[8]*x^2*X3 +m.d[9]*x^2*X8, add=TRUE, col=palette()[5])
+
+X2 = 0; X3 = 1; X8 = 1;
+curve(m.d[1] + m.d[2]*X2 + m.d[3]*X3 + m.d[4]*X8 + m.d[5]*x + m.d[6]*x*X2 + m.d[7]*x*X3 + m.d[8]*x^2*X3 +m.d[9]*x^2*X8, add=TRUE, col=palette()[6])
+```
+
+I don't believe the baseR is working because the model data isn't correct. Not sure though.
+
+$$
+  \hat{Y_i} = b_0 + b_1 X_9 + b_2 X_2 + b_3 X_9 X_2 + b_4 X_3 + b_5 X_9 X_3 + b_6 X_9^2 X_3 + b_7 X_8 + \underbrace{b_8 X_9 X_8}_\text{MISSING} + b_9 X_9^2 X_8
+$$

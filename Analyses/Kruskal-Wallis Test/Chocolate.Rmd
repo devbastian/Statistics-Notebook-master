@@ -1,0 +1,142 @@
+---
+title: "Chocolate"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+
+```{r, include=FALSE}
+# Be sure to use your file menus at the top of R-Studio to:
+# "Session -> Set working directory -> To source file location"
+# Then play this chunk and the next one to get the data into R.
+library(mosaic)
+library(car)
+library(DT)
+library(pander)
+library(readr)
+choc <- read_csv("../../Data/Chocolate.csv")
+Wonka.Wona.Bees <- filter(choc, Rating >= 4.00)
+```
+
+```{r, eval=FALSE}
+View(choc)
+View(Wonka.Wona.Bees)
+```
+
+----
+
+<!-- Instructions:
+
+ Use the Chocolate dataset and a Kruskal-Wallis Test(s) to answer an interesting question(s) that you come up with.
+ 
+ About the dataset:
+ 
+  * Company: Name of the company manufacturing the bar.
+
+  * Orig: The specific geo-region of origin for the bar.
+
+  * Review: Date of publication of the review.
+
+  * Cocoa: Cocoa percentage (darkness) of the chocolate bar being reviewed.
+
+  * Location: Manufacturer base country.
+
+  * Rating: Expert rating for the bar.
+      5= Elite (Transcending beyond the ordinary limits)
+      4= Premium (Superior flavor development, character and style)
+      3= Satisfactory(3.0) to praiseworthy(3.75) (well made with special qualities)
+      2= Disappointing (Passable but contains at least one significant flaw)
+      1= Unpleasant (mostly unpalatable)
+
+   * Type: The variety (breed) of cocoa bean used, if provided.
+   
+   * BroadOrig: The broad geo-region of origin for the bean.
+
+Note this dataset and description come from: © 2018 Kaggle Inc for further details visit:
+
+[Kaggle.com](https://www.kaggle.com/rtatman/chocolate-bar-ratings/data)
+
+
+If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+**Comments to Critiquers:**  
+**How would you color in the boxplots?**  
+**How do I hide the favstat table so if you as the reader would like to view it you can, but you do so by clicking on a button?** 
+**How do I show each bean name in the boxplot graph?**  
+
+
+
+<!--End your comments to your critiquers before this line.-->
+
+----
+
+<!--Begin writing your Analysis after this point.-->
+
+## Background
+
+I have been given data that analyzes the ratings of chocolate bars. After looking at the data, I will be analyzing if different beans have an different ratings or an influence on the quality of a chocolate bar. In essence, I want to begin the search for who has created <a href="https://wonka.fandom.com/wiki/Wonka_Bar">Willy Wonka's chocolate bar</a>!  
+
+Here is my hypothesis:
+$$
+  H_0:  \text{All bean types come from the same distribution of rating}
+$$
+$$ 
+  H_a: \text{At least on bean type's distribution is stochastically different}
+$$
+The null hypothesis is that all bean types come from the same distribution of rating. Simply, the bean type has no impact on the rating of a chocolate bar. The alternative hypothesis is that at least one bean type does have a different distribution of rating.
+
+
+### Background: Check on Information
+
+<!-- This information below is to help me understand what data I need to select to run a test on. -->
+
+
+## {.tabset .tabset-pills .tabset-fade}
+
+### Data Information
+
+To figure out how I was going to measure my hypothesis, I looked into which beans were used and how many times. After doing so, I looked filtered the data to look only for those beans which were used six or more times since I would be using a boxplot to graph the results. Click on the Table of Data tab if you want to see what information I looked at.
+
+### Table of Data
+
+```{r Bean Type, message=FALSE, warning=FALSE}
+
+# The information that I need to look at come from this chart's sample size.
+
+pander(favstats(Rating ~ Type, data = choc), split.table=Inf)
+
+# Here are the beans that have been used more than five times:
+# A, Blend, Criollo, Criollo (Porcelana), (Criollo, Trinitario), Forastero, Forastero (Arriba), Forastero (Arriba) ASS, Forastero (Nacional), Forastero (Parazinho), Trinitario, (Trinitario, Criollo)
+
+Big.Bean.Size <- filter(choc, Type %in% c("A", "Blend", "Criollo", "Criollo (Porcelana)", "Criollo, Trinitario", "Forastero", "Forastero (Arriba)", "Forastero (Arriba) ASS", "Forastero (Nacional)", "Forastero (Parazinho)", "Trinitario", "Trinitario, Criollo"))
+```
+##
+
+
+## Bean Type
+
+
+```{r}
+
+pander(kruskal.test(Rating ~ Type, data = Big.Bean.Size))
+
+boxplot(Rating ~ Type, data = Big.Bean.Size, 
+        col="lightgray", 
+        xlab="Type of Bean", 
+        main="How The Bean Type Impacts Your Chocolate Bar", 
+        ylab="Rating of Chocolate Bar",
+        split.graph = Inf)
+
+```
+
+
+## Conclusion
+
+I ran a Kruskal-Wallis test as I was unsure whether the information was skewed or not. The the p-value from the test was 4.457e-06 providing enough evidence to reject the null hypothesis and state that are indeed beans coming from another distribution of ratings. Further tests would be needed to determine which beans are the best, but this analysis shows that there are indeed higher quality beans to use in your candy.
+
+Improvements for future tests with the data could be:   
+  1)  Does the origin of a bean impact the quality of a chocolate bar?  
+  2)  What manufactuer has the best quality of chocolate?  
+  3)  Do all three variables have a determining factor in the quality of a chocolate bar?  
+
+

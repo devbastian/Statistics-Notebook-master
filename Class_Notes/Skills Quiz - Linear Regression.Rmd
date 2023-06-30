@@ -1,0 +1,43 @@
+---
+title: "Skills Quiz - Linear Regression"
+output: html_document
+  html_document:
+    theme: cerulean
+    code_folding: hide
+    css: styles.css
+header-includes: 
+  - \usepackage{amsmath}
+---
+
+```{r Libraries, message=FALSE, warning=FALSE}
+library(mosaic)
+library(pander)
+library(tidyverse)
+library(DT) 
+
+view(cars)
+view(bodyweight)
+```
+
+
+```{r}
+plot(Height ~ Volume, data=trees)
+trees.lm <- lm(Height ~ Volume, data=trees)
+abline(trees.lm)
+par(mfrow=c(1,2))
+plot(trees.lm, which=1:2)
+par(mfrow = c(1,1))
+```
+
+
+```{r}
+?faithful
+view(faithful)
+faithful.lm <- lm(waiting ~ eruptions, data = faithful)
+summary(faithful.lm)
+plot(waiting ~ eruptions, data = faithful)
+abline(faithful.lm)
+par(mfrow=c(1,3))
+plot(faithful.lm, which=1:2)
+```
+

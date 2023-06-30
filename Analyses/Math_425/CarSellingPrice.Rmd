@@ -1,0 +1,244 @@
+---
+title: "Car Selling Price"
+output: 
+  html_document:
+    theme: readable
+    code_folding: hide
+---
+
+```{r load_library, include=FALSE}
+# Use this R-Chunk to load your libraries!
+
+pacman::p_load(tidyverse, mosaic, readr, DT, stringr, lubridate, haven, readxl, downloader, ggbeeswarm, pander, ggplot2, alr3, foreign, measurements)
+```
+
+```{r load_data, include=FALSE}
+# Use this R-Chunk to load your datasets!
+
+SellPrice <- read.csv("../../Data/CarSellingPrice.csv", header = TRUE)
+
+```
+
+```{r Data Wrangling, message=FALSE, warning=FALSE, include=FALSE}
+# Use this R-Chunk to load your datasets!
+
+# SellPrice$Pricing <- as.numeric(gsub(",","",SellPrice$Pricing))     # This is doing the same thing as parse_number.
+# View(SellPrice)
+
+SellPrice$Pricing <- parse_number(as.character(SellPrice$Pricing))
+# Ordered.SellPrice <- SellPrice %>%
+#   arrange("Year")
+
+#View(SellPrice)
+```
+
+----
+
+<!--If you want to give your critiquers some ideas about what you have questions on and would like help with, place those details here.-->
+
+**Comments to Critiquers:** 
+
+1. When do you look at and find meaning in the $p$-value of the Y-intercept? It seems like I am usually looking at the slope's and/or other variables' $p$-values. 
+2. Have we discussed how do we use the values of $\sqrt{MSE}$ and $R^2$ like we do with the $p$-value?
+3. If you take a look at my assumption plots, I would like to manually name the Residuals vs Fitted and QQ Plot. How do I do this? Currently, Normal Q-Q is showing up underneath my Residuals vs. Fitted title. 
+4. How do I order my dataset to descend by `Year`? So I would like the dataset to start with 2019 and go down to 19--.
+5. I cannot determine why my stat() functions are not working. The linearity and variance appear to be off when running my diagnostics and so I ran a BoxCox plot for a Y-transformation to correct the regression line. I show I need to run a log on y. But, I am getting a warning message of "Computation failed in `stat_function()`: non-numeric argument to binary operator". Am I running the correct transformation?
+6. How do I change the x axis to show correct numbers?
+7. How do I center my graph?
+
+
+**Corrections**
+
+1. I added values 85ish to 112 to provide more information on trucks above 200,000 miles and information between trucks costing `$12,000` and `$25,000`.
+2. I corrected my Background statement to reflect that I own a XLT Ford Ranger and not a XL. The data has a cross of XL and xLT.
+3. Under the `Information from Model` section, I added an explanation of what $R^2$ is telling me.
+4. In the `Checking Assumption`, I added an explanation of $\sqrt{MSE}$ and italicized straight and both in the paragraph to add emphasis to what I am doing with a transformation.
+5. I added a section called `Transformed Assumptions`.
+6. Why is the simple regression line going into `$-10,000`? I mean that's what's predicted, but is this correct or do I need to make changes to reflect the car's value can't go below `$0.00$`?
+7. Did I label the devaluation per mile correctly?
+
+----
+
+## Background
+
+I own a 1997 Ford Ranger XLT with 256,000 miles. It was actually provided to me by my cousin and so I do not know the exact value/purchasing price of my truck. I would like to determine at what point/mileage do I need to sell this car or if it is *way* too late to sell it. 
+
+
+## Summary {.tabset .tabset-pills .tabset-fade}
+
+### Findings {.tabset}
+
+```{r}
+mylm <- lm(Pricing ~ Mileage, data = SellPrice)
+mylm.co <- mylm$coefficients
+mylm.t <- lm(log(Pricing) ~ Mileage, data = SellPrice)
+mylm.log <- mylm.t$coefficients
+mylines.t <- exp(predict(mylm.t, data.frame(Mileage=100000), interval="prediction"))
+#mylines <- predict(mylm, data.frame(Mileage=100000), interval="prediction")
+```
+
+```{r Scatterplot of both, message=TRUE, warning=TRUE}
+
+SellPrice %>%
+  ggplot() +
+  aes(y = Pricing, x = as.numeric(Mileage)) +
+  geom_point(color = "chocolate1") +
+  geom_point(aes(x = 100000, y = mylines.t[1]), color = "black") +
+  geom_point(aes(x = 100000, y = mylines.t[2]), color = "black") +
+  geom_point(aes(x = 100000, y = mylines.t[3]), color = "black") +
+  geom_hline(aes(yintercept = mylines.t[2]), color = "black", linetype = 2) +
+  geom_hline(aes(yintercept = mylines.t[3]), color = "black", linetype = 2) +
+  geom_segment(aes(x=100000, xend=100000, y=mylines.t[2], yend=mylines.t[3]), color="black", linetype = 2) + # mylines[2] lowend mylines[3] highend
+  stat_function(fun = function(x)(mylm.co[1] + mylm.co[2]*x),
+                aes(color = "a")) +
+  stat_function(fun = function(x)exp(mylm.log[1] + mylm.log[2]*x),
+                aes(color = "b")) +
+  labs(x = "Mileage of Ford Ranger XL (Mileage)",
+       y = "Purchasing Price in Dollars (Pricing)",
+       title = "How Much Will a Ford Ranger XL Cost to Purchase by Its Mileage?") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = c(0.85, .85)) +
+  scale_color_manual("",
+                     values = c("gray", "chocolate1"),
+                     labels = c("Fitted Regression", "Transformed Regression")) +
+  geom_text(x = 175000, 
+            y = 10000, 
+            label = "Drops by $0.10 per mile", 
+            color = "gray", 
+            size = 3) +
+  geom_text(x = 30000, 
+            y = 15000, 
+            label = "Drops by $0.000009 per mile", 
+            color = "chocolate1", 
+            size = 3)
+```
+
+$$
+  \underbrace{8784.50}_\text{Average Purchase Price} = \overbrace{
+  \underbrace{1.00}_\text{log(Y-Int)} \ + 
+  \ \underbrace{-9.27}_\text{Slope} \ \ \underbrace{100,000}_\text{Mileage}}^\text{Regression Curve}
+$$
+
+Selling a Ford Ranger XL or XLT around the $\le 100,000$ mileage mark seems to be the best option after running this regression. The linearity of the corrected regression line still shows some abnormality, but I don't believe it's enough to forgo my findings. According to my prediction, I will be able to sell a Ford Ranger with 100,000 miles anywhere from `$3,737.12` to `$20,648.95`.
+
+### Analysis {.tabset .tabset-pills .tabset-fade}
+
+In order to perform this regression, I will use a simple regression mathmatical formula. But for the linear model to provide any meaning, $\beta_1$ cannot equal 0. If it does, than our null hypothesis is correct, $\beta_1$ = 0. This will then render the simple linear analysis useless to determine the purchasing price of a Ford Ranger XL or XLT by the mileage. A significant result will fare from $\alpha \le 0.05$. Here is the mathematical formula:
+
+$$
+  \underbrace{Y_i}_\text{Purchase Price} = \overbrace{
+  \underbrace{\beta_0}_\text{Y-int} \ + 
+  \ \underbrace{\beta_1}_\text{Slope} \ \ \underbrace{X_i}_\text{Mileage}}^\text{Regression Line} + 
+  \epsilon_i \quad \text{where} \ \epsilon_i \sim N(0, \sigma^2)
+$$
+
+Since we do not have information for all Ford Ranger XL's or XLT's mileage and purchasing price, I will be using this estimation of the regression model: 
+
+$$
+  \underbrace{\hat{Y_i}}_\text{Purchase Price} = b_0 + b_1 \underbrace{X_i}_\text{Mileage}
+$$
+
+#### Information from Model
+
+```{r Linear Model, message=FALSE, warning=FALSE}
+
+mylm <- lm(Pricing ~ Mileage, data = SellPrice)
+mylm.co <- mylm$coefficients
+#summary(mylm)
+
+pander(summary(mylm))
+
+```
+
+This linear regression model is actually a great fit because both of our $p$-values for the Intercept and Milege are $<2e-16$. And in this linear model, we are taking into consideration the Intercept's $p$-value because if $\beta_1$, or the x variable, were to equal zero we would want to still know the value of $y$, or the purchasing price. However, it seems that our current linear model explains 64% of the data points' variability. We will look at the assumptions plots to verify if all assumptions are met for this linear model to fully work.
+
+
+#### Checking Assumptions
+
+```{r Checking Assumptions, message=FALSE, warning=FALSE}
+# Check Assumptions
+
+par(mfrow=c(1,4))
+plot(mylm, which=1:2, main = "Residuals vs Fitted", "Normal Q-Q")
+qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+plot(mylm$residuals, main = "Residuals vs Order")
+
+#plot(mylm, which = 1)
+# qqPlot(mylm$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+
+```
+
+The variance and linearity of this dataset is terrible. The variance in our data is going to then mess with our $\sqrt{MSE}$ (the average amount a data point deviates from the regression line) and our ability to plot a *straight* regression line due to the linearity issue. In order to fix *both* the variance and linearity, I have ran a BoxCox plot to diagnose what Y-transformated regression line needs to be created.
+
+
+#### Transformation
+
+```{r BoxCox Plot, message=FALSE, warning=FALSE}
+boxCox(mylm)
+```
+
+It appears that I will need to take the log() of `Pricing` in order to transform the regression line.
+
+```{r}
+mylm.t <- lm(log(Pricing) ~ Mileage, data = SellPrice)
+mylm.log <- mylm.t$coefficients
+
+SellPrice %>%
+  ggplot() +
+  aes(y = log(Pricing), x = Mileage) +
+  geom_point(color = "chocolate1") +
+  stat_function(fun = function(x)(mylm.log[1] + mylm.log[2]*x),
+                aes(color = "b")) +
+  labs(x = "Mileage of Ford Ranger XL (Mileage)",
+       y = "The Log of the Purchasing Price (Pricing)",
+       title = "Looking at the transformed perspective of the data. \nHow Much Will a Ford Ranger XL Cost to Purchase by Its Mileage?") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        legend.position = c(0.85, .85)) +
+  scale_color_manual("",
+                     values = c("chocolate1"),
+                     labels = c("Transformed Regression"))
+```
+
+#### Transformed Assumptions
+
+```{r}
+par(mfrow=c(1,4))
+plot(mylm.t, which=1:2, main = "Residuals vs Fitted", "Normal Q-Q")
+qqPlot(mylm.t$residuals, main = "Q-Q Plot of Residuals", id = FALSE)
+plot(mylm.t$residuals, main = "Residuals vs Order")
+```
+
+It looks like I may not be able to accurately determine what the regression line is because the linearity of the data is still abnormal when I run the diagnostic plots, but I think this model is much better. Let's see what the summary of the linear model for the transformation states to determine if this a better fit.
+
+```{r}
+pander(summary(mylm.t))
+pander(exp(predict(mylm.t, data.frame(Mileage=100000), interval="prediction")))
+pander(predict(mylm, data.frame(Mileage=100000), interval="prediction"))
+```
+
+The $p$-values of the intercept and `Mileage` are still significant, `<2e-16`, and explaining how the error terms vary has increased by 11.63%. That's much better! I am going to stick with this regression model. The model looks like this:
+
+$$
+  \underbrace{\hat{Y_i}}_\text{Average Purchase Price} = \overbrace{
+  \underbrace{1.00}_\text{log(Y-Int)} \ + 
+  \ \underbrace{-9.27}_\text{Slope} \ \ \underbrace{X_i}_\text{Mileage}}^\text{Regression Curve}
+$$
+
+### Show Data
+
+I retrieved this data from [KSL Auto](https://cars.ksl.com/search?p=&make[]=Ford&model[]=Ranger&trim[]=XL&page=0), [CarMax](https://www.carmax.com/cars/ford/ranger), and [True Car](https://www.truecar.com/used-cars-for-sale/listings/ford/ranger/?trimSlug[]=xl). 
+
+```{r Data Table, message=FALSE, warning=FALSE}
+datatable(SellPrice)
+```
+
+
+
+
+
+
+
+
+
